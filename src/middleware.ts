@@ -80,9 +80,26 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // Si hay usuario y está en /login, redirige a /dashboard
+  // Si hay usuario, verificar si está autorizado para acceder al dashboard
+  if (user && protectedPaths.some(path => currentPath.startsWith(path))) {
+    const authorizedEmails = process.env.AUTHORIZED_EMAILS?.split(',').map(email => email.trim()) || [];
+    const userEmail = user.email;
+
+    if (!userEmail || !authorizedEmails.includes(userEmail)) {
+      return NextResponse.redirect(new URL('/unauthorized', request.url));
+    }
+  }
+
+  // Si hay usuario autorizado y está en /login, redirige a /dashboard
   if (user && currentPath === '/login') {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    const authorizedEmails = process.env.AUTHORIZED_EMAILS?.split(',').map(email => email.trim()) || [];
+    const userEmail = user.email;
+
+    // Solo redirigir al dashboard si el usuario está autorizado
+    if (userEmail && authorizedEmails.includes(userEmail)) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+    // Si no está autorizado, permitir que permanezca en /login
   }
 
   return response;

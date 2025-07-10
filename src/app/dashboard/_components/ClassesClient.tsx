@@ -1,16 +1,10 @@
 'use client';
 
-import { useState, useTransition, useRef } from 'react';
-import { format } from 'date-fns';
-import { type ClassData } from '../page'; // Importar tipo desde la página
-import { updateClassName } from '../actions';
-
-// Helper para formatear hora HH:MM
-const formatTime = (timeString: string) => {
-  if (!timeString) return 'N/A';
-  const [hours, minutes] = timeString.split(':');
-  return `${hours}:${minutes}`;
-};
+import { useState, useTransition, useRef, useEffect } from 'react';
+import { type ClassData, type Instructor } from '../page'; // Importar tipos desde la página
+import { updateClassName, createClass, deleteClass } from '../actions';
+import { formatTime, formatDateFromString, getNowInEcuador, toISOString, toEcuadorDateTime } from '@/lib/utils/dateUtils';
+import { AlertTriangle, Plus, Trash2, X } from 'lucide-react';
 
 // Componente para manejar la edición inline del nombre
 function EditableClassName({ cls, isPending }: { cls: ClassData; isPending: boolean }) {
@@ -60,11 +54,380 @@ function EditableClassName({ cls, isPending }: { cls: ClassData; isPending: bool
     );
 }
 
-// Componente principal del cliente
-export default function ClassesClient({ initialClasses }: { initialClasses: ClassData[] }) {
-  const [isPendingName, startTransitionName] = useTransition(); // Para el componente hijo
+// Componente del modal para agregar clase
+function AddClassModal({ 
+  isOpen, 
+  onClose, 
+  instructors
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  instructors: Instructor[];
+}) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (formData: FormData) => {
+    setIsSubmitting(true);
+    setMessage('');
+    setError('');
+    
+    const result = await createClass(formData);
+    
+    if (result.error) {
+      setError(result.error);
+    } else {
+      setMessage(result.message || 'Clase creada exitosamente');
+      setTimeout(() => {
+        onClose();
+        setMessage('');
+        setError('');
+      }, 1500);
+    }
+    
+    setIsSubmitting(false);
+  };
+
+  if (!isOpen) return null;
+
+  // Usar Luxon para obtener fechas en zona horaria de Ecuador
+  const todayInEcuador = getNowInEcuador();
+  const todayString = toISOString(todayInEcuador).split('T')[0];
+  
+  // Permitir crear clases hasta 7 días desde hoy
+  const maxDate = todayInEcuador.plus({ days: 7 });
+  const maxDateString = toISOString(maxDate).split('T')[0];
 
   return (
+    <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
+      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 shadow-2xl border-2 border-gray-400">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-gray-800">Agregar Nueva Clase</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+            disabled={isSubmitting}
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <form action={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
+              Fecha
+            </label>
+            <input
+              type="date"
+              id="date"
+              name="date"
+              min={todayString}
+              max={maxDateString}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 bg-white"
+            />
+            <p className="text-xs text-gray-500 mt-1">Puedes agregar clases desde hoy hasta 7 días adelante</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="start_time" className="block text-sm font-medium text-gray-700 mb-1">
+                Hora Inicio
+              </label>
+              <input
+                type="time"
+                id="start_time"
+                name="start_time"
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 bg-white"
+              />
+            </div>
+            <div>
+              <label htmlFor="end_time" className="block text-sm font-medium text-gray-700 mb-1">
+                Hora Fin
+              </label>
+              <input
+                type="time"
+                id="end_time"
+                name="end_time"
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 bg-white"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="instructor_id" className="block text-sm font-medium text-gray-700 mb-1">
+              Instructor
+            </label>
+            <select
+              id="instructor_id"
+              name="instructor_id"
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 bg-white"
+            >
+              <option value="">Selecciona un instructor</option>
+              {instructors.map((instructor) => (
+                <option key={instructor.id} value={instructor.id}>
+                  {instructor.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+              Nombre de la Clase (opcional)
+            </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              placeholder="Ej: Cycling Intenso"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 bg-white"
+            />
+          </div>
+
+          {message && (
+            <div className="p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+              {message}
+            </div>
+          )}
+
+          {error && (
+            <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              {error}
+            </div>
+          )}
+
+          <div className="flex justify-end space-x-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isSubmitting}
+              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 flex items-center"
+            >
+              {isSubmitting ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Creando...
+                </>
+              ) : (
+                'Crear Clase'
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    );
+}
+
+// Componente del modal para confirmar borrar clase
+function DeleteClassModal({ 
+  isOpen, 
+  onClose, 
+  classToDelete,
+  onConfirm,
+  isDeleting,
+  message,
+  error
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  classToDelete: ClassData | null;
+  onConfirm: (id: string) => void;
+  isDeleting: boolean;
+  message: string;
+  error: string;
+}) {
+  if (!isOpen || !classToDelete) return null;
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
+      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 shadow-2xl border-2 border-gray-400">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-gray-800">Confirmar Eliminación</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="mb-6">
+          <div className="flex items-center mb-4">
+            <div className="flex-shrink-0">
+              <AlertTriangle className="w-12 h-12 text-red-500" />
+            </div>
+            <div className="ml-4">
+              <h3 className="text-lg font-medium text-gray-900">
+                ¿Estás seguro de borrar esta clase?
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                Esta acción no se puede deshacer.
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <p className="text-sm text-gray-700">
+              <strong>Fecha:</strong> {formatDateFromString(classToDelete.date)}
+            </p>
+            <p className="text-sm text-gray-700">
+              <strong>Hora:</strong> {classToDelete.start_time} - {classToDelete.end_time}
+            </p>
+            <p className="text-sm text-gray-700">
+              <strong>Instructor:</strong> {classToDelete.instructors?.name ?? 'N/A'}
+            </p>
+            {classToDelete.name && (
+              <p className="text-sm text-gray-700">
+                <strong>Nombre:</strong> {classToDelete.name}
+              </p>
+            )}
+          </div>
+
+          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+            <div className="text-sm text-yellow-800">
+              <p className="mb-2"><strong>¿Qué va a pasar?</strong></p>
+              <ul className="list-disc list-inside space-y-1 text-xs">
+                <li><strong>Sin reservas:</strong> Se borra completamente de la base de datos (cualquier clase)</li>
+                <li><strong>Con reservas:</strong> Se marca como cancelada para preservar el historial</li>
+                <li><strong>Bicis:</strong> Se borran en ambos casos</li>
+                <li><strong>Reservas activas:</strong> Impiden el borrado de clases futuras</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Mensajes de resultado */}
+          {message && (
+            <div className="mt-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+              {message}
+            </div>
+          )}
+
+          {error && (
+            <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              {error}
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-end space-x-3">
+          <button
+            onClick={onClose}
+            disabled={isDeleting}
+            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={() => onConfirm(classToDelete.id)}
+            disabled={isDeleting}
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 flex items-center"
+          >
+            {isDeleting ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Borrando...
+              </>
+            ) : (
+              'Sí, Borrar Clase'
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Componente principal del cliente
+export default function ClassesClient({ 
+  initialClasses, 
+  instructors 
+}: { 
+  initialClasses: ClassData[]; 
+  instructors: Instructor[];
+}) {
+  const [isPendingName, startTransitionName] = useTransition(); // Para el componente hijo
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [classToDelete, setClassToDelete] = useState<ClassData | null>(null);
+  const [deleteMessage, setDeleteMessage] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Función para abrir el modal de confirmación de borrado
+  const handleDeleteClick = (cls: ClassData) => {
+    setClassToDelete(cls);
+    setIsDeleteModalOpen(true);
+    setDeleteMessage('');
+    setDeleteError('');
+  };
+
+  // Función para cerrar el modal de borrado
+  const handleDeleteModalClose = () => {
+    setIsDeleteModalOpen(false);
+    setClassToDelete(null);
+    setDeleteMessage('');
+    setDeleteError('');
+  };
+
+  // Función para confirmar el borrado
+  const handleDeleteConfirm = async (classId: string) => {
+    setIsDeleting(true);
+    setDeleteMessage('');
+    setDeleteError('');
+    
+    const result = await deleteClass(classId);
+    
+    if (result.error) {
+      setDeleteError(result.error);
+    } else {
+      setDeleteMessage(result.message || 'Clase borrada exitosamente');
+      // Cerrar el modal después de 2 segundos si fue exitoso
+      setTimeout(() => {
+        handleDeleteModalClose();
+      }, 2000);
+    }
+    
+    setIsDeleting(false);
+  };
+
+  return (
+    <div>
+      {/* Botón para agregar nueva clase */}
+      <div className="mb-6 flex justify-between items-center">
+        <p className="text-gray-600">
+          Aquí puedes ver y gestionar las próximas clases programadas
+        </p>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 flex items-center"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Agregar Clase para Esta Semana
+        </button>
+      </div>
+
+      {/* Tabla de clases */}
     <div className="bg-white shadow-md rounded overflow-hidden">
       <table className="min-w-full leading-normal">
         <thead>
@@ -73,6 +436,7 @@ export default function ClassesClient({ initialClasses }: { initialClasses: Clas
             <th className="py-3 px-5 text-left">Hora</th>
             <th className="py-3 px-5 text-left">Instructor</th>
             <th className="py-3 px-5 text-left">Nombre Clase</th>
+            <th className="py-3 px-5 text-center">Acciones</th>
           </tr>
         </thead>
         <tbody className="text-gray-700 text-sm font-light">
@@ -80,10 +444,10 @@ export default function ClassesClient({ initialClasses }: { initialClasses: Clas
             initialClasses.map((cls) => (
               <tr key={cls.id} className="border-b border-gray-200 hover:bg-gray-100">
                 <td className="py-3 px-5 text-left whitespace-nowrap">
-                  {format(new Date(cls.date + 'T00:00:00'), 'EEEE, dd MMM yyyy')}
+                    {formatDateFromString(cls.date)}
                 </td>
                 <td className="py-3 px-5 text-left whitespace-nowrap">
-                  {`${formatTime(cls.start_time)} - ${formatTime(cls.end_time)}`}
+                    {`${cls.start_time} - ${cls.end_time}`}
                 </td>
                 <td className="py-3 px-5 text-left">
                   {cls.instructors?.name ?? 'N/A'}
@@ -91,15 +455,57 @@ export default function ClassesClient({ initialClasses }: { initialClasses: Clas
                 <td className="py-3 px-5 text-left">
                     <EditableClassName cls={cls} isPending={isPendingName} />
                 </td>
+                <td className="py-3 px-5 text-center">
+                  <button
+                    onClick={() => handleDeleteClick(cls)}
+                    disabled={isDeleting}
+                    className="text-red-600 hover:text-red-800 disabled:opacity-50 p-2 rounded hover:bg-red-50"
+                    title="Borrar clase"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan={4} className="py-3 px-5 text-center">No se encontraron próximas clases.</td>
+              <td colSpan={5} className="py-3 px-5 text-center">No se encontraron próximas clases.</td>
             </tr>
           )}
         </tbody>
       </table>
+      </div>
+
+      {/* Modal para agregar clase */}
+      <AddClassModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        instructors={instructors}
+      />
+
+      {/* Modal para borrar clase */}
+      <DeleteClassModal
+        isOpen={isDeleteModalOpen}
+        onClose={handleDeleteModalClose}
+        classToDelete={classToDelete}
+        onConfirm={handleDeleteConfirm}
+        isDeleting={isDeleting}
+        message={deleteMessage}
+        error={deleteError}
+      />
+
+      {/* Mensajes de resultado del borrado */}
+      {deleteMessage && (
+        <div className="fixed bottom-4 right-4 z-50 p-4 bg-green-100 border border-green-400 text-green-700 rounded shadow-lg">
+          {deleteMessage}
+        </div>
+      )}
+
+      {deleteError && (
+        <div className="fixed bottom-4 right-4 z-50 p-4 bg-red-100 border border-red-400 text-red-700 rounded shadow-lg">
+          {deleteError}
+        </div>
+      )}
     </div>
   );
 } 

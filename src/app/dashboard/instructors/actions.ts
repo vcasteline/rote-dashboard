@@ -8,6 +8,7 @@ import { z } from 'zod'; // Usaremos Zod para validación
 // Esquema de validación para un instructor (añadir/editar)
 const InstructorSchema = z.object({
   name: z.string().min(1, 'Name is required'),
+  bio: z.string().nullable().optional(), // Bio puede ser null o string
   profile_picture_url: z.string().url('Must be a valid URL').optional().or(z.literal('')), // Opcional o vacío
 });
 
@@ -18,6 +19,7 @@ export async function addInstructor(formData: FormData) {
 
   const validatedFields = InstructorSchema.safeParse({
     name: formData.get('name'),
+    bio: formData.get('bio') || null,
     profile_picture_url: formData.get('profile_picture_url'),
   });
 
@@ -57,6 +59,7 @@ export async function updateInstructor(id: string, formData: FormData) {
 
     const validatedFields = InstructorSchema.safeParse({
         name: formData.get('name'),
+        bio: formData.get('bio') || null,
         profile_picture_url: formData.get('profile_picture_url'),
     });
 
@@ -93,19 +96,49 @@ export async function deleteInstructor(id: string) {
     return { error: 'Invalid ID.' };
   }
 
-  // Advertencia: Esto podría fallar si el instructor está referenciado en otras tablas
-  // y hay restricciones de clave foránea. Considerar manejo de errores o soft delete.
-  const { error } = await supabase.from('instructors').delete().match({ id });
+  // Verificar si el instructor tiene relaciones (clases o schedules)
+  const { data: classes } = await supabase
+    .from('classes')
+    .select('id')
+    .eq('instructor_id', id)
+    .limit(1);
 
-  if (error) {
-    console.error('Error deleting instructor:', error);
-    // Devolver un error específico si es por restricción de FK
-    if (error.code === '23503') { // Código estándar para violación de FK
-         return { error: 'Cannot delete instructor: They are assigned to existing schedules or classes.' };
+  const { data: schedules } = await supabase
+    .from('class_schedules')
+    .select('id')
+    .eq('instructor_id', id)
+    .limit(1);
+
+  const hasRelations = (classes && classes.length > 0) || (schedules && schedules.length > 0);
+
+  if (hasRelations) {
+    // Hacer soft delete: marcar como eliminado con timestamp actual
+    const { error } = await supabase
+      .from('instructors')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', id)
+      .is('deleted_at', null); // Solo eliminar si no está ya eliminado
+
+    if (error) {
+      console.error('Error soft deleting instructor:', error);
+      return { error: `Error de base de datos: ${error.message}` };
     }
-    return { error: `Database Error: ${error.message}` };
-  }
 
-  revalidatePath('/dashboard/instructors');
-  return { message: 'Instructor deleted successfully.' };
+    revalidatePath('/dashboard/instructors');
+    return { message: 'Instructor ocultado exitosamente (tiene clases o horarios asociados).' };
+  } else {
+    // No tiene relaciones: borrar físicamente
+    const { error } = await supabase
+      .from('instructors')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting instructor:', error);
+      return { error: `Error de base de datos: ${error.message}` };
+    }
+
+    revalidatePath('/dashboard/instructors');
+    return { message: 'Instructor eliminado completamente.' };
+  }
 } 

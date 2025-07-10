@@ -4,6 +4,7 @@ import { useState, useTransition, useRef, useEffect } from 'react';
 import { addInstructor, updateInstructor, deleteInstructor } from '../actions';
 import { type Instructor } from '../page'; // Importar tipo desde la página
 import ImageUploader from './ImageUploader';
+import { EyeOff, Edit } from 'lucide-react';
 
 // Componente reutilizable para el formulario
 function InstructorForm({
@@ -19,7 +20,7 @@ function InstructorForm({
   onSubmit: (formData: FormData) => Promise<void>;
   isSubmitting: boolean;
   submitButtonText: string;
-  fieldErrors?: { name?: string[]; profile_picture_url?: string[] };
+  fieldErrors?: { name?: string[]; bio?: string[]; profile_picture_url?: string[] };
   formError?: string | null;
   onCancel?: () => void; // Para el modo edición
 }) {
@@ -33,6 +34,7 @@ function InstructorForm({
         if (instructor) {
             // Llenar el form para editar
             (formRef.current.elements.namedItem('name') as HTMLInputElement).value = instructor.name;
+            (formRef.current.elements.namedItem('bio') as HTMLTextAreaElement).value = instructor.bio || '';
             setImageUrl(instructor.profile_picture_url);
             setInstructorName(instructor.name);
         } else {
@@ -58,6 +60,7 @@ function InstructorForm({
         <div className="w-2 h-2 bg-indigo-500 rounded-full mr-3"></div>
         {instructor ? 'Editar Instructor' : 'Añadir Nuevo Instructor'}
       </h3>
+      <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-1">
           <label htmlFor="name" className="block text-sm font-medium text-gray-700">Nombre del Instructor</label>
@@ -82,6 +85,20 @@ function InstructorForm({
             instructorName={instructorName || 'instructor'}
           />
           {fieldErrors?.profile_picture_url && <p className="mt-1 text-xs text-red-500">{fieldErrors.profile_picture_url.join(', ')}</p>}
+          </div>
+        </div>
+
+        <div className="space-y-1">
+          <label htmlFor="bio" className="block text-sm font-medium text-gray-700">Biografía (opcional)</label>
+          <textarea
+            id="bio"
+            name="bio"
+            rows={3}
+            defaultValue={instructor?.bio ?? ''}
+            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 ${fieldErrors?.bio ? 'border-red-500' : 'border-gray-300'}`}
+            placeholder="Describe la experiencia y especialidades del instructor..."
+          />
+          {fieldErrors?.bio && <p className="mt-1 text-xs text-red-500">{fieldErrors.bio.join(', ')}</p>}
         </div>
       </div>
       
@@ -171,7 +188,7 @@ export default function InstructorsClient({ initialInstructors }: { initialInstr
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('¿Estás seguro de eliminar este instructor? Esta acción no se puede deshacer.')) {
+    if (confirm('¿Estás seguro de ocultar/eliminar este instructor? Si tiene clases o horarios asociados, se ocultará. Si no tiene relaciones, se eliminará completamente.')) {
          startTransitionDelete(async () => {
             setDeleteError(null);
             const result = await deleteInstructor(id);
@@ -238,6 +255,7 @@ export default function InstructorsClient({ initialInstructors }: { initialInstr
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Instructor</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Biografía</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Foto de Perfil</th>
                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                   </tr>
@@ -249,6 +267,17 @@ export default function InstructorsClient({ initialInstructors }: { initialInstr
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="text-sm font-medium text-gray-900">{instructor.name}</div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-900 max-w-xs">
+                            {instructor.bio ? (
+                              <p className="truncate" title={instructor.bio}>
+                                {instructor.bio}
+                              </p>
+                            ) : (
+                              <span className="text-gray-400 italic">Sin biografía</span>
+                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -285,20 +314,16 @@ export default function InstructorsClient({ initialInstructors }: { initialInstr
                               disabled={isPendingUpdate || isPendingDelete || isPendingAdd}
                               className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
                             >
-                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                              </svg>
+                              <Edit className="w-4 h-4 mr-1" />
                               Editar
                             </button>
                             <button
                               onClick={() => handleDelete(instructor.id)}
                               disabled={isPendingDelete || isPendingUpdate || isPendingAdd}
-                              className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                              className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-orange-700 bg-orange-100 hover:bg-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
                             >
-                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                              Eliminar
+                              <EyeOff className="w-4 h-4 mr-1" />
+                              {isPendingDelete ? 'Procesando...' : 'Ocultar'}
                             </button>
                           </div>
                         </td>
@@ -306,7 +331,7 @@ export default function InstructorsClient({ initialInstructors }: { initialInstr
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={3} className="px-6 py-12 text-center">
+                      <td colSpan={4} className="px-6 py-12 text-center">
                         <div className="flex flex-col items-center">
                           <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />

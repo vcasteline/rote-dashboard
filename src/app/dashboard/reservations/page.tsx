@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import ReservationsClient from './_components/ReservationsClient';
+import { getNextMonday, toISOString } from '@/lib/utils/dateUtils';
 
 // Tipo actualizado
 export type ReservationData = {
@@ -30,7 +31,12 @@ export default async function ReservationsPage() {
   const cookieStore = cookies();
   const supabase = await createClient();
 
-  // Obtener reservaciones activas con detalles anidados
+  // Obtener el lunes de esta semana usando Luxon
+  const mondayOfThisWeek = toISOString(getNextMonday()).split('T')[0];
+
+  console.log('Filtrando reservaciones desde (Luxon):', mondayOfThisWeek); // Para debug
+
+  // Obtener reservaciones futuras con detalles anidados
   const { data: reservations, error } = await supabase
     .from('reservations')
     .select(`
@@ -40,7 +46,8 @@ export default async function ReservationsPage() {
       classes ( id, date, start_time, instructors ( name ) ),
       reservation_bikes ( bikes ( static_bike_id ) )
     `)
-    .eq('status', 'confirmed') // Asumimos 'active' para mostrar
+    .eq('status', 'confirmed') // Solo confirmadas
+    .gte('classes.date', mondayOfThisWeek) // Solo clases desde esta semana
     // Ordenar por fecha y hora de clase para agrupar visualmente
     .order('date', { referencedTable: 'classes', ascending: true })
     .order('start_time', { referencedTable: 'classes', ascending: true })
@@ -53,7 +60,7 @@ export default async function ReservationsPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6 text-gray-900">Reservaciones Actuales</h1>
+      <h1 className="text-3xl font-bold mb-6 text-gray-900">Próximas Reservaciones</h1>
       {error ? (
         <p className="text-red-500">No se pudieron cargar las reservaciones. Intenta más tarde.</p>
       ) : (

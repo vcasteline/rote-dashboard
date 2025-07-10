@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { getNextMonday } from '@/lib/utils/dateUtils';
+import { getNextMonday, formatDate, toISOString } from '@/lib/utils/dateUtils';
 import { addDefaultScheduleEntry, deleteDefaultScheduleEntry } from '../actions';
 import { type DefaultScheduleEntry, type Instructor } from '../page'; // Importar tipos desde la página
 import CustomSelect from './CustomSelect';
@@ -66,7 +66,7 @@ export default function ScheduleClient({
     setGenerateMessage('');
     setGenerateError('');
     const nextMonday = getNextMonday();
-    const nextMondayString = nextMonday.toISOString().split('T')[0];
+    const nextMondayString = toISOString(nextMonday).split('T')[0];
 
     try {
       const { error: rpcError } = await supabase.rpc('generate_weekly_classes', {
@@ -121,8 +121,8 @@ export default function ScheduleClient({
           Generar Clases Semanales
         </h2>
         <p className="mb-6 text-gray-600 leading-relaxed">
-          Genera el horario de clases para la próxima semana (empezando el lunes siguiente)
-          basado en el horario por defecto configurado abajo.
+          El horario que configures abajo será utilizado para generar automáticamente las clases de la próxima semana.
+          La generación ocurre cada domingo a las 9:00 PM, creando el horario que iniciará el lunes siguiente.
         </p>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -139,7 +139,7 @@ export default function ScheduleClient({
               </div>
             )}
           </div>
-          <button
+          {/* <button
             onClick={handleGenerateSchedule}
             disabled={isGenerating}
             className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-medium rounded-lg hover:from-indigo-700 hover:to-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
@@ -154,10 +154,10 @@ export default function ScheduleClient({
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
-                {`Generar para semana del ${getNextMonday().toLocaleDateString()}`}
+                {`Generar para semana del ${formatDate(getNextMonday())}`}
               </div>
             )}
-          </button>
+          </button> */}
         </div>
       </div>
 

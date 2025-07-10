@@ -1,13 +1,25 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { format } from 'date-fns';
 import { type PurchaseData } from '../page';
 
 // Helper para formatear fechas
 const formatDate = (dateString: string | null) => {
   if (!dateString) return 'N/A';
-  return format(new Date(dateString), 'dd/MM/yyyy');
+  try {
+    const date = new Date(dateString);
+    // Verificar que la fecha sea válida
+    if (isNaN(date.getTime())) return 'N/A';
+    
+    // Formatear manualmente para asegurar dd/MM/yyyy
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${day}/${month}/${year}`;
+  } catch (error) {
+    return 'N/A';
+  }
 };
 
 // Helper para formatear moneda
@@ -44,7 +56,12 @@ const getPackageStatus = (purchase: PurchaseData) => {
 };
 
 // Función para exportar a Excel (CSV)
-const exportToExcel = (purchases: PurchaseData[]) => {
+const exportToExcel = (purchases: PurchaseData[], filters?: {
+  searchTerm?: string;
+  statusFilter?: string;
+  dateFrom?: string;
+  dateTo?: string;
+}) => {
   // Crear headers
   const headers = [
     'Fecha Compra',
@@ -86,12 +103,32 @@ const exportToExcel = (purchases: PurchaseData[]) => {
     .map(row => row.map(field => `"${field}"`).join(','))
     .join('\n');
 
+  // Generar nombre de archivo con información de filtros
+  let fileName = 'paquetes_comprados';
+  
+  if (filters?.dateFrom || filters?.dateTo) {
+    fileName += '_filtrado';
+    if (filters.dateFrom && filters.dateTo) {
+      fileName += `_${filters.dateFrom}_a_${filters.dateTo}`;
+    } else if (filters.dateFrom) {
+      fileName += `_desde_${filters.dateFrom}`;
+    } else if (filters.dateTo) {
+      fileName += `_hasta_${filters.dateTo}`;
+    }
+  }
+  
+  if (filters?.statusFilter && filters.statusFilter !== 'todos') {
+    fileName += `_${filters.statusFilter}`;
+  }
+  
+  fileName += `_${new Date().toISOString().slice(0, 16).replace(/[-T]/g, '_').replace(/:/g, '-')}.csv`;
+
   // Crear y descargar archivo
   const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   const url = URL.createObjectURL(blob);
   link.setAttribute('href', url);
-  link.setAttribute('download', `paquetes_comprados_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+  link.setAttribute('download', fileName);
   link.style.visibility = 'hidden';
   document.body.appendChild(link);
   link.click();
@@ -172,6 +209,42 @@ function CustomSelect({
 export default function PackagesClient({ initialPurchases }: { initialPurchases: PurchaseData[] }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+
+  // Funciones de atajo para fechas comunes
+  const setDateShortcut = (type: 'today' | 'week' | 'month') => {
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    
+    switch (type) {
+      case 'today':
+        setDateFrom(todayStr);
+        setDateTo(todayStr);
+        break;
+      case 'week':
+        const weekStart = new Date(today);
+        weekStart.setDate(today.getDate() - today.getDay()); // Domingo de esta semana
+        setDateFrom(weekStart.toISOString().split('T')[0]);
+        setDateTo(todayStr);
+        break;
+      case 'month':
+        const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+        setDateFrom(monthStart.toISOString().split('T')[0]);
+        setDateTo(todayStr);
+        break;
+    }
+  };
+
+  // Función para normalizar fecha a YYYY-MM-DD para comparación
+  const normalizeDate = (dateString: string | null) => {
+    if (!dateString) return null;
+    try {
+      return new Date(dateString).toISOString().split('T')[0];
+    } catch {
+      return null;
+    }
+  };
 
   // Filtrar paquetes
   const filteredPurchases = initialPurchases.filter(purchase => {
@@ -183,77 +256,190 @@ export default function PackagesClient({ initialPurchases }: { initialPurchases:
     const packageStatus = getPackageStatus(purchase).status;
     const matchesStatus = statusFilter === 'todos' || packageStatus === statusFilter;
 
-    return matchesSearch && matchesStatus;
+    // Filtro por fecha de compra
+    const purchaseDate = normalizeDate(purchase.purchase_date);
+    let matchesDateRange = true;
+    
+    if (dateFrom && purchaseDate) {
+      matchesDateRange = matchesDateRange && purchaseDate >= dateFrom;
+    }
+    
+    if (dateTo && purchaseDate) {
+      matchesDateRange = matchesDateRange && purchaseDate <= dateTo;
+    }
+
+    return matchesSearch && matchesStatus && matchesDateRange;
   });
 
   return (
     <div className="space-y-6">
       {/* Controles superiores */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <div className="flex flex-col sm:flex-row gap-4 flex-1">
-            {/* Búsqueda */}
-            <div className="flex-1 min-w-64">
-              <input
-                type="text"
-                placeholder="Buscar por cliente, email o paquete..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
-              />
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="space-y-6">
+          {/* Primera fila: Búsqueda y Estado */}
+          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+            <div className="flex flex-col md:flex-row gap-4 flex-1 w-full lg:w-auto">
+              {/* Búsqueda */}
+              <div className="flex-1 min-w-80">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Buscar paquetes
+                </label>
+                <input
+                  type="text"
+                  placeholder="Cliente, email o paquete..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                />
+              </div>
+
+              {/* Filtro por estado */}
+              <div className="min-w-56">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Estado del paquete
+                </label>
+                <CustomSelect
+                  value={statusFilter}
+                  onChange={setStatusFilter}
+                  options={[
+                    { value: 'todos', label: 'Todos los estados' },
+                    { value: 'activo', label: 'Activos' },
+                    { value: 'por-vencer', label: 'Por vencer' },
+                    { value: 'vencido', label: 'Vencidos' },
+                    { value: 'agotado', label: 'Agotados' }
+                  ]}
+                />
+              </div>
             </div>
 
-            {/* Filtro por estado */}
-            <div className="min-w-48">
-              <CustomSelect
-                value={statusFilter}
-                onChange={setStatusFilter}
-                options={[
-                  { value: 'todos', label: 'Todos los estados' },
-                  { value: 'activo', label: 'Activos' },
-                  { value: 'por-vencer', label: 'Por vencer' },
-                  { value: 'vencido', label: 'Vencidos' },
-                  { value: 'agotado', label: 'Agotados' }
-                ]}
-              />
-            </div>
+            {/* Indicador de filtros activos */}
+            {(searchTerm || statusFilter !== 'todos' || dateFrom || dateTo) && (
+              <div className="flex items-center">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                  </svg>
+                  Filtros activos
+                </span>
+              </div>
+            )}
           </div>
 
-          {/* Botón de exportar */}
-          <button
-            onClick={() => exportToExcel(filteredPurchases)}
-            className="px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <span>Exportar Excel</span>
-          </button>
+          {/* Segunda fila: Filtros por fecha */}
+          <div className="border-t border-gray-100 pt-6">
+            <div className="flex flex-col space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium text-gray-700">
+                  Filtrar por fecha de compra
+                </h3>
+                
+                {/* Botones de atajo */}
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setDateShortcut('today')}
+                    className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-md text-sm hover:bg-blue-200 transition-colors"
+                  >
+                    Hoy
+                  </button>
+                  <button
+                    onClick={() => setDateShortcut('week')}
+                    className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-md text-sm hover:bg-blue-200 transition-colors"
+                  >
+                    Esta semana
+                  </button>
+                  <button
+                    onClick={() => setDateShortcut('month')}
+                    className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-md text-sm hover:bg-blue-200 transition-colors"
+                  >
+                    Este mes
+                  </button>
+                  {(dateFrom || dateTo) && (
+                    <button
+                      onClick={() => {
+                        setDateFrom('');
+                        setDateTo('');
+                      }}
+                      className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition-colors text-sm"
+                    >
+                      Limpiar fechas
+                    </button>
+                  )}
+                </div>
+              </div>
+              
+              {/* Inputs de fecha */}
+              <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-end">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-600 mb-2">
+                    Fecha desde
+                  </label>
+                  <input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                  />
+                </div>
+                
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-600 mb-2">
+                    Fecha hasta
+                  </label>
+                  <input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                  />
+                </div>
+
+                {/* Botón de exportar */}
+                <div className="flex-shrink-0">
+                  <button
+                    onClick={() => exportToExcel(filteredPurchases, {
+                      searchTerm,
+                      statusFilter,
+                      dateFrom,
+                      dateTo
+                    })}
+                    className="px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2 shadow-sm"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>Exportar Excel ({filteredPurchases.length})</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Estadísticas rápidas */}
-        <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-gray-900">{filteredPurchases.length}</div>
-            <div className="text-sm text-gray-600">Total</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">
-              {filteredPurchases.filter(p => getPackageStatus(p).status === 'activo').length}
+        <div className="mt-6 pt-6 border-t border-gray-100">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="text-center bg-gray-50 rounded-lg p-4">
+              <div className="text-2xl font-bold text-gray-900">{filteredPurchases.length}</div>
+              <div className="text-sm text-gray-600">Total</div>
             </div>
-            <div className="text-sm text-gray-600">Activos</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-yellow-600">
-              {filteredPurchases.filter(p => getPackageStatus(p).status === 'por-vencer').length}
+            <div className="text-center bg-green-50 rounded-lg p-4">
+              <div className="text-2xl font-bold text-green-600">
+                {filteredPurchases.filter(p => getPackageStatus(p).status === 'activo').length}
+              </div>
+              <div className="text-sm text-gray-600">Activos</div>
             </div>
-            <div className="text-sm text-gray-600">Por vencer</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-red-600">
-              {filteredPurchases.filter(p => ['vencido', 'agotado'].includes(getPackageStatus(p).status)).length}
+            <div className="text-center bg-yellow-50 rounded-lg p-4">
+              <div className="text-2xl font-bold text-yellow-600">
+                {filteredPurchases.filter(p => getPackageStatus(p).status === 'por-vencer').length}
+              </div>
+              <div className="text-sm text-gray-600">Por vencer</div>
             </div>
-            <div className="text-sm text-gray-600">Vencidos/Agotados</div>
+            <div className="text-center bg-red-50 rounded-lg p-4">
+              <div className="text-2xl font-bold text-red-600">
+                {filteredPurchases.filter(p => ['vencido', 'agotado'].includes(getPackageStatus(p).status)).length}
+              </div>
+              <div className="text-sm text-gray-600">Vencidos/Agotados</div>
+            </div>
           </div>
         </div>
       </div>

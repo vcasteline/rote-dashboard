@@ -1,25 +1,36 @@
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
-import { format } from 'date-fns'; // Necesitaremos date-fns para formatear
-import ClassesClient from './_components/ClassesClient'; // Crearemos este
+import ClassesClient from './_components/ClassesClient';
+import { getNowInEcuador, toISOString } from '@/lib/utils/dateUtils';
+
 // Tipo actualizado para los datos de la clase
 export type ClassData = {
   id: string;
   date: string;
-  start_time: string; // Actualizado
-  end_time: string;   // Actualizado
-  name: string | null; // Añadido
+  start_time: string;
+  end_time: string;
+  name: string | null;
   instructors: {
     name: string;
   } | null;
+};
+
+// Tipo para instructores
+export type Instructor = {
+  id: string;
+  name: string;
 };
 
 export default async function DashboardPage() {
   const cookieStore = cookies();
   const supabase = await createClient();
 
-  const today = new Date().toISOString().split('T')[0];
+  // Obtener la fecha actual en Ecuador (solo la fecha, sin hora)
+  const todayInEcuador = toISOString(getNowInEcuador()).split('T')[0];
 
+  console.log('Fecha actual en Ecuador:', todayInEcuador); // Para debug
+
+  // Obtener clases desde hoy en adelante (solo las no canceladas)
   const { data: classes, error } = await supabase
     .from('classes')
     .select(`
@@ -30,14 +41,25 @@ export default async function DashboardPage() {
       name,
       instructors ( name )
     `)
-    .gte('date', today)
+    .gte('date', todayInEcuador) // Cambiar a desde hoy en adelante
+    .eq('is_cancelled', false)
     .order('date', { ascending: true })
     .order('start_time', { ascending: true })
     .returns<ClassData[]>();
 
+  // Obtener instructores para el formulario
+  const { data: instructors, error: instructorsError } = await supabase
+    .from('instructors')
+    .select('id, name')
+    .order('name')
+    .returns<Instructor[]>();
+
   if (error) {
     console.error('Error fetching classes:', error);
-    // Podríamos mostrar un mensaje de error en el cliente
+  }
+
+  if (instructorsError) {
+    console.error('Error fetching instructors:', instructorsError);
   }
 
   return (
@@ -46,7 +68,10 @@ export default async function DashboardPage() {
       {error ? (
         <p className="text-red-500">No se pudieron cargar las clases. Intenta más tarde.</p>
       ) : (
-        <ClassesClient initialClasses={classes ?? []} />
+        <ClassesClient 
+          initialClasses={classes ?? []} 
+          instructors={instructors ?? []}
+        />
       )}
     </div>
   );
