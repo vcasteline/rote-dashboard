@@ -3,7 +3,8 @@
 import { useMemo, useState, useTransition, useEffect } from 'react';
 import { format } from 'date-fns';
 import { type ReservationData } from '../page'; // Importar tipo
-import { cancelReservation, updateReservationBikes, getAvailableBikes } from '../actions';
+import { cancelReservation, updateReservationBikes, getAvailableBikes, getUsersWithCredits, getAvailableClasses, createReservation, type UserWithCredits, type AvailableClass } from '../actions';
+import { Plus, X, User, Calendar, Clock, Users, Bike } from 'lucide-react';
 
 // Helper para formatear hora HH:MM
 const formatTime = (timeString: string | null | undefined) => {
@@ -94,6 +95,18 @@ function BikeSelector({
       <div className="text-xs text-gray-600 mb-2">
         Selecciona las bicicletas (disponibles: {availableBikes.length})
       </div>
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 mb-2">
+        <div className="flex items-start">
+          <div className="flex-shrink-0">
+            <Bike className="h-3 w-3 text-blue-400 mt-0.5" />
+          </div>
+          <div className="ml-2">
+            <p className="text-xs text-blue-700">
+              <strong>Nota:</strong> El layout físico de las bicicletas puedes verlo en la app móvil de Giro.
+            </p>
+          </div>
+        </div>
+      </div>
       <div className="max-h-32 overflow-y-auto border border-gray-300 rounded p-2 bg-white">
         {allBikeOptions.length === 0 ? (
           <div className="text-sm text-gray-500">No hay bicicletas disponibles</div>
@@ -112,7 +125,7 @@ function BikeSelector({
                     ${isSelected 
                       ? 'bg-blue-500 text-white border-blue-500' 
                       : isAvailable || isCurrentlyReserved
-                        ? 'bg-gray-50 border-gray-300 hover:bg-gray-100' 
+                        ? 'bg-gray-50 border-gray-300 hover:bg-gray-100 text-gray-800' 
                         : 'bg-red-50 border-red-300 text-red-500 cursor-not-allowed'
                     }
                     ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
@@ -141,6 +154,464 @@ function BikeSelector({
   );
 }
 
+// Componente para crear nueva reservación
+function CreateReservationModal({
+  isOpen,
+  onClose,
+  onSuccess
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: (message: string) => void;
+}) {
+  const [step, setStep] = useState(1); // 1: Seleccionar usuario, 2: Seleccionar clase, 3: Seleccionar bicicletas
+     const [selectedUser, setSelectedUser] = useState<UserWithCredits | null>(null);
+   const [selectedClass, setSelectedClass] = useState<AvailableClass | null>(null);
+   const [selectedBikes, setSelectedBikes] = useState<number[]>([]);
+
+  const [users, setUsers] = useState<UserWithCredits[]>([]);
+  const [classes, setClasses] = useState<AvailableClass[]>([]);
+  const [availableBikes, setAvailableBikes] = useState<BikeOption[]>([]);
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Cargar usuarios cuando se abre el modal
+  useEffect(() => {
+    if (isOpen && step === 1) {
+      setLoading(true);
+      getUsersWithCredits().then(result => {
+        if (result.success) {
+          setUsers(result.users || []);
+        } else {
+          setError(result.error || 'Error al cargar usuarios');
+        }
+        setLoading(false);
+      });
+    }
+  }, [isOpen, step]);
+
+  // Cargar clases cuando se selecciona un usuario
+  useEffect(() => {
+    if (step === 2 && selectedUser) {
+      setLoading(true);
+      getAvailableClasses().then(result => {
+        if (result.success) {
+          setClasses(result.classes || []);
+        } else {
+          setError(result.error || 'Error al cargar clases');
+        }
+        setLoading(false);
+      });
+    }
+  }, [step, selectedUser]);
+
+  // Cargar bicicletas cuando se selecciona una clase
+  useEffect(() => {
+    if (step === 3 && selectedClass) {
+      setLoading(true);
+      getAvailableBikes(selectedClass.id).then(result => {
+        if (result.error) {
+          setError(result.error);
+        } else {
+          setAvailableBikes(result.availableBikes || []);
+        }
+        setLoading(false);
+      });
+    }
+  }, [step, selectedClass]);
+
+     const handleClose = () => {
+     setStep(1);
+     setSelectedUser(null);
+     setSelectedClass(null);
+     setSelectedBikes([]);
+     setError(null);
+     onClose();
+   };
+
+  const handleNextStep = () => {
+    setError(null);
+    if (step === 1 && selectedUser) {
+      setStep(2);
+    } else if (step === 2 && selectedClass) {
+      setSelectedBikes([]);
+      setStep(3);
+    }
+  };
+
+  const handlePrevStep = () => {
+    setError(null);
+    if (step === 2) {
+      setStep(1);
+      setSelectedClass(null);
+    } else if (step === 3) {
+      setStep(2);
+      setSelectedBikes([]);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedUser || !selectedClass || selectedBikes.length === 0) {
+      setError('Faltan datos requeridos');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+
+         const result = await createReservation({
+       user_id: selectedUser.id,
+       class_id: selectedClass.id,
+       bike_static_ids: selectedBikes,
+       credits_to_use: 1 // Por ahora usar 1 crédito por defecto
+     });
+
+    if (result.success) {
+      onSuccess(result.message || 'Reservación creada exitosamente');
+      handleClose();
+    } else {
+      setError(result.error || 'Error al crear reservación');
+    }
+
+    setIsSubmitting(false);
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString + 'T00:00:00');
+    return format(date, 'EEEE, dd MMM yyyy');
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 overflow-y-auto h-full w-full z-50">
+      <div className="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-lg font-bold text-gray-900">
+            Crear Nueva Reservación - Paso {step} de 3
+          </h3>
+          <button
+            onClick={handleClose}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+
+                 {/* Progress bar */}
+         <div className="mb-6">
+           <div className="flex items-center w-full relative">
+             {[1, 2, 3].map((i) => (
+               <div key={i} className="flex flex-col items-center flex-1 relative">
+                 <div
+                   className={`rounded-full h-8 w-8 flex items-center justify-center text-sm font-semibold relative z-10 ${
+                     i <= step
+                       ? 'bg-[#6758C2] text-white'
+                       : 'bg-gray-200 text-gray-600'
+                   }`}
+                 >
+                   {i}
+                 </div>
+                 <span className="text-center text-xs text-gray-600 mt-3">
+                   {i === 1 && 'Seleccionar Usuario'}
+                   {i === 2 && 'Seleccionar Clase'}
+                   {i === 3 && 'Seleccionar Bicicletas'}
+                 </span>
+               </div>
+             ))}
+             {/* Líneas de conexión */}
+             <div className="absolute top-4 left-1/6 right-1/6 flex items-center">
+               <div
+                 className={`flex-1 h-1 ${
+                   1 < step ? 'bg-[#6758C2]' : 'bg-gray-200'
+                 }`}
+               />
+               <div className="w-8"></div>
+               <div
+                 className={`flex-1 h-1 ${
+                   2 < step ? 'bg-[#6758C2]' : 'bg-gray-200'
+                 }`}
+               />
+             </div>
+           </div>
+         </div>
+
+        {/* Error message */}
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-red-600 text-sm">{error}</p>
+          </div>
+        )}
+
+        {/* Step 1: Seleccionar Usuario */}
+        {step === 1 && (
+          <div className="space-y-4">
+            <h4 className="text-md font-semibold text-gray-800 flex items-center">
+              <User className="h-5 w-5 mr-2" />
+              Seleccionar Usuario con Créditos
+            </h4>
+            
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="text-gray-500">Cargando usuarios...</div>
+              </div>
+            ) : users.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="text-gray-500">No hay usuarios con créditos disponibles</div>
+              </div>
+            ) : (
+              <div className="grid gap-4 max-h-96 overflow-y-auto">
+                {users.map((user) => (
+                  <div
+                    key={user.id}
+                    onClick={() => setSelectedUser(user)}
+                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                      selectedUser?.id === user.id
+                        ? 'border-[#6758C2] bg-purple-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h5 className="font-medium text-gray-900">{user.name || 'Sin nombre'}</h5>
+                        <p className="text-sm text-gray-600">{user.email}</p>
+                        {user.phone && (
+                          <p className="text-sm text-gray-500">{user.phone}</p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-[#6758C2]">
+                          {user.activeCredits} créditos
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {user.activePurchases.length} paquete{user.activePurchases.length !== 1 ? 's' : ''}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {selectedUser?.id === user.id && (
+                      <div className="mt-3 pt-3 border-t border-gray-200">
+                        <h6 className="text-xs font-medium text-gray-700 mb-2">Paquetes Activos:</h6>
+                        <div className="space-y-1">
+                          {user.activePurchases.map((purchase) => (
+                            <div key={purchase.id} className="text-xs text-gray-600 flex justify-between">
+                              <span>{purchase.package_name}</span>
+                              <span>{purchase.credits_remaining} créditos</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Step 2: Seleccionar Clase */}
+        {step === 2 && (
+          <div className="space-y-4">
+            <h4 className="text-md font-semibold text-gray-800 flex items-center">
+              <Calendar className="h-5 w-5 mr-2" />
+              Seleccionar Clase para {selectedUser?.name}
+            </h4>
+            
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="text-gray-500">Cargando clases...</div>
+              </div>
+            ) : classes.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="text-gray-500">No hay clases disponibles</div>
+              </div>
+            ) : (
+              <div className="grid gap-4 max-h-96 overflow-y-auto">
+                {classes.map((cls) => (
+                  <div
+                    key={cls.id}
+                    onClick={() => setSelectedClass(cls)}
+                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                      selectedClass?.id === cls.id
+                        ? 'border-[#6758C2] bg-purple-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h5 className="font-medium text-gray-900">
+                          {formatDate(cls.date)}
+                        </h5>
+                        <div className="flex items-center text-sm text-gray-600 mt-1">
+                          <Clock className="h-4 w-4 mr-1" />
+                          {formatTime(cls.start_time)} - {formatTime(cls.end_time)}
+                        </div>
+                        {cls.instructor_name && (
+                          <div className="flex items-center text-sm text-gray-500 mt-1">
+                            <User className="h-4 w-4 mr-1" />
+                            {cls.instructor_name}
+                          </div>
+                        )}
+                        {cls.name && (
+                          <p className="text-sm text-gray-700 mt-1">{cls.name}</p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <div className="flex items-center text-sm text-green-600">
+                          <Users className="h-4 w-4 mr-1" />
+                          {cls.availableSpots} disponibles
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Step 3: Seleccionar Bicicletas */}
+        {step === 3 && selectedClass && (
+          <div className="space-y-4">
+            <h4 className="text-md font-semibold text-gray-800 flex items-center">
+              <Bike className="h-5 w-5 mr-2" />
+              Seleccionar Bicicletas para {selectedUser?.name}
+            </h4>
+            
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h5 className="font-medium text-gray-800">Clase Seleccionada:</h5>
+              <p className="text-sm text-gray-600">
+                {formatDate(selectedClass.date)} - {formatTime(selectedClass.start_time)} - {formatTime(selectedClass.end_time)}
+              </p>
+              {selectedClass.instructor_name && (
+                <p className="text-sm text-gray-600">Instructor: {selectedClass.instructor_name}</p>
+              )}
+            </div>
+
+            
+
+                         {loading ? (
+               <div className="text-center py-4">
+                 <div className="text-gray-500">Cargando bicicletas...</div>
+               </div>
+             ) : (
+               <div className="space-y-2">
+                 <div className="text-sm text-gray-600">
+                   Selecciona las bicicletas (disponibles: {availableBikes.length})
+                 </div>
+                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                   <div className="flex items-start">
+                     <div className="flex-shrink-0">
+                       <Bike className="h-4 w-4 text-blue-400 mt-0.5" />
+                     </div>
+                     <div className="ml-2">
+                       <p className="text-xs text-blue-700">
+                         <strong>Nota:</strong> El layout físico de las bicicletas en el estudio puedes verlo en la app móvil de Giro.
+                       </p>
+                     </div>
+                   </div>
+                 </div>
+                <div className="max-h-40 overflow-y-auto border border-gray-300 rounded p-4 bg-white">
+                  {availableBikes.length === 0 ? (
+                    <div className="text-sm text-gray-500">No hay bicicletas disponibles</div>
+                  ) : (
+                    <div className="grid grid-cols-8 gap-2">
+                      {availableBikes.map((bike) => {
+                        const isSelected = selectedBikes.includes(bike.static_bike_id);
+                        return (
+                          <label
+                            key={bike.static_bike_id}
+                            className={`
+                              flex items-center justify-center p-2 text-sm border rounded cursor-pointer transition-colors
+                              ${isSelected
+                                ? 'bg-[#6758C2] text-white border-[#6758C2]'
+                                : 'bg-gray-50 border-gray-300 hover:bg-gray-100 text-gray-800'
+                              }
+                            `}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => {
+                                if (isSelected) {
+                                  setSelectedBikes(selectedBikes.filter(id => id !== bike.static_bike_id));
+                                } else {
+                                  setSelectedBikes([...selectedBikes, bike.static_bike_id].sort((a, b) => a - b));
+                                }
+                              }}
+                              className="sr-only"
+                            />
+                            {bike.static_bike_id}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+                {selectedBikes.length > 0 && (
+                  <div className="text-sm text-gray-600">
+                    Bicicletas seleccionadas: {selectedBikes.join(', ')}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className="flex justify-between mt-6 pt-4 border-t border-gray-200">
+          <div>
+            {step > 1 && (
+              <button
+                onClick={handlePrevStep}
+                disabled={loading}
+                className="px-4 py-2 text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50"
+              >
+                Anterior
+              </button>
+            )}
+          </div>
+          
+          <div className="space-x-2">
+            <button
+              onClick={handleClose}
+              disabled={loading || isSubmitting}
+              className="px-4 py-2 text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+            
+            {step < 3 ? (
+              <button
+                onClick={handleNextStep}
+                disabled={
+                  loading ||
+                  (step === 1 && !selectedUser) ||
+                  (step === 2 && !selectedClass)
+                }
+                className="px-4 py-2 bg-[#6758C2] text-white rounded-md hover:bg-[#5A4AB8] disabled:opacity-50"
+              >
+                Siguiente
+              </button>
+            ) : (
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting || selectedBikes.length === 0}
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+              >
+                {isSubmitting ? 'Creando...' : 'Crear Reservación'}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ReservationsClient({ initialReservations }: { initialReservations: ReservationData[] }) {
   const [isPending, startTransition] = useTransition();
   const [cancelError, setCancelError] = useState<string | null>(null);
@@ -148,6 +619,15 @@ export default function ReservationsClient({ initialReservations }: { initialRes
   const [selectedBikes, setSelectedBikes] = useState<number[]>([]);
   const [editError, setEditError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  
+  // Estados para el modal de crear reservación
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const handleCreateSuccess = (message: string) => {
+    setSuccessMessage(message);
+    setCancelError(null);
+    setEditError(null);
+  };
 
   // Agrupar reservaciones por clase usando useMemo para eficiencia
   const groupedReservations = useMemo(() => {
@@ -244,6 +724,20 @@ export default function ReservationsClient({ initialReservations }: { initialRes
 
   return (
     <div>
+      {/* Botón para crear nueva reservación */}
+      <div className="mb-6 flex justify-between items-center">
+        <p className="text-gray-600">
+          Gestiona las reservaciones existentes y crea nuevas reservaciones para tus usuarios
+        </p>
+        <button
+          onClick={() => setIsCreateModalOpen(true)}
+          className="px-4 py-2 bg-[#6758C2] text-white rounded-md hover:bg-[#5A4AB8] flex items-center"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Crear Reservación
+        </button>
+      </div>
+
       {/* Warning sobre modificaciones de reservaciones */}
       <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
         <div className="flex items-start">
@@ -371,6 +865,13 @@ export default function ReservationsClient({ initialReservations }: { initialRes
           </div>
         );
       })}
+
+      {/* Modal para crear nueva reservación */}
+      <CreateReservationModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={handleCreateSuccess}
+      />
     </div>
   );
 } 

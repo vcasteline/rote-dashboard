@@ -1,4 +1,5 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 
 export async function createClient() {
@@ -34,5 +35,18 @@ export async function createClient() {
         }
       },
     },
+  });
+}
+
+// Cliente administrativo con service role key para operaciones de admin
+export function createAdminClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+  return createSupabaseClient(supabaseUrl, supabaseServiceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
   });
 } 

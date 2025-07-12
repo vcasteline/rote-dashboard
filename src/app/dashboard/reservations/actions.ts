@@ -3,6 +3,32 @@
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
+import { toISOString, getNowInEcuador } from '@/lib/utils/dateUtils';
+
+// Interfaces para tipos de datos
+export interface UserWithCredits {
+  id: string;
+  name: string | null;
+  email: string;
+  phone: string | null;
+  activeCredits: number;
+  activePurchases: Array<{
+    id: string;
+    credits_remaining: number;
+    expiration_date: string | null;
+    package_name: string;
+  }>;
+}
+
+export interface AvailableClass {
+  id: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  name: string | null;
+  instructor_name: string | null;
+  availableSpots: number;
+}
 
 // Acción para cancelar una reservación usando la función robusta de la base de datos
 export async function cancelReservation(reservationId: string) {
@@ -239,5 +265,287 @@ export async function getAvailableBikes(classId: string, excludeReservationId?: 
   } catch (e: any) {
     console.error('Unexpected error getting available bikes:', e);
     return { error: `Error inesperado: ${e.message}` };
+  }
+} 
+
+// Nueva función para obtener usuarios con créditos disponibles
+export async function getUsersWithCredits(): Promise<{ success: boolean; users?: UserWithCredits[]; error?: string }> {
+  const supabase = await createClient();
+
+  try {
+    // Obtener todas las compras activas (con créditos > 0 y no vencidas)
+    const today = new Date().toISOString();
+    const { data: activePurchases, error: purchasesError } = await supabase
+      .from('purchases')
+      .select(`
+        id,
+        user_id,
+        credits_remaining,
+        expiration_date,
+        packages ( name )
+      `)
+      .gt('credits_remaining', 0)
+      .or(`expiration_date.is.null,expiration_date.gte.${today}`)
+      .order('expiration_date', { ascending: true });
+
+    if (purchasesError) {
+      console.error('Error fetching active purchases:', purchasesError);
+      return { success: false, error: 'Error al obtener compras activas' };
+    }
+
+    if (!activePurchases || activePurchases.length === 0) {
+      return { success: true, users: [] };
+    }
+
+    // Obtener IDs únicos de usuarios
+    const userIds = [...new Set(activePurchases.map(p => p.user_id))];
+
+    // Obtener información de usuarios
+    const { data: users, error: usersError } = await supabase
+      .from('users')
+      .select('id, name, email, phone')
+      .in('id', userIds)
+      .order('name');
+
+    if (usersError) {
+      console.error('Error fetching users:', usersError);
+      return { success: false, error: 'Error al obtener usuarios' };
+    }
+
+    // Combinar datos
+    const usersWithCredits: UserWithCredits[] = users?.map(user => {
+      const userPurchases = activePurchases.filter(p => p.user_id === user.id);
+      const totalCredits = userPurchases.reduce((sum, p) => sum + p.credits_remaining, 0);
+      
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        activeCredits: totalCredits,
+        activePurchases: userPurchases.map(p => ({
+          id: p.id,
+          credits_remaining: p.credits_remaining,
+          expiration_date: p.expiration_date,
+          package_name: (p.packages as any)?.name || 'Paquete sin nombre'
+        }))
+      };
+    }) || [];
+
+    // Filtrar solo usuarios con créditos > 0
+    const filteredUsers = usersWithCredits.filter(u => u.activeCredits > 0);
+
+    return { success: true, users: filteredUsers };
+  } catch (error: any) {
+    console.error('Error in getUsersWithCredits:', error);
+    return { success: false, error: `Error inesperado: ${error.message}` };
+  }
+}
+
+// Nueva función para obtener clases futuras disponibles
+export async function getAvailableClasses(): Promise<{ success: boolean; classes?: AvailableClass[]; error?: string }> {
+  const supabase = await createClient();
+
+  try {
+    // Obtener fecha y hora actual en Ecuador
+    const nowInEcuador = getNowInEcuador();
+    const todayInEcuador = toISOString(nowInEcuador).split('T')[0];
+    const currentTimeInEcuador = nowInEcuador.toFormat('HH:mm:ss'); // HH:MM:SS
+
+    // Obtener clases futuras no canceladas (incluyendo clases de hoy que aún no han comenzado)
+    const { data: classes, error: classesError } = await supabase
+      .from('classes')
+      .select(`
+        id,
+        date,
+        start_time,
+        end_time,
+        name,
+        instructors ( name )
+      `)
+      .gte('date', todayInEcuador)
+      .eq('is_cancelled', false)
+      .order('date', { ascending: true })
+      .order('start_time', { ascending: true });
+
+    if (classesError) {
+      console.error('Error fetching classes:', classesError);
+      return { success: false, error: 'Error al obtener clases' };
+    }
+
+    if (!classes || classes.length === 0) {
+      return { success: true, classes: [] };
+    }
+
+    // Para cada clase, calcular spots disponibles
+    const classesWithSpots: AvailableClass[] = [];
+
+    for (const cls of classes) {
+      // Si es una clase de hoy, verificar que aún no haya comenzado
+      if (cls.date === todayInEcuador && cls.start_time <= currentTimeInEcuador) {
+        continue; // Saltar clases de hoy que ya comenzaron
+      }
+      // Obtener total de bicicletas para esta clase
+      const { data: totalBikes, error: bikesError } = await supabase
+        .from('bikes')
+        .select('id')
+        .eq('class_id', cls.id);
+
+      if (bikesError) {
+        console.error('Error fetching bikes for class:', cls.id, bikesError);
+        continue;
+      }
+
+      // Obtener bicicletas ya reservadas para esta clase
+      const { data: reservedBikes, error: reservedError } = await supabase
+        .from('reservation_bikes')
+        .select(`
+          bike_id,
+          reservations!inner(status)
+        `)
+        .eq('reservations.status', 'confirmed');
+
+      if (reservedError) {
+        console.error('Error fetching reserved bikes for class:', cls.id, reservedError);
+        continue;
+      }
+
+      // Filtrar solo las bicicletas reservadas de esta clase específica
+      const reservedBikeIds = new Set(
+        reservedBikes?.filter(rb => {
+          // Verificar si la bicicleta pertenece a esta clase
+          return totalBikes?.some(tb => tb.id === rb.bike_id);
+        }).map(rb => rb.bike_id) || []
+      );
+
+      const totalSpots = totalBikes?.length || 0;
+      const reservedSpots = reservedBikeIds.size;
+      const availableSpots = totalSpots - reservedSpots;
+
+      // Solo incluir clases con spots disponibles
+      if (availableSpots > 0) {
+        classesWithSpots.push({
+          id: cls.id,
+          date: cls.date,
+          start_time: cls.start_time,
+          end_time: cls.end_time,
+          name: cls.name,
+          instructor_name: (cls.instructors as any)?.name || null,
+          availableSpots
+        });
+      }
+    }
+
+    return { success: true, classes: classesWithSpots };
+  } catch (error: any) {
+    console.error('Error in getAvailableClasses:', error);
+    return { success: false, error: `Error inesperado: ${error.message}` };
+  }
+}
+
+// Nueva función para crear una reserva
+export async function createReservation(data: {
+  user_id: string;
+  class_id: string;
+  bike_static_ids: number[];
+  purchase_id?: string;
+  credits_to_use?: number;
+}): Promise<{ success: boolean; message?: string; error?: string }> {
+  const supabase = await createClient();
+
+  try {
+    // Validaciones básicas
+    if (!data.user_id || !data.class_id || !data.bike_static_ids || data.bike_static_ids.length === 0) {
+      return { success: false, error: 'Faltan datos requeridos' };
+    }
+
+    // Obtener los bike_ids correspondientes a los static_bike_ids para esta clase
+    const { data: classBikes, error: bikesError } = await supabase
+      .from('bikes')
+      .select('id, static_bike_id')
+      .eq('class_id', data.class_id)
+      .in('static_bike_id', data.bike_static_ids);
+
+    if (bikesError) {
+      console.error('Error fetching bikes for class:', bikesError);
+      return { success: false, error: 'Error al obtener bicicletas de la clase' };
+    }
+
+    if (!classBikes || classBikes.length !== data.bike_static_ids.length) {
+      const foundIds = classBikes?.map(b => b.static_bike_id) || [];
+      const missingIds = data.bike_static_ids.filter(id => !foundIds.includes(id));
+      return { success: false, error: `Bicicletas no encontradas en esta clase: ${missingIds.join(', ')}` };
+    }
+
+    // Mapear a bike_ids
+    const bikeIds = classBikes.map(b => b.id);
+
+    console.log('Creating reservation with data:', {
+      user_id: data.user_id,
+      class_id: data.class_id,
+      bike_ids: bikeIds,
+      purchase_id: data.purchase_id,
+      credits_to_use: data.credits_to_use
+    });
+
+    // Usar la función make_reservation de Supabase
+    let rpcParams;
+    if (data.purchase_id && data.credits_to_use) {
+      rpcParams = {
+        p_user_id: data.user_id,
+        p_class_id: data.class_id,
+        p_bike_ids: bikeIds,
+        p_purchase_id: data.purchase_id,
+        p_credits_to_use: data.credits_to_use
+      };
+    } else {
+      rpcParams = {
+        p_user_id: data.user_id,
+        p_class_id: data.class_id,
+        p_bike_ids: bikeIds
+      };
+    }
+
+    const { data: result, error: rpcError } = await supabase.rpc('make_reservation', rpcParams);
+
+    if (rpcError) {
+      console.error('Error calling make_reservation:', rpcError);
+      
+      // Proporcionar mensajes de error más específicos
+      let userFriendlyMessage = 'Error al crear la reservación.';
+      
+      if (rpcError.message.includes('insufficient credits')) {
+        userFriendlyMessage = 'El usuario no tiene suficientes créditos para esta reservación.';
+      } else if (rpcError.message.includes('already reserved') || rpcError.message.includes('double booking')) {
+        userFriendlyMessage = 'Una o más bicicletas ya están reservadas para esta clase.';
+      } else if (rpcError.message.includes('expired')) {
+        userFriendlyMessage = 'Los créditos del usuario han expirado.';
+      } else if (rpcError.message.includes('class not found')) {
+        userFriendlyMessage = 'La clase especificada no existe.';
+      } else if (rpcError.message.includes('user not found')) {
+        userFriendlyMessage = 'El usuario especificado no existe.';
+      }
+      
+      return { success: false, error: `${userFriendlyMessage} (${rpcError.message})` };
+    }
+
+    console.log('make_reservation result:', result);
+
+    // Verificar si la función retornó un resultado de éxito
+    if (result && typeof result === 'object' && 'success' in result && !result.success) {
+      return { success: false, error: result.message || 'Error desconocido al crear la reservación.' };
+    }
+
+    // Revalidar la página para mostrar la nueva reservación
+    revalidatePath('/dashboard/reservations');
+    
+    return { 
+      success: true, 
+      message: 'Reservación creada exitosamente' 
+    };
+
+  } catch (error: any) {
+    console.error('Error in createReservation:', error);
+    return { success: false, error: `Error inesperado: ${error.message}` };
   }
 } 

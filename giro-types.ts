@@ -7,33 +7,52 @@ export type Json =
   | Json[]
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          operationName?: string
-          query?: string
-          variables?: Json
-          extensions?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+  // Allows to automatically instanciate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "12.2.3 (519615d)"
   }
   public: {
     Tables: {
+      banners: {
+        Row: {
+          background_color: string | null
+          created_at: string
+          description: string | null
+          end_date: string | null
+          id: string
+          is_active: boolean | null
+          start_date: string | null
+          text_color: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          background_color?: string | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          start_date?: string | null
+          text_color?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          background_color?: string | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          start_date?: string | null
+          text_color?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       bikes: {
         Row: {
           class_id: string | null
@@ -162,18 +181,21 @@ export type Database = {
       instructors: {
         Row: {
           bio: string | null
+          deleted_at: string | null
           id: string
           name: string
           profile_picture_url: string | null
         }
         Insert: {
           bio?: string | null
+          deleted_at?: string | null
           id?: string
           name: string
           profile_picture_url?: string | null
         }
         Update: {
           bio?: string | null
+          deleted_at?: string | null
           id?: string
           name?: string
           profile_picture_url?: string | null
@@ -211,6 +233,7 @@ export type Database = {
         Row: {
           class_credits: number
           created_at: string | null
+          deleted_at: string | null
           expiration_days: number | null
           id: string
           name: string
@@ -219,6 +242,7 @@ export type Database = {
         Insert: {
           class_credits: number
           created_at?: string | null
+          deleted_at?: string | null
           expiration_days?: number | null
           id?: string
           name: string
@@ -227,12 +251,63 @@ export type Database = {
         Update: {
           class_credits?: number
           created_at?: string | null
+          deleted_at?: string | null
           expiration_days?: number | null
           id?: string
           name?: string
           price?: number
         }
         Relationships: []
+      }
+      payment_transactions: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          idempotency_id: string
+          package_id: string
+          status: string
+          transaction_data: Json | null
+          transaction_id: string | null
+          updated_at: string | null
+          user_id: string
+          verification_data: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          idempotency_id: string
+          package_id: string
+          status: string
+          transaction_data?: Json | null
+          transaction_id?: string | null
+          updated_at?: string | null
+          user_id: string
+          verification_data?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          idempotency_id?: string
+          package_id?: string
+          status?: string
+          transaction_data?: Json | null
+          transaction_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+          verification_data?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_transactions_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       purchases: {
         Row: {
@@ -405,42 +480,42 @@ export type Database = {
         }
         Relationships: []
       }
-      banners: {
+      user_push_tokens: {
         Row: {
-          id: string
-          title: string
-          description: string | null
-          is_active: boolean | null
-          start_date: string | null
-          end_date: string | null
-          background_color: string | null
-          text_color: string | null
           created_at: string | null
+          device_id: string | null
+          device_name: string | null
+          expo_push_token: string
+          id: string
+          is_active: boolean | null
+          last_used_at: string | null
+          platform: string | null
           updated_at: string | null
+          user_id: string
         }
         Insert: {
-          id?: string
-          title: string
-          description?: string | null
-          is_active?: boolean | null
-          start_date?: string | null
-          end_date?: string | null
-          background_color?: string | null
-          text_color?: string | null
           created_at?: string | null
+          device_id?: string | null
+          device_name?: string | null
+          expo_push_token: string
+          id?: string
+          is_active?: boolean | null
+          last_used_at?: string | null
+          platform?: string | null
           updated_at?: string | null
+          user_id: string
         }
         Update: {
-          id?: string
-          title?: string
-          description?: string | null
-          is_active?: boolean | null
-          start_date?: string | null
-          end_date?: string | null
-          background_color?: string | null
-          text_color?: string | null
           created_at?: string | null
+          device_id?: string | null
+          device_name?: string | null
+          expo_push_token?: string
+          id?: string
+          is_active?: boolean | null
+          last_used_at?: string | null
+          platform?: string | null
           updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -454,6 +529,7 @@ export type Database = {
           id: string
           name: string | null
           phone: string | null
+          shoe_size: string | null
         }
         Insert: {
           address?: string | null
@@ -464,6 +540,7 @@ export type Database = {
           id?: string
           name?: string | null
           phone?: string | null
+          shoe_size?: string | null
         }
         Update: {
           address?: string | null
@@ -474,6 +551,7 @@ export type Database = {
           id?: string
           name?: string | null
           phone?: string | null
+          shoe_size?: string | null
         }
         Relationships: []
       }
@@ -486,9 +564,60 @@ export type Database = {
         Args: { p_reservation_id: string }
         Returns: Json
       }
+      check_duplicate_purchase: {
+        Args: {
+          p_user_id: string
+          p_package_id: string
+          p_authorization_code: string
+        }
+        Returns: boolean
+      }
+      create_purchase_atomic: {
+        Args: {
+          p_idempotency_id: string
+          p_user_id: string
+          p_package_id: string
+          p_credits_remaining: number
+          p_expiration_date: string
+          p_authorization_code: string
+          p_transaction_data: Json
+        }
+        Returns: undefined
+      }
+      create_purchase_otp_atomic: {
+        Args: {
+          p_transaction_id: string
+          p_user_id: string
+          p_package_id: string
+          p_credits_remaining: number
+          p_expiration_date: string
+          p_authorization_code: string
+          p_verification_data: Json
+        }
+        Returns: undefined
+      }
+      delete_class_with_bikes: {
+        Args: { class_id_param: string }
+        Returns: Json
+      }
       generate_weekly_classes: {
         Args: { start_date_input: string }
         Returns: undefined
+      }
+      get_users_with_purchase_count: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          email: string
+          name: string
+          phone: string
+          created_at: string
+          cedula: string
+          address: string
+          birthday: string
+          shoe_size: string
+          purchase_count: number
+        }[]
       }
       join_waitlist: {
         Args: { p_user_id: string; p_class_id: string }
@@ -510,6 +639,10 @@ export type Database = {
         Args: { p_reservation_id: string; p_new_bike_ids: string[] }
         Returns: Json
       }
+      send_reservation_email: {
+        Args: { p_reservation_id: string; p_email_type: string }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
@@ -520,21 +653,25 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -552,14 +689,16 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -575,14 +714,16 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -598,14 +739,16 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
@@ -613,22 +756,21 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },
