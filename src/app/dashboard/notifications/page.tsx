@@ -1,5 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
+import { createAdminClient } from '@/lib/supabase/server';
 import NotificationsClient from './_components/NotificationsClient';
 import { getNotificationStats } from './actions';
 
@@ -39,8 +38,7 @@ export type NotificationStats = {
 };
 
 export default async function NotificationsPage() {
-  const cookieStore = cookies();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   // Obtener notificaciones recientes (últimas 50) sin JOIN
   const { data: notifications, error: notificationsError } = await supabase

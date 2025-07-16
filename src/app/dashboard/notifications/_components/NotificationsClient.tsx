@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useMemo } from 'react';
 import { type NotificationData, type UserWithToken, type NotificationStats } from '../page';
 import { sendImmediateNotification } from '../actions';
 import { formatDate, toEcuadorDateTime } from '@/lib/utils/dateUtils';
@@ -70,6 +70,28 @@ function CreateNotificationForm({
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [searchUser, setSearchUser] = useState('');
 
+  // Eliminar usuarios duplicados (mismo user_id) para evitar claves repetidas
+  const uniqueUsersWithTokens = useMemo(() => {
+    const map = new Map<string, UserWithToken>();
+    usersWithTokens.forEach(u => {
+      if (!map.has(u.user_id)) {
+        map.set(u.user_id, u);
+      }
+    });
+    return Array.from(map.values());
+  }, [usersWithTokens]);
+
+  // Filtrar usuarios basado en la búsqueda sobre la lista sin duplicados
+  const filteredUsers = uniqueUsersWithTokens.filter(user => {
+    if (!searchUser) return true;
+    
+    const userName = user.users?.name?.toLowerCase() || '';
+    const userEmail = user.users?.email?.toLowerCase() || '';
+    const searchTerm = searchUser.toLowerCase();
+    
+    return userName.includes(searchTerm) || userEmail.includes(searchTerm);
+  });
+
   const handleSubmit = async (formData: FormData) => {
     setIsSubmitting(true);
     setMessage('');
@@ -107,17 +129,6 @@ function CreateNotificationForm({
       setSelectedUsers(prev => prev.filter(id => id !== userId));
     }
   };
-
-  // Filtrar usuarios basado en la búsqueda
-  const filteredUsers = usersWithTokens.filter(user => {
-    if (!searchUser) return true;
-    
-    const userName = user.users?.name?.toLowerCase() || '';
-    const userEmail = user.users?.email?.toLowerCase() || '';
-    const searchTerm = searchUser.toLowerCase();
-    
-    return userName.includes(searchTerm) || userEmail.includes(searchTerm);
-  });
 
   return (
     <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 mb-8">
@@ -168,7 +179,7 @@ function CreateNotificationForm({
                 onChange={(e) => setSendTo(e.target.value as 'all')}
                 className="mr-2"
               />
-              <span className="text-sm text-gray-900">Todos los usuarios activos ({usersWithTokens.length})</span>
+              <span className="text-sm text-gray-900">Todos los usuarios activos ({uniqueUsersWithTokens.length})</span>
             </label>
             <label className="flex items-center">
               <input
@@ -190,9 +201,9 @@ function CreateNotificationForm({
               <p className="text-sm font-medium text-gray-700">
                 Selecciona usuarios ({selectedUsers.length} seleccionados)
               </p>
-              {filteredUsers.length !== usersWithTokens.length && (
+              {filteredUsers.length !== uniqueUsersWithTokens.length && (
                 <span className="text-xs text-gray-500">
-                  {filteredUsers.length} de {usersWithTokens.length} usuarios
+                  {filteredUsers.length} de {uniqueUsersWithTokens.length} usuarios
                 </span>
               )}
             </div>
@@ -248,11 +259,11 @@ function CreateNotificationForm({
                               {user.users?.email}
                             </p>
                           </div>
-                          <div className="ml-2 flex-shrink-0">
+                          {/* <div className="ml-2 flex-shrink-0">
                             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
                               {user.platform || 'Unknown'}
                             </span>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                     </label>

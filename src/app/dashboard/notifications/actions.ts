@@ -1,7 +1,6 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
+import { createAdminClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
@@ -15,8 +14,7 @@ const sendImmediateNotificationSchema = z.object({
 // Acción para enviar notificación inmediata usando la API de Expo
 export async function sendImmediateNotification(formData: FormData) {
   try {
-    const cookieStore = cookies();
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     const sendTo = formData.get('send_to') as string;
     const userIdsString = formData.get('user_ids') as string;
@@ -125,8 +123,8 @@ export async function sendImmediateNotification(formData: FormData) {
 
 // Acción para obtener estadísticas de notificaciones
 export async function getNotificationStats() {
-  const cookieStore = cookies();
-  const supabase = await createClient();
+  // Usamos el cliente de administrador para evitar restricciones de RLS y obtener todos los registros
+  const supabase = createAdminClient();
 
   try {
     // Obtener usuarios con tokens push activos
@@ -164,8 +162,11 @@ export async function getNotificationStats() {
       return { error: 'Error al obtener notificaciones pendientes' };
     }
 
+    // Contamos usuarios únicos, ya que un mismo usuario puede tener varios tokens
+    const uniqueActiveUserIds = new Set((activeTokens || []).map(t => t.user_id));
+
     return {
-      activeUsers: activeTokens?.length || 0,
+      activeUsers: uniqueActiveUserIds.size,
       sentToday: todayNotifications?.length || 0,
       pending: pendingNotifications?.length || 0,
     };
