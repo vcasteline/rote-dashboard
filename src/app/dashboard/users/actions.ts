@@ -320,4 +320,80 @@ export async function createUserWithPackage(userData: {
   }
 } 
 
+export async function updateUser(userId: string, userData: {
+  name?: string;
+  phone?: string;
+  address?: string;
+  birthday?: string;
+  cedula?: string;
+  shoe_size?: string;
+}): Promise<{ success: boolean; user?: User; error?: string }> {
+  const supabase = await createClient();
+  const adminClient = createAdminClient();
+  
+  try {
+    // Primero obtener el usuario actual
+    const { data: currentUser, error: fetchError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    
+    if (fetchError || !currentUser) {
+      return { success: false, error: 'Usuario no encontrado' };
+    }
+
+    // Actualizar en la tabla users
+    const { data: updatedUser, error: updateError } = await supabase
+      .from('users')
+      .update({
+        name: userData.name || currentUser.name,
+        phone: userData.phone || null,
+        address: userData.address || null,
+        birthday: userData.birthday || null,
+        cedula: userData.cedula || null,
+        shoe_size: userData.shoe_size || null,
+      })
+      .eq('id', userId)
+      .select()
+      .single();
+    
+    if (updateError) {
+      console.error('Error updating user in public table:', updateError);
+      return { success: false, error: 'Error al actualizar el usuario' };
+    }
+
+    // También actualizar en Auth user metadata
+    try {
+      await adminClient.auth.admin.updateUserById(userId, {
+        user_metadata: {
+          name: userData.name || currentUser.name,
+          phone: userData.phone || null,
+          address: userData.address || null,
+          birthday: userData.birthday || null,
+          cedula: userData.cedula || null,
+          shoe_size: userData.shoe_size || null,
+        }
+      });
+    } catch (authError) {
+      console.error('Error updating auth user metadata:', authError);
+      // No fallar si el update de auth falla, ya que el usuario ya está actualizado en la tabla pública
+    }
+    
+    // Revalidate the users page
+    revalidatePath('/dashboard/users');
+    
+    return { 
+      success: true, 
+      user: {
+        ...updatedUser,
+        purchase_count: currentUser.purchase_count || 0
+      }
+    };
+  } catch (error) {
+    console.error('Error in updateUser:', error);
+    return { success: false, error: 'Error interno del servidor' };
+  }
+}
+
  

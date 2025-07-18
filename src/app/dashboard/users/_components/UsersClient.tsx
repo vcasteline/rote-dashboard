@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { User, Package, createUser, assignPackageToUser, createUserWithPackage, getAvailablePackages } from '../actions';
+import { User, Package, createUser, assignPackageToUser, createUserWithPackage, getAvailablePackages, updateUser } from '../actions';
 import { DateTime } from 'luxon';
-import { Mail, Phone, MapPin, Calendar, CreditCard, ShoppingBag, User as UserIcon, Cake, Search, X, Plus, UserPlus, Package as PackageIcon } from 'lucide-react';
+import { Mail, Phone, MapPin, Calendar, CreditCard, ShoppingBag, User as UserIcon, Cake, Search, X, Plus, UserPlus, Package as PackageIcon, Edit, Gift } from 'lucide-react';
 import Link from 'next/link';
 
 interface UsersClientProps {
@@ -14,11 +14,15 @@ interface UsersClientProps {
 export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isPackageModalOpen, setIsPackageModalOpen] = useState(false);
   const [packages, setPackages] = useState<Package[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState<string>('');
+  const [userToEdit, setUserToEdit] = useState<User | null>(null);
+  const [userForPackage, setUserForPackage] = useState<User | null>(null);
   
-  // Estados del formulario
+  // Estados del formulario para crear usuario
   const [formData, setFormData] = useState({
     email: '',
     name: '',
@@ -31,13 +35,30 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
     transaction_id: '',
     authorization_code: ''
   });
+
+  // Estados del formulario para editar usuario
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    phone: '',
+    address: '',
+    birthday: '',
+    cedula: '',
+    shoe_size: ''
+  });
+
+  // Estados del formulario para asignar paquetes
+  const [packageFormData, setPackageFormData] = useState({
+    package_id: '',
+    transaction_id: '',
+    authorization_code: ''
+  });
   
   // Cargar paquetes disponibles
   useEffect(() => {
-    if (isModalOpen) {
+    if (isModalOpen || isPackageModalOpen) {
       getAvailablePackages().then(setPackages);
     }
-  }, [isModalOpen]);
+  }, [isModalOpen, isPackageModalOpen]);
   
   const resetForm = () => {
     setFormData({
@@ -53,6 +74,46 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
       authorization_code: ''
     });
     setGeneratedPassword('');
+  };
+
+  const resetEditForm = () => {
+    setEditFormData({
+      name: '',
+      phone: '',
+      address: '',
+      birthday: '',
+      cedula: '',
+      shoe_size: ''
+    });
+  };
+
+  const resetPackageForm = () => {
+    setPackageFormData({
+      package_id: '',
+      transaction_id: '',
+      authorization_code: ''
+    });
+  };
+
+  // Función para abrir modal de edición
+  const handleEditUser = (user: User) => {
+    setUserToEdit(user);
+    setEditFormData({
+      name: user.name || '',
+      phone: user.phone || '',
+      address: user.address || '',
+      birthday: user.birthday || '',
+      cedula: user.cedula || '',
+      shoe_size: user.shoe_size || ''
+    });
+    setIsEditModalOpen(true);
+  };
+
+  // Función para abrir modal de asignar paquetes
+  const handleAssignPackage = (user: User) => {
+    setUserForPackage(user);
+    resetPackageForm();
+    setIsPackageModalOpen(true);
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -103,6 +164,72 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
     } catch (error) {
       console.error('Error submitting form:', error);
       alert('Error al crear el usuario');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Función para actualizar usuario
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userToEdit) return;
+
+    setIsSubmitting(true);
+    
+    try {
+      const result = await updateUser(userToEdit.id, {
+        name: editFormData.name || undefined,
+        phone: editFormData.phone || undefined,
+        address: editFormData.address || undefined,
+        birthday: editFormData.birthday || undefined,
+        cedula: editFormData.cedula || undefined,
+        shoe_size: editFormData.shoe_size || undefined,
+      });
+      
+      if (result.success) {
+        alert('Usuario actualizado correctamente');
+        setIsEditModalOpen(false);
+        setUserToEdit(null);
+        resetEditForm();
+        window.location.reload();
+      } else {
+        alert(result.error || 'Error al actualizar el usuario');
+      }
+    } catch (error) {
+      console.error('Error updating user:', error);
+      alert('Error al actualizar el usuario');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Función para asignar paquete
+  const handlePackageSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userForPackage) return;
+
+    setIsSubmitting(true);
+    
+    try {
+      const result = await assignPackageToUser({
+        user_id: userForPackage.id,
+        package_id: packageFormData.package_id,
+        transaction_id: packageFormData.transaction_id || undefined,
+        authorization_code: packageFormData.authorization_code || undefined,
+      });
+      
+      if (result.success) {
+        alert('Paquete asignado correctamente');
+        setIsPackageModalOpen(false);
+        setUserForPackage(null);
+        resetPackageForm();
+        window.location.reload();
+      } else {
+        alert(result.error || 'Error al asignar el paquete');
+      }
+    } catch (error) {
+      console.error('Error assigning package:', error);
+      alert('Error al asignar el paquete');
     } finally {
       setIsSubmitting(false);
     }
@@ -248,6 +375,9 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Fecha de Registro (Ecuador)
               </th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Acciones
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -330,11 +460,31 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {formatRegistrationDate(user.created_at)}
                 </td>
+                <td className="px-6 py-4 whitespace-nowrap text-center">
+                  <div className="flex items-center justify-center space-x-2">
+                    <button
+                      onClick={() => handleEditUser(user)}
+                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-150"
+                      title="Editar usuario"
+                    >
+                      <Edit className="h-4 w-4 mr-1" />
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => handleAssignPackage(user)}
+                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-150"
+                      title="Asignar paquete"
+                    >
+                      <Gift className="h-4 w-4 mr-1" />
+                      Paquete
+                    </button>
+                  </div>
+                </td>
               </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                   <div className="flex flex-col items-center space-y-2">
                     <Search className="h-12 w-12 text-gray-300" />
                     <div className="text-lg font-medium">No se encontraron usuarios</div>
@@ -353,7 +503,248 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
               </div>
       </div>
 
-      {/* Modal para agregar usuario */}
+      {/* Modal de edición de usuario */}
+      {isEditModalOpen && userToEdit && (
+        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
+          <div className="bg-white rounded-lg shadow-2xl border-2 border-gray-400 w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">Editar Usuario</h2>
+                <button
+                  onClick={() => {
+                    setIsEditModalOpen(false);
+                    setUserToEdit(null);
+                    resetEditForm();
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              <form onSubmit={handleEditSubmit} className="space-y-6">
+                {/* Información básica */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email (no editable)
+                    </label>
+                    <input
+                      type="email"
+                      value={userToEdit.email}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Nombre *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editFormData.name}
+                      onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                      placeholder="Nombre completo"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Teléfono
+                    </label>
+                    <input
+                      type="tel"
+                      value={editFormData.phone}
+                      onChange={(e) => setEditFormData({...editFormData, phone: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                      placeholder="0999999999"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Cédula
+                    </label>
+                    <input
+                      type="text"
+                      value={editFormData.cedula}
+                      onChange={(e) => setEditFormData({...editFormData, cedula: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                      placeholder="1234567890"
+                      maxLength={10}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Dirección
+                  </label>
+                  <input
+                    type="text"
+                    value={editFormData.address}
+                    onChange={(e) => setEditFormData({...editFormData, address: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                    placeholder="Dirección completa"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Fecha de Nacimiento
+                    </label>
+                    <input
+                      type="text"
+                      value={editFormData.birthday}
+                      onChange={(e) => setEditFormData({...editFormData, birthday: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                      placeholder="DD/MM/YYYY o DDMMYYYY"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Talla de Zapato
+                    </label>
+                    <input
+                      type="text"
+                      value={editFormData.shoe_size}
+                      onChange={(e) => setEditFormData({...editFormData, shoe_size: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                      placeholder="38, 39, 40..."
+                    />
+                  </div>
+                </div>
+
+                {/* Botones */}
+                <div className="flex justify-end space-x-3 pt-6 border-t">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsEditModalOpen(false);
+                      setUserToEdit(null);
+                      resetEditForm();
+                    }}
+                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-4 py-2 bg-[#6758C2] text-white rounded-md hover:bg-[#5A4AB8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? 'Actualizando...' : 'Actualizar Usuario'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para asignar paquete */}
+      {isPackageModalOpen && userForPackage && (
+        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
+          <div className="bg-white rounded-lg shadow-2xl border-2 border-gray-400 w-full max-w-lg max-h-[90vh] overflow-y-auto mx-4">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">Asignar Paquete</h2>
+                <button
+                  onClick={() => {
+                    setIsPackageModalOpen(false);
+                    setUserForPackage(null);
+                    resetPackageForm();
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                <h3 className="font-medium text-gray-900">Usuario seleccionado:</h3>
+                <p className="text-sm text-gray-600">{userForPackage.name} ({userForPackage.email})</p>
+              </div>
+
+              <form onSubmit={handlePackageSubmit} className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Seleccionar Paquete *
+                  </label>
+                  <select
+                    required
+                    value={packageFormData.package_id}
+                    onChange={(e) => setPackageFormData({...packageFormData, package_id: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                  >
+                    <option value="">Seleccionar paquete...</option>
+                    {packages.map(pkg => (
+                      <option key={pkg.id} value={pkg.id}>
+                        {pkg.name} - ${pkg.price} ({pkg.class_credits} créditos)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      ID de Transacción
+                    </label>
+                    <input
+                      type="text"
+                      value={packageFormData.transaction_id}
+                      onChange={(e) => setPackageFormData({...packageFormData, transaction_id: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                      placeholder="ID de transacción (opcional)"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Código de Autorización
+                    </label>
+                    <input
+                      type="text"
+                      value={packageFormData.authorization_code}
+                      onChange={(e) => setPackageFormData({...packageFormData, authorization_code: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                      placeholder="Código de autorización (opcional)"
+                    />
+                  </div>
+                </div>
+
+                {/* Botones */}
+                <div className="flex justify-end space-x-3 pt-6 border-t">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsPackageModalOpen(false);
+                      setUserForPackage(null);
+                      resetPackageForm();
+                    }}
+                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || !packageFormData.package_id}
+                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? 'Asignando...' : 'Asignar Paquete'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para agregar usuario (mantiene la funcionalidad original) */}
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
           <div className="bg-white rounded-lg shadow-2xl border-2 border-gray-400 w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
