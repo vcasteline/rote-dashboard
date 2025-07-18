@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { getNextMonday, formatDate, toISOString } from '@/lib/utils/dateUtils';
-import { addDefaultScheduleEntry, deleteDefaultScheduleEntry } from '../actions';
+import { addDefaultScheduleEntry, deleteDefaultScheduleEntry, updateDefaultScheduleEntry } from '../actions';
 import { type DefaultScheduleEntry, type Instructor } from '../page'; // Importar tipos desde la página
 import CustomSelect from './CustomSelect';
 import CustomTimeInput from './CustomTimeInput';
@@ -47,11 +47,30 @@ export default function ScheduleClient({
   const [addError, setAddError] = useState('');
   let [isPending, startTransition] = useTransition(); // Para la eliminación
 
-  // Estados para los selectores personalizados
+  // Estados para el modal de confirmación simple
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
+  const [deleteMessage, setDeleteMessage] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+
+  // Estados para el modal de edición
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [entryToEdit, setEntryToEdit] = useState<DefaultScheduleEntry | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editMessage, setEditMessage] = useState('');
+  const [editError, setEditError] = useState('');
+
+  // Estados para los selectores personalizados (formulario agregar)
   const [selectedWeekday, setSelectedWeekday] = useState('');
   const [selectedInstructor, setSelectedInstructor] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
+
+  // Estados para el formulario de edición
+  const [editWeekday, setEditWeekday] = useState('');
+  const [editInstructor, setEditInstructor] = useState('');
+  const [editStartTime, setEditStartTime] = useState('');
+  const [editEndTime, setEditEndTime] = useState('');
 
   const supabase = createClient(); // Para RPC
 
@@ -100,19 +119,238 @@ export default function ScheduleClient({
     setIsAdding(false);
   };
 
+  const handleEditEntry = (entry: DefaultScheduleEntry) => {
+    setEntryToEdit(entry);
+    setEditWeekday(entry.weekday);
+    setEditInstructor(entry.instructor_id);
+    setEditStartTime(entry.start_time);
+    setEditEndTime(entry.end_time);
+    setShowEditModal(true);
+    setEditMessage('');
+    setEditError('');
+  };
+
+  const handleUpdateEntry = async (formData: FormData) => {
+    if (!entryToEdit) return;
+
+    setIsEditing(true);
+    setEditMessage('');
+    setEditError('');
+    
+    const result = await updateDefaultScheduleEntry(entryToEdit.id, formData);
+    
+    if (result.error) {
+      setEditError(result.error);
+    } else {
+      setEditMessage(result.message || '¡Entrada actualizada!');
+      setTimeout(() => {
+        setShowEditModal(false);
+        setEntryToEdit(null);
+        setEditMessage('');
+        setEditError('');
+      }, 1500);
+    }
+    
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setShowEditModal(false);
+    setEntryToEdit(null);
+    setEditMessage('');
+    setEditError('');
+  };
+
   const handleDeleteEntry = (id: string) => {
-      startTransition(async () => {
-          const result = await deleteDefaultScheduleEntry(id);
-          if (result.error) {
-              console.error("Error al eliminar:", result.error);
-              alert(`Error al eliminar entrada: ${result.error}`);
-          }
-      });
+    setEntryToDelete(id);
+    setShowDeleteModal(true);
+    setDeleteMessage('');
+    setDeleteError('');
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!entryToDelete) return;
+
+    startTransition(async () => {
+      const result = await deleteDefaultScheduleEntry(entryToDelete);
+      
+      if (result.error) {
+        setDeleteError(result.error);
+      } else {
+        setDeleteMessage(result.message || '¡Entrada eliminada!');
+        setShowDeleteModal(false);
+        setEntryToDelete(null);
+      }
+    });
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setEntryToDelete(null);
+    setDeleteMessage('');
+    setDeleteError('');
   };
 
   return (
     <div>
       <h1 className="text-3xl font-bold mb-6 text-gray-900">Gestionar Horario</h1>
+
+      {/* Modal de edición */}
+      {showEditModal && entryToEdit && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Editar Horario
+            </h3>
+            
+            <form action={handleUpdateEntry} className="space-y-4">
+              <div>
+                <label htmlFor="edit_weekday" className="block text-sm font-medium text-gray-700 mb-2">
+                  Día de la semana
+                </label>
+                <CustomSelect
+                  id="edit_weekday"
+                  name="weekday"
+                  options={daysOfWeekSpanish}
+                  value={editWeekday}
+                  onChange={setEditWeekday}
+                  placeholder="Selecciona Día"
+                  required={true}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="edit_start_time" className="block text-sm font-medium text-gray-700 mb-2">
+                    Hora de Inicio
+                  </label>
+                  <CustomTimeInput
+                    id="edit_start_time"
+                    name="start_time"
+                    value={editStartTime}
+                    onChange={setEditStartTime}
+                    required={true}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="edit_end_time" className="block text-sm font-medium text-gray-700 mb-2">
+                    Hora de Fin
+                  </label>
+                  <CustomTimeInput
+                    id="edit_end_time"
+                    name="end_time"
+                    value={editEndTime}
+                    onChange={setEditEndTime}
+                    required={true}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="edit_instructor_id" className="block text-sm font-medium text-gray-700 mb-2">
+                  Instructor
+                </label>
+                <CustomSelect
+                  id="edit_instructor_id"
+                  name="instructor_id"
+                  options={instructorOptions}
+                  value={editInstructor}
+                  onChange={setEditInstructor}
+                  placeholder={instructors.length === 0 ? 'No hay instructores' : 'Selecciona Instructor'}
+                  disabled={instructors.length === 0}
+                  required={true}
+                />
+              </div>
+
+              {editMessage && (
+                <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                  <p className="text-sm text-green-700">{editMessage}</p>
+                </div>
+              )}
+              
+              {editError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                  <p className="text-sm text-red-700">{editError}</p>
+                </div>
+              )}
+
+              <div className="flex space-x-3 pt-4">
+                <button
+                  type="submit"
+                  disabled={isEditing}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isEditing ? 'Actualizando...' : 'Actualizar'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  disabled={isEditing}
+                  className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación simplificado */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              ¿Eliminar horario?
+            </h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Se eliminará la plantilla del horario. Las clases ya generadas se mantendrán como independientes.
+            </p>
+
+            {deleteMessage && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
+                <p className="text-sm text-green-700">{deleteMessage}</p>
+              </div>
+            )}
+            
+            {deleteError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-sm text-red-700">{deleteError}</p>
+              </div>
+            )}
+
+            <div className="flex space-x-3">
+              <button
+                onClick={handleConfirmDelete}
+                disabled={isPending}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isPending ? 'Eliminando...' : 'Eliminar'}
+              </button>
+              <button
+                onClick={handleCancelDelete}
+                disabled={isPending}
+                className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mensaje de eliminación global */}
+      {deleteMessage && !showDeleteModal && (
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-md">
+          <p className="text-sm text-green-700">{deleteMessage}</p>
+        </div>
+      )}
+
+      {deleteError && !showDeleteModal && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-sm text-red-700">{deleteError}</p>
+        </div>
+      )}
 
       {/* Sección para Generar Clases Semanales */}
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
@@ -286,17 +524,30 @@ export default function ScheduleClient({
                           <div className="text-sm text-gray-900">{entry.instructors?.name ?? 'N/A'}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                           <button
-                             onClick={() => handleDeleteEntry(entry.id)}
-                             disabled={isPending}
-                             className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
-                             aria-label="Eliminar entrada"
-                           >
-                             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                             </svg>
-                             Eliminar
-                           </button>
+                          <div className="flex items-center justify-center space-x-2">
+                            <button
+                              onClick={() => handleEditEntry(entry)}
+                              disabled={isPending}
+                              className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                              aria-label="Editar entrada"
+                            >
+                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => handleDeleteEntry(entry.id)}
+                              disabled={isPending}
+                              className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                              aria-label="Eliminar entrada"
+                            >
+                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                              Eliminar
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))

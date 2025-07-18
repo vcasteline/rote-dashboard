@@ -42,6 +42,8 @@ export async function deleteDefaultScheduleEntry(id: string) {
         return { error: 'Invalid ID.' };
     }
 
+    // Eliminar el horario directamente
+    // Ya no hay foreign key constraint porque las clases no referencian schedule_id
     const { error } = await supabase.from('class_schedules').delete().match({ id });
 
     if (error) {
@@ -50,5 +52,40 @@ export async function deleteDefaultScheduleEntry(id: string) {
     }
 
     revalidatePath('/dashboard/schedule');
-    return { message: 'Entry deleted successfully.' };
+    return { message: 'Horario eliminado correctamente.' };
+}
+
+// Acción para actualizar una entrada del horario por defecto
+export async function updateDefaultScheduleEntry(id: string, formData: FormData) {
+  const cookieStore = cookies();
+  const supabase = await createClient();
+
+  if (!id) {
+    return { error: 'ID inválido.' };
+  }
+
+  const rawFormData = {
+    weekday: formData.get('weekday') as string,
+    start_time: formData.get('start_time') as string,
+    end_time: formData.get('end_time') as string,
+    instructor_id: formData.get('instructor_id') as string,
+  };
+
+  // Validación básica
+  if (!rawFormData.weekday || !rawFormData.start_time || !rawFormData.end_time || !rawFormData.instructor_id) {
+    return { error: 'Todos los campos son obligatorios.' };
+  }
+
+  const { error } = await supabase
+    .from('class_schedules')
+    .update(rawFormData)
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error updating schedule entry:', error);
+    return { error: `Error de base de datos: ${error.message}` };
+  }
+
+  revalidatePath('/dashboard/schedule');
+  return { message: 'Horario actualizado correctamente.' };
 } 

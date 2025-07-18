@@ -131,7 +131,6 @@ export type Database = {
           is_cancelled: boolean | null
           location: string | null
           name: string | null
-          schedule_id: string | null
           start_time: string
           waitlist_enabled: boolean | null
         }
@@ -144,7 +143,6 @@ export type Database = {
           is_cancelled?: boolean | null
           location?: string | null
           name?: string | null
-          schedule_id?: string | null
           start_time: string
           waitlist_enabled?: boolean | null
         }
@@ -157,7 +155,6 @@ export type Database = {
           is_cancelled?: boolean | null
           location?: string | null
           name?: string | null
-          schedule_id?: string | null
           start_time?: string
           waitlist_enabled?: boolean | null
         }
@@ -167,13 +164,6 @@ export type Database = {
             columns: ["instructor_id"]
             isOneToOne: false
             referencedRelation: "instructors"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "classes_schedule_id_fkey"
-            columns: ["schedule_id"]
-            isOneToOne: false
-            referencedRelation: "class_schedules"
             referencedColumns: ["id"]
           },
         ]

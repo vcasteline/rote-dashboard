@@ -27,7 +27,6 @@ CREATE TABLE classes (
   waitlist_enabled BOOLEAN,
   created_at TIMESTAMP,
   name TEXT,
-  schedule_id UUID REFERENCES class_schedules(id),
   is_cancelled BOOLEAN
 );
 
