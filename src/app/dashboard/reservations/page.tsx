@@ -7,6 +7,7 @@ import { getNextMonday, toISOString } from '@/lib/utils/dateUtils';
 export type ReservationData = {
   id: string; // reservation id
   status: string | null;
+  created_at: string; // Para ordenar waitlist por orden de llegada
   from_purchase_id: string | null;
   users: {
     name: string | null; // Cambiado de full_name a name
@@ -36,21 +37,24 @@ export default async function ReservationsPage() {
 
   console.log('Filtrando reservaciones desde (Luxon):', mondayOfThisWeek); // Para debug
 
-  // Obtener reservaciones futuras con detalles anidados
+  // Obtener reservaciones futuras con detalles anidados (confirmadas Y waitlist)
   const { data: reservations, error } = await supabase
     .from('reservations')
     .select(`
       id,
       status,
+      created_at,
       users ( name, email ),
       classes ( id, date, start_time, instructors ( name ) ),
       reservation_bikes ( bikes ( static_bike_id ) )
     `)
-    .eq('status', 'confirmed') // Solo confirmadas
+    .in('status', ['confirmed', 'waitlist']) // Incluir tanto confirmadas como waitlist
     .gte('classes.date', mondayOfThisWeek) // Solo clases desde esta semana
     // Ordenar por fecha y hora de clase para agrupar visualmente
     .order('date', { referencedTable: 'classes', ascending: true })
     .order('start_time', { referencedTable: 'classes', ascending: true })
+    .order('status', { ascending: false }) // 'waitlist' antes que 'confirmed' alfabéticamente
+    .order('created_at', { ascending: true }) // Waitlist en orden de llegada
     .returns<ReservationData[]>();
 
   if (error) {

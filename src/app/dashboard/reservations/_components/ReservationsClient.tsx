@@ -17,7 +17,8 @@ const formatTime = (timeString: string | null | undefined) => {
 type GroupedReservations = {
   [classId: string]: {
     classInfo: ReservationData['classes'];
-    reservations: ReservationData[];
+    confirmedReservations: ReservationData[];
+    waitlistReservations: ReservationData[];
   };
 };
 
@@ -629,7 +630,7 @@ export default function ReservationsClient({ initialReservations }: { initialRes
     setEditError(null);
   };
 
-  // Agrupar reservaciones por clase usando useMemo para eficiencia
+  // Agrupar reservaciones por clase, separando confirmadas de waitlist
   const groupedReservations = useMemo(() => {
     return initialReservations.reduce<GroupedReservations>((acc, res) => {
       const classId = res.classes?.id;
@@ -638,10 +639,18 @@ export default function ReservationsClient({ initialReservations }: { initialRes
       if (!acc[classId]) {
         acc[classId] = {
           classInfo: res.classes,
-          reservations: [],
+          confirmedReservations: [],
+          waitlistReservations: [],
         };
       }
-      acc[classId].reservations.push(res);
+      
+      // Separar por status
+      if (res.status === 'waitlist') {
+        acc[classId].waitlistReservations.push(res);
+      } else if (res.status === 'confirmed') {
+        acc[classId].confirmedReservations.push(res);
+      }
+      
       return acc;
     }, {});
   }, [initialReservations]);
@@ -757,6 +766,7 @@ export default function ReservationsClient({ initialReservations }: { initialRes
               <ul className="list-disc list-inside mt-1 space-y-1">
                 <li><strong>Cancelar:</strong> Devuelve los créditos utilizados al usuario</li>
                 <li><strong>Modificar bicicletas:</strong> Puede ajustar créditos si cambia la cantidad de bicicletas reservadas</li>
+                <li><strong>Waitlist:</strong> Si se cancela una reserva confirmada, la primera persona en lista de espera será promovida automáticamente</li>
                 <li>Los cambios en créditos se reflejan inmediatamente en la cuenta del usuario</li>
               </ul>
             </div>
@@ -775,93 +785,180 @@ export default function ReservationsClient({ initialReservations }: { initialRes
         const classInfo = group.classInfo;
         if (!classInfo) return null; // Seguridad
 
+        const hasConfirmed = group.confirmedReservations.length > 0;
+        const hasWaitlist = group.waitlistReservations.length > 0;
+
         return (
           <div key={classId} className="mb-8 bg-white shadow-md rounded overflow-hidden">
             {/* Cabecera de la Clase */}
             <div className="bg-gray-100 p-4 border-b">
-              <h2 className="text-xl font-semibold text-gray-800">
-                {format(new Date(classInfo.date + 'T00:00:00'), 'EEEE, dd MMM yyyy')} -
-                {` ${formatTime(classInfo.start_time)}`}
-              </h2>
-              <p className="text-sm text-gray-600">Instructor: {classInfo.instructors?.name ?? 'N/D'}</p>
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-800">
+                    {format(new Date(classInfo.date + 'T00:00:00'), 'EEEE, dd MMM yyyy')} -
+                    {` ${formatTime(classInfo.start_time)}`}
+                  </h2>
+                  <p className="text-sm text-gray-600">Instructor: {classInfo.instructors?.name ?? 'N/D'}</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm text-gray-600">
+                    <span className="font-medium text-green-600">{group.confirmedReservations.length}</span> confirmadas
+                    {hasWaitlist && (
+                      <>
+                        {' • '}
+                        <span className="font-medium text-orange-600">{group.waitlistReservations.length}</span> en espera
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Tabla de Reservaciones para esta Clase */}
-            <div className="overflow-x-auto">
-                <table className="min-w-full leading-normal">
-                <thead>
-                    <tr className="bg-gray-50 text-gray-600 uppercase text-sm leading-tight">
-                    <th className="py-2 px-4 text-left">Bicis</th>
-                    <th className="py-2 px-4 text-left">Nombre Usuario</th>
-                    <th className="py-2 px-4 text-left">Email Usuario</th>
-                    <th className="py-2 px-4 text-center">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody className="text-gray-700 text-sm">
-                    {group.reservations.map((res) => (
-                    <tr key={res.id} className="border-b border-gray-200 hover:bg-gray-50">
-                        {editingReservationId === res.id ? (
-                         <td className="py-2 px-4 text-left whitespace-nowrap">
-                           <BikeSelector
-                             classId={classId}
-                             reservationId={res.id}
-                             selectedBikes={selectedBikes}
-                             onBikesChange={(bikes) => {
-                               setSelectedBikes(bikes);
-                             }}
-                             disabled={isPending}
-                           />
-                           {editError && editingReservationId === res.id && (
-                             <div className="text-xs text-red-600 mt-1">{editError}</div>
-                           )}
-                         </td>
-                       ) : (
-                         <td className="py-2 px-4 text-left font-medium whitespace-nowrap">{getBikeNumbers(res)}</td>
-                       )}
-                        <td className="py-2 px-4 text-left">{res.users?.name ?? 'N/D'}</td>
-                        <td className="py-2 px-4 text-left">{res.users?.email ?? 'N/D'}</td>
-                        <td className="py-2 px-4 text-center">
-                        {editingReservationId === res.id ? (
-                           <>
-                             <button
-                               onClick={() => handleSaveEdit(res.id)}
-                               disabled={isPending}
-                               className="text-green-600 hover:text-green-800 disabled:opacity-50 mr-2 text-xs font-semibold"
-                             >
-                               {isPending ? 'Guardando...' : 'Guardar'}
-                             </button>
-                             <button
-                               onClick={handleCancelEditMode}
-                               disabled={isPending}
-                               className="text-gray-500 hover:text-gray-700 disabled:opacity-50 text-xs font-semibold"
-                             >
-                               Descartar
-                             </button>
-                           </>
-                         ) : (
-                           <>
-                             <button
-                               onClick={() => handleEdit(res)}
-                               disabled={isPending && editingReservationId !== res.id}
-                               className="text-blue-500 hover:text-blue-700 disabled:opacity-50 mr-2 text-xs font-semibold"
-                             >
-                               Editar
-                             </button>
-                             <button
-                               onClick={() => handleCancel(res.id)}
-                               disabled={isPending && editingReservationId !== res.id}
-                               className="text-red-500 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold"
-                             >
-                               {isPending && !editingReservationId ? 'Cancelando...' : 'Cancelar'}
-                             </button>
-                           </>
-                         )}
-                        </td>
-                    </tr>
-                    ))}
-                </tbody>
-                </table>
-            </div>
+            {/* Reservaciones Confirmadas */}
+            {hasConfirmed && (
+              <div>
+                <div className="bg-green-50 px-4 py-2 border-b">
+                  <h3 className="text-sm font-semibold text-green-800 flex items-center">
+                    <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                    Reservaciones Confirmadas ({group.confirmedReservations.length})
+                  </h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full leading-normal">
+                    <thead>
+                      <tr className="bg-gray-50 text-gray-600 uppercase text-sm leading-tight">
+                        <th className="py-2 px-4 text-left">Bicis</th>
+                        <th className="py-2 px-4 text-left">Nombre Usuario</th>
+                        <th className="py-2 px-4 text-left">Email Usuario</th>
+                        <th className="py-2 px-4 text-center">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-gray-700 text-sm">
+                      {group.confirmedReservations.map((res) => (
+                        <tr key={res.id} className="border-b border-gray-200 hover:bg-gray-50">
+                          {editingReservationId === res.id ? (
+                            <td className="py-2 px-4 text-left whitespace-nowrap">
+                              <BikeSelector
+                                classId={classId}
+                                reservationId={res.id}
+                                selectedBikes={selectedBikes}
+                                onBikesChange={(bikes) => {
+                                  setSelectedBikes(bikes);
+                                }}
+                                disabled={isPending}
+                              />
+                              {editError && editingReservationId === res.id && (
+                                <div className="text-xs text-red-600 mt-1">{editError}</div>
+                              )}
+                            </td>
+                          ) : (
+                            <td className="py-2 px-4 text-left font-medium whitespace-nowrap">{getBikeNumbers(res)}</td>
+                          )}
+                          <td className="py-2 px-4 text-left">{res.users?.name ?? 'N/D'}</td>
+                          <td className="py-2 px-4 text-left">{res.users?.email ?? 'N/D'}</td>
+                          <td className="py-2 px-4 text-center">
+                            {editingReservationId === res.id ? (
+                              <>
+                                <button
+                                  onClick={() => handleSaveEdit(res.id)}
+                                  disabled={isPending}
+                                  className="text-green-600 hover:text-green-800 disabled:opacity-50 mr-2 text-xs font-semibold"
+                                >
+                                  {isPending ? 'Guardando...' : 'Guardar'}
+                                </button>
+                                <button
+                                  onClick={handleCancelEditMode}
+                                  disabled={isPending}
+                                  className="text-gray-500 hover:text-gray-700 disabled:opacity-50 text-xs font-semibold"
+                                >
+                                  Descartar
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => handleEdit(res)}
+                                  disabled={isPending && editingReservationId !== res.id}
+                                  className="text-blue-500 hover:text-blue-700 disabled:opacity-50 mr-2 text-xs font-semibold"
+                                >
+                                  Editar
+                                </button>
+                                <button
+                                  onClick={() => handleCancel(res.id)}
+                                  disabled={isPending && editingReservationId !== res.id}
+                                  className="text-red-500 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold"
+                                >
+                                  {isPending && !editingReservationId ? 'Cancelando...' : 'Cancelar'}
+                                </button>
+                              </>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Lista de Espera (Waitlist) */}
+            {hasWaitlist && (
+              <div>
+                <div className="bg-orange-50 px-4 py-2 border-b">
+                  <h3 className="text-sm font-semibold text-orange-800 flex items-center">
+                    <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
+                    Lista de Espera ({group.waitlistReservations.length})
+                    {/* <span className="ml-2 text-xs text-orange-600 font-normal">
+                      (en orden de llegada)
+                    </span> */}
+                  </h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full leading-normal">
+                                         <thead>
+                       <tr className="bg-orange-50 text-orange-700 uppercase text-sm leading-tight">
+                         <th className="py-2 px-4 text-center w-16">#</th>
+                         <th className="py-2 px-4 text-left">Nombre Usuario</th>
+                         <th className="py-2 px-4 text-left">Email Usuario</th>
+                         <th className="py-2 px-4 text-center">Estado</th>
+                       </tr>
+                     </thead>
+                     <tbody className="text-gray-700 text-sm">
+                       {group.waitlistReservations.map((res, index) => (
+                         <tr key={res.id} className="border-b border-orange-100 hover:bg-orange-50/50">
+                           <td className="py-2 px-4 text-center font-bold text-orange-600">
+                             {index + 1}
+                           </td>
+                           <td className="py-2 px-4 text-left">{res.users?.name ?? 'N/D'}</td>
+                           <td className="py-2 px-4 text-left">{res.users?.email ?? 'N/D'}</td>
+                           <td className="py-2 px-4 text-center">
+                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                               En espera
+                             </span>
+                           </td>
+                         </tr>
+                       ))}
+                     </tbody>
+                  </table>
+                </div>
+                
+                {/* Información adicional sobre el waitlist */}
+                <div className="bg-orange-50 px-4 py-3 border-t border-orange-100">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <svg className="h-4 w-4 text-orange-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="ml-2">
+                      <p className="text-xs text-orange-700">
+                        <strong>Info:</strong> Si alguien cancela su reserva confirmada, la primera persona en lista de espera será automáticamente promovida y notificada.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         );
       })}
