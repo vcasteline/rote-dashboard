@@ -1,13 +1,12 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 
 // Acción para añadir una entrada al horario por defecto (actualizada)
 export async function addDefaultScheduleEntry(formData: FormData) {
-  const cookieStore = cookies();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   const rawFormData = {
     weekday: formData.get('weekday') as string,
@@ -35,8 +34,7 @@ export async function addDefaultScheduleEntry(formData: FormData) {
 
 // Acción para eliminar una entrada del horario por defecto
 export async function deleteDefaultScheduleEntry(id: string) {
-    const cookieStore = cookies();
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     if (!id) {
         return { error: 'Invalid ID.' };
@@ -57,8 +55,7 @@ export async function deleteDefaultScheduleEntry(id: string) {
 
 // Acción para actualizar una entrada del horario por defecto
 export async function updateDefaultScheduleEntry(id: string, formData: FormData) {
-  const cookieStore = cookies();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   if (!id) {
     return { error: 'ID inválido.' };

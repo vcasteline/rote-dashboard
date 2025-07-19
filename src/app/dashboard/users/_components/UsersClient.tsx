@@ -414,8 +414,10 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
                     )}
                     {user.address && (
                       <div className="text-sm text-gray-500 flex items-center">
-                        <MapPin className="h-4 w-4 mr-1 text-gray-400" />
-                        {user.address}
+                        <MapPin className="h-4 w-4 mr-1 text-gray-400 flex-shrink-0" />
+                        <span className="truncate max-w-[200px]" title={user.address}>
+                          {user.address}
+                        </span>
                       </div>
                     )}
                     {!user.phone && !user.address && (

@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import ClassesClient from './_components/ClassesClient';
 import { getNowInEcuador, toISOString } from '@/lib/utils/dateUtils';
@@ -22,8 +22,7 @@ export type Instructor = {
 };
 
 export default async function DashboardPage() {
-  const cookieStore = cookies();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   // Obtener la fecha actual en Ecuador (solo la fecha, sin hora)
   const todayInEcuador = toISOString(getNowInEcuador()).split('T')[0];

@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import BannersClient from './_components/BannersClient';
 
@@ -16,8 +16,7 @@ export type Banner = {
 };
 
 export default async function BannersPage() {
-  const cookieStore = cookies();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   const { data: banners, error } = await supabase
     .from('banners')

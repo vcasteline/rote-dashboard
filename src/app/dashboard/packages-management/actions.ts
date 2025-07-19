@@ -1,102 +1,112 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
-// Esquema para validación de paquetes
 const packageSchema = z.object({
-  name: z.string().min(1, 'Nombre es requerido').max(100, 'Nombre muy largo'),
-  price: z.number().min(0, 'Precio debe ser mayor a 0'),
-  class_credits: z.number().int().min(1, 'Créditos debe ser mayor a 0'),
-  expiration_days: z.number().int().min(1, 'Días de expiración debe ser mayor a 0').optional(),
+  name: z.string().min(1, 'Name is required'),
+  class_credits: z.number().min(1, 'Class credits must be at least 1'),
+  price: z.number().min(0.01, 'Price must be greater than 0'),
+  expiration_days: z.number().nullable().optional(),
 });
 
 export async function addPackage(formData: FormData) {
-  const cookieStore = cookies();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
-  const rawData = {
+  // Validar datos de entrada
+  const validatedFields = packageSchema.safeParse({
     name: formData.get('name'),
-    price: parseFloat(formData.get('price') as string || '0'),
-    class_credits: parseInt(formData.get('class_credits') as string || '0'),
-    expiration_days: formData.get('expiration_days') ? parseInt(formData.get('expiration_days') as string) : null,
-  };
-
-  const validatedFields = packageSchema.safeParse(rawData);
+    class_credits: parseInt(formData.get('class_credits') as string, 10),
+    price: parseFloat(formData.get('price') as string),
+    expiration_days: formData.get('expiration_days') ? parseInt(formData.get('expiration_days') as string, 10) : null,
+  });
 
   if (!validatedFields.success) {
+    console.error('Validation failed:', validatedFields.error.flatten().fieldErrors);
     return {
-      error: 'Error de validación - revisa los campos requeridos',
-      fieldErrors: validatedFields.error.flatten().fieldErrors,
+      error: 'Invalid fields: ' + Object.keys(validatedFields.error.flatten().fieldErrors).join(', ')
     };
   }
 
-  const { error } = await supabase.from('packages').insert(validatedFields.data);
+  try {
+    const { error } = await supabase.from('packages').insert([validatedFields.data]);
 
-  if (error) {
+    if (error) {
+      console.error('Error inserting package:', error);
+      return { error: `Database Error: ${error.message}` };
+    }
+  } catch (error) {
     console.error('Error adding package:', error);
-    return { error: `Error de base de datos: ${error.message}` };
+    return { error: 'Failed to add package.' };
   }
 
   revalidatePath('/dashboard/packages-management');
-  return { message: 'Paquete creado exitosamente.' };
+  return { message: 'Package created successfully' };
 }
 
 export async function updatePackage(id: string, formData: FormData) {
-  const cookieStore = cookies();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
-  const rawData = {
+  if (!id) {
+    return { error: 'Invalid ID.' };
+  }
+
+  // Validar datos de entrada
+  const validatedFields = packageSchema.safeParse({
     name: formData.get('name'),
-    price: parseFloat(formData.get('price') as string || '0'),
-    class_credits: parseInt(formData.get('class_credits') as string || '0'),
-    expiration_days: formData.get('expiration_days') ? parseInt(formData.get('expiration_days') as string) : null,
-  };
-
-  const validatedFields = packageSchema.safeParse(rawData);
+    class_credits: parseInt(formData.get('class_credits') as string, 10),
+    price: parseFloat(formData.get('price') as string),
+    expiration_days: formData.get('expiration_days') ? parseInt(formData.get('expiration_days') as string, 10) : null,
+  });
 
   if (!validatedFields.success) {
+    console.error('Validation failed:', validatedFields.error.flatten().fieldErrors);
     return {
-      error: 'Error de validación - revisa los campos requeridos',
-      fieldErrors: validatedFields.error.flatten().fieldErrors,
+      error: 'Invalid fields: ' + Object.keys(validatedFields.error.flatten().fieldErrors).join(', ')
     };
   }
 
-  const { error } = await supabase
-    .from('packages')
-    .update(validatedFields.data)
-    .eq('id', id);
+  try {
+    const { error } = await supabase.from('packages').update(validatedFields.data).match({ id });
 
-  if (error) {
+    if (error) {
+      console.error('Error updating package:', error);
+      return { error: `Database Error: ${error.message}` };
+    }
+  } catch (error) {
     console.error('Error updating package:', error);
-    return { error: `Error de base de datos: ${error.message}` };
+    return { error: 'Failed to update package.' };
   }
 
   revalidatePath('/dashboard/packages-management');
-  return { message: 'Paquete actualizado exitosamente.' };
+  return { message: 'Package updated successfully' };
 }
 
 export async function deletePackage(id: string) {
-  const cookieStore = cookies();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
-  // Ya no necesitamos verificar compras porque usamos soft delete
-  // Los paquetes eliminados seguirán existiendo en la BD para mantener integridad referencial
-  
-  // Hacer soft delete: marcar como eliminado con timestamp actual
-  const { error } = await supabase
-    .from('packages')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id)
-    .is('deleted_at', null); // Solo eliminar si no está ya eliminado
+  if (!id) {
+    return { error: 'Invalid ID.' };
+  }
 
-  if (error) {
-    console.error('Error soft deleting package:', error);
-    return { error: `Error de base de datos: ${error.message}` };
+  try {
+    // Soft delete marcando deleted_at
+    const { error } = await supabase
+      .from('packages')
+      .update({ deleted_at: new Date().toISOString() })
+      .match({ id });
+
+    if (error) {
+      console.error('Error deleting package:', error);
+      return { error: `Database Error: ${error.message}` };
+    }
+  } catch (error) {
+    console.error('Error deleting package:', error);
+    return { error: 'Failed to delete package.' };
   }
 
   revalidatePath('/dashboard/packages-management');
-  return { message: 'Paquete eliminado exitosamente.' };
+  return { message: 'Package deleted successfully.' };
 } 

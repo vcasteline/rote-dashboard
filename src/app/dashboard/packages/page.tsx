@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import PackagesClient from './_components/PackagesClient';
 
@@ -29,8 +29,7 @@ interface PackagesPageProps {
 }
 
 export default async function PackagesPage({ searchParams }: PackagesPageProps) {
-  const cookieStore = cookies();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   // Await searchParams
   const params = await searchParams;

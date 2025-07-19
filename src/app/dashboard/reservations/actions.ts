@@ -1,6 +1,6 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { toISOString, getNowInEcuador } from '@/lib/utils/dateUtils';
@@ -32,8 +32,7 @@ export interface AvailableClass {
 
 // Acción para cancelar una reservación usando la función robusta de la base de datos
 export async function cancelReservation(reservationId: string) {
-  const cookieStore = cookies();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   if (!reservationId) {
     return { error: 'ID de reservación inválido.' };
@@ -94,7 +93,7 @@ export async function updateReservationBikes(
   console.log('New Static Bike IDs:', newBikeStaticBikeIds);
 
   try {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     // Validación básica
     if (!reservationId) {
@@ -191,8 +190,7 @@ export async function updateReservationBikes(
 
 // Función para obtener bicicletas disponibles para una clase específica
 export async function getAvailableBikes(classId: string, excludeReservationId?: string) {
-  const cookieStore = cookies();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   if (!classId) {
     return { error: 'ID de clase inválido.' };
@@ -270,7 +268,7 @@ export async function getAvailableBikes(classId: string, excludeReservationId?: 
 
 // Nueva función para obtener usuarios con créditos disponibles
 export async function getUsersWithCredits(): Promise<{ success: boolean; users?: UserWithCredits[]; error?: string }> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   try {
     // Obtener todas las compras activas (con créditos > 0 y no vencidas)
@@ -344,7 +342,7 @@ export async function getUsersWithCredits(): Promise<{ success: boolean; users?:
 
 // Nueva función para obtener clases futuras disponibles
 export async function getAvailableClasses(): Promise<{ success: boolean; classes?: AvailableClass[]; error?: string }> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   try {
     // Obtener fecha y hora actual en Ecuador
@@ -451,7 +449,7 @@ export async function createReservation(data: {
   purchase_id?: string;
   credits_to_use?: number;
 }): Promise<{ success: boolean; message?: string; error?: string }> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   try {
     // Validaciones básicas

@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import InstructorsClient from './_components/InstructorsClient'; // Crearemos este
 
@@ -12,8 +12,7 @@ export type Instructor = {
 };
 
 export default async function InstructorsPage() {
-  const cookieStore = cookies();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   // Obtener instructors disponibles (solo los no eliminados)
   const { data: instructors, error } = await supabase

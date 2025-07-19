@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import ScheduleClient from './_components/ScheduleClient'; // Crearemos este componente cliente
 
@@ -20,8 +20,7 @@ export type DefaultScheduleEntry = {
 };
 
 export default async function SchedulePage() {
-  const cookieStore = cookies();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   // Fetch instructores para el formulario
   const { data: instructors, error: instructorsError } = await supabase

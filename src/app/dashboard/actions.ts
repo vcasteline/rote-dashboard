@@ -1,6 +1,6 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
@@ -17,8 +17,7 @@ const createClassSchema = z.object({
 
 // Acción para crear una nueva clase
 export async function createClass(formData: FormData) {
-  const cookieStore = cookies();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   // Validar datos de entrada
   const validatedFields = createClassSchema.safeParse({
@@ -79,8 +78,7 @@ export async function createClass(formData: FormData) {
 
 // Acción para obtener instructores
 export async function getInstructors() {
-  const cookieStore = cookies();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   // Obtener solo instructors activos (no eliminados)
   const { data: instructors, error } = await supabase
@@ -99,8 +97,7 @@ export async function getInstructors() {
 
 // Acción para actualizar el nombre de una clase
 export async function updateClassName(id: string, newName: string | null) {
-  const cookieStore = cookies();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   if (!id) {
     return { error: 'Invalid Class ID.' };
@@ -125,8 +122,7 @@ export async function updateClassName(id: string, newName: string | null) {
 
 // Acción para borrar una clase junto con sus bicis
 export async function deleteClass(classId: string) {
-  const cookieStore = cookies();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   if (!classId) {
     return { error: 'ID de clase requerido' };

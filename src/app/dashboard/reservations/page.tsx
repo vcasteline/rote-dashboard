@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import ReservationsClient from './_components/ReservationsClient';
 import { getNextMonday, toISOString } from '@/lib/utils/dateUtils';
@@ -29,8 +29,7 @@ export type ReservationData = {
 };
 
 export default async function ReservationsPage() {
-  const cookieStore = cookies();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   // Obtener el lunes de esta semana usando Luxon
   const mondayOfThisWeek = toISOString(getNextMonday()).split('T')[0];

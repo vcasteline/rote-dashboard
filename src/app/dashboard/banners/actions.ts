@@ -1,6 +1,6 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
@@ -16,8 +16,7 @@ const BannerSchema = z.object({
 });
 
 export async function addBanner(formData: FormData) {
-  const cookieStore = cookies();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   // Debug logging
   console.log('Raw form data:');
@@ -59,8 +58,7 @@ export async function addBanner(formData: FormData) {
 }
 
 export async function updateBanner(id: string, formData: FormData) {
-  const cookieStore = cookies();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   if (!id) {
     return { error: 'ID de banner inválido.' };
@@ -109,8 +107,7 @@ export async function updateBanner(id: string, formData: FormData) {
 }
 
 export async function deleteBanner(id: string) {
-  const cookieStore = cookies();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   if (!id) {
     return { error: 'ID inválido.' };
@@ -128,8 +125,7 @@ export async function deleteBanner(id: string) {
 }
 
 export async function toggleBannerStatus(id: string, isActive: boolean) {
-  const cookieStore = cookies();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   if (!id) {
     return { error: 'ID inválido.' };

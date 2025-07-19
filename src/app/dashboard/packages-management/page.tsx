@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import PackagesManagementClient from './_components/PackagesManagementClient';
 
@@ -13,8 +13,7 @@ export type Package = {
 };
 
 export default async function PackagesManagementPage() {
-  const cookieStore = cookies();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   // Obtener paquetes disponibles (solo los no eliminados)
   const { data: packages, error: packagesError } = await supabase

@@ -25,7 +25,7 @@ export interface Package {
 }
 
 export async function getUsersWithPurchaseCount(): Promise<User[]> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   
   try {
     const { data, error } = await supabase
@@ -44,7 +44,7 @@ export async function getUsersWithPurchaseCount(): Promise<User[]> {
 }
 
 export async function getAvailablePackages(): Promise<Package[]> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   
   try {
     const { data, error } = await supabase
@@ -85,7 +85,7 @@ export async function createUser(userData: {
   cedula?: string;
   shoe_size?: string;
 }): Promise<{ success: boolean; user?: User; error?: string; password?: string }> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const adminClient = createAdminClient();
   
   try {
@@ -165,7 +165,7 @@ export async function assignPackageToUser(userData: {
   transaction_id?: string;
   authorization_code?: string;
 }): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   
   try {
     // Obtener información del paquete
@@ -230,7 +230,7 @@ export async function createUserWithPackage(userData: {
   transaction_id?: string;
   authorization_code?: string;
 }): Promise<{ success: boolean; user?: User; error?: string; password?: string }> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const adminClient = createAdminClient();
   
   try {
@@ -328,7 +328,7 @@ export async function updateUser(userId: string, userData: {
   cedula?: string;
   shoe_size?: string;
 }): Promise<{ success: boolean; user?: User; error?: string }> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const adminClient = createAdminClient();
   
   try {

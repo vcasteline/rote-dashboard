@@ -1,144 +1,122 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
-import { z } from 'zod'; // Usaremos Zod para validación
+import { z } from 'zod';
 
-// Esquema de validación para un instructor (añadir/editar)
-const InstructorSchema = z.object({
+// Esquema de validación para instructor
+const instructorSchema = z.object({
   name: z.string().min(1, 'Name is required'),
-  bio: z.string().nullable().optional(), // Bio puede ser null o string
-  profile_picture_url: z.string().url('Must be a valid URL').optional().or(z.literal('')), // Opcional o vacío
+  email: z.string().email('Invalid email').optional(),
+  bio: z.string().optional(),
 });
 
-// Acción para añadir un nuevo instructor
 export async function addInstructor(formData: FormData) {
-  const cookieStore = cookies();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
-  const validatedFields = InstructorSchema.safeParse({
+  // Validar datos de entrada
+  const validatedFields = instructorSchema.safeParse({
     name: formData.get('name'),
-    bio: formData.get('bio') || null,
-    profile_picture_url: formData.get('profile_picture_url'),
+    email: formData.get('email') || undefined,
+    bio: formData.get('bio') || undefined,
   });
 
-  // Si la validación falla, retornar errores
   if (!validatedFields.success) {
+    console.error('Validation failed:', validatedFields.error.flatten().fieldErrors);
     return {
-      error: 'Validation Error',
-      fieldErrors: validatedFields.error.flatten().fieldErrors,
+      error: 'Invalid fields: ' + Object.keys(validatedFields.error.flatten().fieldErrors).join(', ')
     };
   }
 
-  // Asegurar que profile_picture_url sea null si está vacío
-  const dataToInsert = {
-    ...validatedFields.data,
-    profile_picture_url: validatedFields.data.profile_picture_url || null,
-  };
+  try {
+    const { error } = await supabase.from('instructors').insert([
+      {
+        name: validatedFields.data.name,
+        email: validatedFields.data.email,
+        bio: validatedFields.data.bio,
+      }
+    ]);
 
-  const { error } = await supabase.from('instructors').insert(dataToInsert);
-
-  if (error) {
+    if (error) {
+      console.error('Error inserting instructor:', error);
+      return { error: `Database Error: ${error.message}` };
+    }
+  } catch (error) {
     console.error('Error adding instructor:', error);
-    return { error: `Database Error: ${error.message}` };
+    return { error: 'Failed to add instructor.' };
   }
 
   revalidatePath('/dashboard/instructors');
-  return { message: 'Instructor added successfully.' };
+  return { message: 'Instructor created successfully' };
 }
 
-// Acción para actualizar un instructor existente
 export async function updateInstructor(id: string, formData: FormData) {
-    const cookieStore = cookies();
-    const supabase = await createClient();
-
-    if (!id) {
-        return { error: 'Invalid Instructor ID.' };
-    }
-
-    const validatedFields = InstructorSchema.safeParse({
-        name: formData.get('name'),
-        bio: formData.get('bio') || null,
-        profile_picture_url: formData.get('profile_picture_url'),
-    });
-
-    if (!validatedFields.success) {
-        return {
-            error: 'Validation Error',
-            fieldErrors: validatedFields.error.flatten().fieldErrors,
-        };
-    }
-
-    const dataToUpdate = {
-        ...validatedFields.data,
-        profile_picture_url: validatedFields.data.profile_picture_url || null,
-    };
-
-    const { error } = await supabase.from('instructors').update(dataToUpdate).match({ id });
-
-    if (error) {
-        console.error('Error updating instructor:', error);
-        return { error: `Database Error: ${error.message}` };
-    }
-
-    revalidatePath('/dashboard/instructors');
-    return { message: 'Instructor updated successfully.' };
-}
-
-
-// Acción para eliminar un instructor
-export async function deleteInstructor(id: string) {
-  const cookieStore = cookies();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   if (!id) {
     return { error: 'Invalid ID.' };
   }
 
-  // Verificar si el instructor tiene relaciones (clases o schedules)
-  const { data: classes } = await supabase
-    .from('classes')
-    .select('id')
-    .eq('instructor_id', id)
-    .limit(1);
+  // Validar datos de entrada
+  const validatedFields = instructorSchema.safeParse({
+    name: formData.get('name'),
+    email: formData.get('email') || undefined,
+    bio: formData.get('bio') || undefined,
+  });
 
-  const { data: schedules } = await supabase
-    .from('class_schedules')
-    .select('id')
-    .eq('instructor_id', id)
-    .limit(1);
+  if (!validatedFields.success) {
+    console.error('Validation failed:', validatedFields.error.flatten().fieldErrors);
+    return {
+      error: 'Invalid fields: ' + Object.keys(validatedFields.error.flatten().fieldErrors).join(', ')
+    };
+  }
 
-  const hasRelations = (classes && classes.length > 0) || (schedules && schedules.length > 0);
+  try {
+    const { error } = await supabase.from('instructors').update(
+      {
+        name: validatedFields.data.name,
+        email: validatedFields.data.email,
+        bio: validatedFields.data.bio,
+      }
+    ).match({ id });
 
-  if (hasRelations) {
-    // Hacer soft delete: marcar como eliminado con timestamp actual
+    if (error) {
+      console.error('Error updating instructor:', error);
+      return { error: `Database Error: ${error.message}` };
+    }
+  } catch (error) {
+    console.error('Error updating instructor:', error);
+    return { error: 'Failed to update instructor.' };
+  }
+
+  revalidatePath('/dashboard/instructors');
+  return { message: 'Instructor updated successfully' };
+}
+
+export async function deleteInstructor(id: string) {
+  const supabase = createAdminClient();
+
+  if (!id) {
+    return { error: 'Invalid ID.' };
+  }
+
+  try {
+    // Soft delete marcando deleted_at
     const { error } = await supabase
       .from('instructors')
       .update({ deleted_at: new Date().toISOString() })
-      .eq('id', id)
-      .is('deleted_at', null); // Solo eliminar si no está ya eliminado
-
-    if (error) {
-      console.error('Error soft deleting instructor:', error);
-      return { error: `Error de base de datos: ${error.message}` };
-    }
-
-    revalidatePath('/dashboard/instructors');
-    return { message: 'Instructor ocultado exitosamente (tiene clases o horarios asociados).' };
-  } else {
-    // No tiene relaciones: borrar físicamente
-    const { error } = await supabase
-      .from('instructors')
-      .delete()
-      .eq('id', id);
+      .match({ id });
 
     if (error) {
       console.error('Error deleting instructor:', error);
-      return { error: `Error de base de datos: ${error.message}` };
+      return { error: `Database Error: ${error.message}` };
     }
-
-    revalidatePath('/dashboard/instructors');
-    return { message: 'Instructor eliminado completamente.' };
+  } catch (error) {
+    console.error('Error deleting instructor:', error);
+    return { error: 'Failed to delete instructor.' };
   }
+
+  revalidatePath('/dashboard/instructors');
+  return { message: 'Instructor deleted successfully.' };
 } 
