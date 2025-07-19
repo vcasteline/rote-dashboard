@@ -26,7 +26,8 @@ export async function addPackage(formData: FormData) {
   if (!validatedFields.success) {
     console.error('Validation failed:', validatedFields.error.flatten().fieldErrors);
     return {
-      error: 'Invalid fields: ' + Object.keys(validatedFields.error.flatten().fieldErrors).join(', ')
+      error: 'Invalid fields: ' + Object.keys(validatedFields.error.flatten().fieldErrors).join(', '),
+      fieldErrors: validatedFields.error.flatten().fieldErrors
     };
   }
 
@@ -64,7 +65,8 @@ export async function updatePackage(id: string, formData: FormData) {
   if (!validatedFields.success) {
     console.error('Validation failed:', validatedFields.error.flatten().fieldErrors);
     return {
-      error: 'Invalid fields: ' + Object.keys(validatedFields.error.flatten().fieldErrors).join(', ')
+      error: 'Invalid fields: ' + Object.keys(validatedFields.error.flatten().fieldErrors).join(', '),
+      fieldErrors: validatedFields.error.flatten().fieldErrors
     };
   }
 

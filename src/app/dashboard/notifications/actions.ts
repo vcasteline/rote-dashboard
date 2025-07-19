@@ -48,7 +48,10 @@ export async function sendImmediateNotification(formData: FormData) {
 
     if (!validatedFields.success) {
       const errors = validatedFields.error.flatten().fieldErrors;
-      return { error: `Errores de validación: ${Object.values(errors).flat().join(', ')}` };
+      return { 
+        error: `Errores de validación: ${Object.values(errors).flat().join(', ')}`,
+        fieldErrors: errors
+      };
     }
 
     const { title, body, user_ids } = validatedFields.data;

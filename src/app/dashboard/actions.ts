@@ -30,7 +30,10 @@ export async function createClass(formData: FormData) {
 
   if (!validatedFields.success) {
     const errors = validatedFields.error.flatten().fieldErrors;
-    return { error: `Errores de validación: ${Object.values(errors).flat().join(', ')}` };
+    return { 
+      error: `Errores de validación: ${Object.values(errors).flat().join(', ')}`,
+      fieldErrors: errors
+    };
   }
 
   const { date, start_time, end_time, instructor_id, name } = validatedFields.data;
