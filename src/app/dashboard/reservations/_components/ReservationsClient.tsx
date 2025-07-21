@@ -613,6 +613,80 @@ function CreateReservationModal({
   );
 }
 
+// Agregar el componente de modal para editar reservación justo después de CreateReservationModal
+function EditReservationModal({
+  isOpen,
+  reservation,
+  selectedBikes,
+  setSelectedBikes,
+  onSave,
+  onCancel,
+  error,
+  isPending,
+}: {
+  isOpen: boolean;
+  reservation: ReservationData | null;
+  selectedBikes: number[];
+  setSelectedBikes: (bikes: number[]) => void;
+  onSave: (reservationId: string) => void;
+  onCancel: () => void;
+  error: string | null;
+  isPending: boolean;
+}) {
+  if (!isOpen || !reservation) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 overflow-y-auto h-full w-full z-50">
+      <div className="relative top-20 mx-auto p-5 border w-11/12 max-w-lg shadow-lg rounded-md bg-white">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-bold text-gray-900">
+            Editar Reservación - {reservation.users?.name ?? 'Usuario'}
+          </h3>
+          <button
+            onClick={onCancel}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+
+        {/* Selector de bicicletas */}
+        <BikeSelector
+          classId={reservation.classes?.id || ''}
+          reservationId={reservation.id}
+          selectedBikes={selectedBikes}
+          onBikesChange={setSelectedBikes}
+          disabled={isPending}
+        />
+
+        {/* Errores */}
+        {error && (
+          <div className="text-red-600 text-sm mt-4">{error}</div>
+        )}
+
+        {/* Acciones */}
+        <div className="mt-6 flex justify-end space-x-3">
+          <button
+            onClick={() => onSave(reservation.id)}
+            disabled={isPending}
+            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 text-sm"
+          >
+            {isPending ? 'Guardando...' : 'Guardar'}
+          </button>
+          <button
+            onClick={onCancel}
+            disabled={isPending}
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 text-sm"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ReservationsClient({ initialReservations }: { initialReservations: ReservationData[] }) {
   const [isPending, startTransition] = useTransition();
   const [cancelError, setCancelError] = useState<string | null>(null);
@@ -836,62 +910,26 @@ export default function ReservationsClient({ initialReservations }: { initialRes
                     <tbody className="text-gray-700 text-sm">
                       {group.confirmedReservations.map((res) => (
                         <tr key={res.id} className="border-b border-gray-200 hover:bg-gray-50">
-                          {editingReservationId === res.id ? (
-                            <td className="py-2 px-4 text-left whitespace-nowrap">
-                              <BikeSelector
-                                classId={classId}
-                                reservationId={res.id}
-                                selectedBikes={selectedBikes}
-                                onBikesChange={(bikes) => {
-                                  setSelectedBikes(bikes);
-                                }}
-                                disabled={isPending}
-                              />
-                              {editError && editingReservationId === res.id && (
-                                <div className="text-xs text-red-600 mt-1">{editError}</div>
-                              )}
-                            </td>
-                          ) : (
-                            <td className="py-2 px-4 text-left font-medium whitespace-nowrap">{getBikeNumbers(res)}</td>
-                          )}
+                          <td className="py-2 px-4 text-left font-medium whitespace-nowrap">{getBikeNumbers(res)}</td>
                           <td className="py-2 px-4 text-left">{res.users?.name ?? 'N/D'}</td>
                           <td className="py-2 px-4 text-left">{res.users?.email ?? 'N/D'}</td>
                           <td className="py-2 px-4 text-center">
-                            {editingReservationId === res.id ? (
-                              <>
-                                <button
-                                  onClick={() => handleSaveEdit(res.id)}
-                                  disabled={isPending}
-                                  className="text-green-600 hover:text-green-800 disabled:opacity-50 mr-2 text-xs font-semibold"
-                                >
-                                  {isPending ? 'Guardando...' : 'Guardar'}
-                                </button>
-                                <button
-                                  onClick={handleCancelEditMode}
-                                  disabled={isPending}
-                                  className="text-gray-500 hover:text-gray-700 disabled:opacity-50 text-xs font-semibold"
-                                >
-                                  Descartar
-                                </button>
-                              </>
-                            ) : (
-                              <>
-                                <button
-                                  onClick={() => handleEdit(res)}
-                                  disabled={isPending && editingReservationId !== res.id}
-                                  className="text-blue-500 hover:text-blue-700 disabled:opacity-50 mr-2 text-xs font-semibold"
-                                >
-                                  Editar
-                                </button>
-                                <button
-                                  onClick={() => handleCancel(res.id)}
-                                  disabled={isPending && editingReservationId !== res.id}
-                                  className="text-red-500 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold"
-                                >
-                                  {isPending && !editingReservationId ? 'Cancelando...' : 'Cancelar'}
-                                </button>
-                              </>
-                            )}
+                            <>
+                              <button
+                                onClick={() => handleEdit(res)}
+                                disabled={isPending && editingReservationId !== res.id}
+                                className="text-blue-500 hover:text-blue-700 disabled:opacity-50 mr-2 text-xs font-semibold"
+                              >
+                                Editar
+                              </button>
+                              <button
+                                onClick={() => handleCancel(res.id)}
+                                disabled={isPending && editingReservationId !== res.id}
+                                className="text-red-500 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold"
+                              >
+                                {isPending && !editingReservationId ? 'Cancelando...' : 'Cancelar'}
+                              </button>
+                            </>
                           </td>
                         </tr>
                       ))}
@@ -968,6 +1006,18 @@ export default function ReservationsClient({ initialReservations }: { initialRes
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={handleCreateSuccess}
+      />
+
+      {/* Modal para editar reservación */}
+      <EditReservationModal
+        isOpen={editingReservationId !== null}
+        reservation={initialReservations.find(r => r.id === editingReservationId) ?? null}
+        selectedBikes={selectedBikes}
+        setSelectedBikes={setSelectedBikes}
+        onSave={handleSaveEdit}
+        onCancel={handleCancelEditMode}
+        error={editError}
+        isPending={isPending}
       />
     </div>
   );
