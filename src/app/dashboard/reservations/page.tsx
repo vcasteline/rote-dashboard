@@ -12,6 +12,7 @@ export type ReservationData = {
   users: {
     name: string | null; // Cambiado de full_name a name
     email: string | null;
+    shoe_size: string | null;
   } | null;
   classes: {
     id: string; // class id
@@ -43,7 +44,7 @@ export default async function ReservationsPage() {
       id,
       status,
       created_at,
-      users ( name, email ),
+      users ( name, email, shoe_size ),
       classes ( id, date, start_time, instructors ( name ) ),
       reservation_bikes ( bikes ( static_bike_id ) )
     `)

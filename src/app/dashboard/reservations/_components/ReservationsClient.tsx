@@ -904,6 +904,7 @@ export default function ReservationsClient({ initialReservations }: { initialRes
                         <th className="py-2 px-4 text-left">Bicis</th>
                         <th className="py-2 px-4 text-left">Nombre Usuario</th>
                         <th className="py-2 px-4 text-left">Email Usuario</th>
+                        <th className="py-2 px-4 text-center">Talla Zapato</th>
                         <th className="py-2 px-4 text-center">Acciones</th>
                       </tr>
                     </thead>
@@ -913,6 +914,7 @@ export default function ReservationsClient({ initialReservations }: { initialRes
                           <td className="py-2 px-4 text-left font-medium whitespace-nowrap">{getBikeNumbers(res)}</td>
                           <td className="py-2 px-4 text-left">{res.users?.name ?? 'N/D'}</td>
                           <td className="py-2 px-4 text-left">{res.users?.email ?? 'N/D'}</td>
+                          <td className="py-2 px-4 text-center">{res.users?.shoe_size ?? 'N/D'}</td>
                           <td className="py-2 px-4 text-center">
                             <>
                               <button
@@ -958,6 +960,7 @@ export default function ReservationsClient({ initialReservations }: { initialRes
                          <th className="py-2 px-4 text-center w-16">#</th>
                          <th className="py-2 px-4 text-left">Nombre Usuario</th>
                          <th className="py-2 px-4 text-left">Email Usuario</th>
+                         <th className="py-2 px-4 text-center">Talla Zapato</th>
                          <th className="py-2 px-4 text-center">Estado</th>
                        </tr>
                      </thead>
@@ -969,6 +972,7 @@ export default function ReservationsClient({ initialReservations }: { initialRes
                            </td>
                            <td className="py-2 px-4 text-left">{res.users?.name ?? 'N/D'}</td>
                            <td className="py-2 px-4 text-left">{res.users?.email ?? 'N/D'}</td>
+                           <td className="py-2 px-4 text-center">{res.users?.shoe_size ?? 'N/D'}</td>
                            <td className="py-2 px-4 text-center">
                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
                                En espera
