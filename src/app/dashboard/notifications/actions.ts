@@ -120,41 +120,48 @@ export async function sendImmediateNotification(formData: FormData) {
       throw new Error(errorMessage);
     }
 
-    // Registrar solo las notificaciones enviadas exitosamente en la base de datos
-    const successfulNotifications: any[] = [];
-    
-    if (result.data && Array.isArray(result.data)) {
-      result.data.forEach((item: any, index: number) => {
-        if (item.status === 'ok' && pushTokens[index]) {
-          successfulNotifications.push({
-            user_id: pushTokens[index].user_id,
-            title,
-            body,
-            sent: true,
-          });
-        }
-      });
-    }
-
-    if (successfulNotifications.length > 0) {
-      const { error: dbError } = await supabase
-        .from('notifications')
-        .insert(successfulNotifications);
-
-      if (dbError) {
-        console.error('Error saving notifications to DB:', dbError);
-        // No retornamos error aquí porque la notificación ya se envió
+    // Solo registrar en BD si es envío específico (no broadcast masivo)
+    if (sendTo === 'specific') {
+      const successfulNotifications: any[] = [];
+      
+      if (result.data && Array.isArray(result.data)) {
+        result.data.forEach((item: any, index: number) => {
+          if (item.status === 'ok' && pushTokens[index]) {
+            successfulNotifications.push({
+              user_id: pushTokens[index].user_id,
+              title,
+              body,
+              sent: true,
+            });
+          }
+        });
       }
+
+      if (successfulNotifications.length > 0) {
+        const { error: dbError } = await supabase
+          .from('notifications')
+          .insert(successfulNotifications);
+
+        if (dbError) {
+          console.error('Error saving notifications to DB:', dbError);
+          // No retornamos error aquí porque la notificación ya se envió
+        }
+      }
+    } else {
+      // Para broadcasts masivos, solo loggear (no guardar en BD)
+      console.log(`Broadcast notification sent - Title: "${title}", Recipients: ${successCount} successful, ${errorCount} failed`);
     }
 
     revalidatePath('/dashboard/notifications');
     
     // Mensaje informativo basado en los resultados
     let message = '';
+    const broadcastNote = sendTo === 'all' ? ' (broadcast masivo - no guardado en historial)' : '';
+    
     if (successCount === pushTokens.length) {
-      message = `Notificaciones enviadas exitosamente a ${successCount} usuarios`;
+      message = `Notificaciones enviadas exitosamente a ${successCount} usuarios${broadcastNote}`;
     } else if (successCount > 0) {
-      message = `Notificaciones enviadas parcialmente: ${successCount} exitosas, ${errorCount} fallidas de ${pushTokens.length} total`;
+      message = `Notificaciones enviadas parcialmente: ${successCount} exitosas, ${errorCount} fallidas de ${pushTokens.length} total${broadcastNote}`;
       if (errors.length > 0) {
         message += `. Errores: ${errors.slice(0, 3).join(', ')}${errors.length > 3 ? '...' : ''}`;
       }
