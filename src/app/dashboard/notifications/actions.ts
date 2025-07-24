@@ -92,32 +92,77 @@ export async function sendImmediateNotification(formData: FormData) {
       body: JSON.stringify(messages),
     });
 
-    if (!response.ok) {
-      throw new Error(`Expo API error: ${response.status}`);
-    }
-
     const result = await response.json();
     console.log('Expo push result:', result);
+    console.log(`HTTP Status: ${response.status}, Total messages sent: ${messages.length}`);
 
-    // Registrar las notificaciones enviadas en la base de datos
-    const notifications = pushTokens.map(token => ({
-      user_id: token.user_id,
-      title,
-      body,
-      sent: true,
-    }));
+    // Analizar los resultados individuales
+    let successCount = 0;
+    let errorCount = 0;
+    const errors: string[] = [];
 
-    const { error: dbError } = await supabase
-      .from('notifications')
-      .insert(notifications);
+    if (result.data && Array.isArray(result.data)) {
+      result.data.forEach((item: any, index: number) => {
+        if (item.status === 'ok') {
+          successCount++;
+        } else if (item.status === 'error') {
+          errorCount++;
+          errors.push(`Token ${index + 1}: ${item.message || 'Error desconocido'}`);
+        }
+      });
+    }
 
-    if (dbError) {
-      console.error('Error saving notifications to DB:', dbError);
-      // No retornamos error aquí porque la notificación ya se envió
+    // Si no hay resultados exitosos y hay errores, lanzar excepción
+    if (successCount === 0 && (errorCount > 0 || !response.ok)) {
+      const errorMessage = errors.length > 0 
+        ? `Todas las notificaciones fallaron: ${errors.join(', ')}`
+        : `Expo API error: ${response.status}`;
+      throw new Error(errorMessage);
+    }
+
+    // Registrar solo las notificaciones enviadas exitosamente en la base de datos
+    const successfulNotifications: any[] = [];
+    
+    if (result.data && Array.isArray(result.data)) {
+      result.data.forEach((item: any, index: number) => {
+        if (item.status === 'ok' && pushTokens[index]) {
+          successfulNotifications.push({
+            user_id: pushTokens[index].user_id,
+            title,
+            body,
+            sent: true,
+          });
+        }
+      });
+    }
+
+    if (successfulNotifications.length > 0) {
+      const { error: dbError } = await supabase
+        .from('notifications')
+        .insert(successfulNotifications);
+
+      if (dbError) {
+        console.error('Error saving notifications to DB:', dbError);
+        // No retornamos error aquí porque la notificación ya se envió
+      }
     }
 
     revalidatePath('/dashboard/notifications');
-    return { message: `Notificaciones enviadas inmediatamente a ${pushTokens.length} usuarios` };
+    
+    // Mensaje informativo basado en los resultados
+    let message = '';
+    if (successCount === pushTokens.length) {
+      message = `Notificaciones enviadas exitosamente a ${successCount} usuarios`;
+    } else if (successCount > 0) {
+      message = `Notificaciones enviadas parcialmente: ${successCount} exitosas, ${errorCount} fallidas de ${pushTokens.length} total`;
+      if (errors.length > 0) {
+        message += `. Errores: ${errors.slice(0, 3).join(', ')}${errors.length > 3 ? '...' : ''}`;
+      }
+    }
+    
+    console.log(`Notification summary: ${successCount} successful, ${errorCount} failed, total ${pushTokens.length}`);
+    
+    return { message };
   } catch (error: any) {
     console.error('Error sending immediate notification:', error);
     return { error: `Error al enviar notificación: ${error.message}` };
