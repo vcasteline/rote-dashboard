@@ -8,7 +8,6 @@ import { z } from 'zod';
 // Esquema de validación para instructor
 const instructorSchema = z.object({
   name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Invalid email').optional(),
   bio: z.string().optional(),
 });
 
@@ -18,7 +17,6 @@ export async function addInstructor(formData: FormData) {
   // Validar datos de entrada
   const validatedFields = instructorSchema.safeParse({
     name: formData.get('name'),
-    email: formData.get('email') || undefined,
     bio: formData.get('bio') || undefined,
   });
 
@@ -34,7 +32,6 @@ export async function addInstructor(formData: FormData) {
     const { error } = await supabase.from('instructors').insert([
       {
         name: validatedFields.data.name,
-        email: validatedFields.data.email,
         bio: validatedFields.data.bio,
       }
     ]);
@@ -62,7 +59,6 @@ export async function updateInstructor(id: string, formData: FormData) {
   // Validar datos de entrada
   const validatedFields = instructorSchema.safeParse({
     name: formData.get('name'),
-    email: formData.get('email') || undefined,
     bio: formData.get('bio') || undefined,
   });
 
@@ -78,7 +74,6 @@ export async function updateInstructor(id: string, formData: FormData) {
     const { error } = await supabase.from('instructors').update(
       {
         name: validatedFields.data.name,
-        email: validatedFields.data.email,
         bio: validatedFields.data.bio,
       }
     ).match({ id });
