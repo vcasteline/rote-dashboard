@@ -81,51 +81,96 @@ export async function sendImmediateNotification(formData: FormData) {
       data: { timestamp: new Date().toISOString() },
     }));
 
-    // Enviar a Expo Push API
-    const response = await fetch('https://exp.host/--/api/v2/push/send', {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Accept-encoding': 'gzip, deflate',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(messages),
-    });
+    console.log(`Total messages to send: ${messages.length}`);
 
-    const result = await response.json();
-    console.log('Expo push result:', result);
-    console.log(`HTTP Status: ${response.status}, Total messages sent: ${messages.length}`);
-
-    // Analizar los resultados individuales
-    let successCount = 0;
-    let errorCount = 0;
-    const errors: string[] = [];
-
-    if (result.data && Array.isArray(result.data)) {
-      result.data.forEach((item: any, index: number) => {
-        if (item.status === 'ok') {
-          successCount++;
-        } else if (item.status === 'error') {
-          errorCount++;
-          errors.push(`Token ${index + 1}: ${item.message || 'Error desconocido'}`);
-        }
-      });
+    // Dividir en lotes de máximo 100 (límite de Expo)
+    const BATCH_SIZE = 100;
+    const batches = [];
+    for (let i = 0; i < messages.length; i += BATCH_SIZE) {
+      batches.push(messages.slice(i, i + BATCH_SIZE));
     }
+
+    console.log(`Divided into ${batches.length} batches`);
+
+    // Enviar cada lote por separado
+    let totalSuccessCount = 0;
+    let totalErrorCount = 0;
+    const allErrors: string[] = [];
+    const allResults: any[] = [];
+
+    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+      const batch = batches[batchIndex];
+      console.log(`Sending batch ${batchIndex + 1}/${batches.length} with ${batch.length} messages`);
+
+      try {
+        const response = await fetch('https://exp.host/--/api/v2/push/send', {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Accept-encoding': 'gzip, deflate',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(batch),
+        });
+
+        const batchResult = await response.json();
+        console.log(`Batch ${batchIndex + 1} result:`, batchResult);
+
+        // Procesar resultados del lote
+        if (batchResult.data && Array.isArray(batchResult.data)) {
+          batchResult.data.forEach((item: any, itemIndex: number) => {
+            const globalIndex = batchIndex * BATCH_SIZE + itemIndex;
+            if (item.status === 'ok') {
+              totalSuccessCount++;
+            } else if (item.status === 'error') {
+              totalErrorCount++;
+              allErrors.push(`Token ${globalIndex + 1}: ${item.message || 'Error desconocido'}`);
+            }
+          });
+          // Guardar resultados para procesar después
+          allResults.push(...batchResult.data);
+        } else if (batchResult.errors && Array.isArray(batchResult.errors)) {
+          // Si el lote completo falló
+          console.error(`Batch ${batchIndex + 1} failed completely:`, batchResult.errors);
+          totalErrorCount += batch.length;
+          batchResult.errors.forEach((error: any) => {
+            allErrors.push(`Batch ${batchIndex + 1}: ${error.message || 'Error desconocido'}`);
+          });
+        }
+
+        // Pequeña pausa entre lotes para no sobrecargar la API
+        if (batchIndex < batches.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+      } catch (batchError: any) {
+        console.error(`Error sending batch ${batchIndex + 1}:`, batchError);
+        totalErrorCount += batch.length;
+        allErrors.push(`Batch ${batchIndex + 1}: ${batchError.message}`);
+      }
+    }
+
+    console.log(`Final results: ${totalSuccessCount} successful, ${totalErrorCount} failed, total ${messages.length}`);
 
     // Si no hay resultados exitosos y hay errores, lanzar excepción
-    if (successCount === 0 && (errorCount > 0 || !response.ok)) {
-      const errorMessage = errors.length > 0 
-        ? `Todas las notificaciones fallaron: ${errors.join(', ')}`
-        : `Expo API error: ${response.status}`;
+    if (totalSuccessCount === 0 && totalErrorCount > 0) {
+      const errorMessage = allErrors.length > 0 
+        ? `Todas las notificaciones fallaron: ${allErrors.slice(0, 5).join(', ')}${allErrors.length > 5 ? '...' : ''}`
+        : 'Error al enviar todas las notificaciones';
       throw new Error(errorMessage);
     }
+
+    // Usar las variables globales en lugar de las locales
+    const successCount = totalSuccessCount;
+    const errorCount = totalErrorCount;
+    const errors = allErrors;
 
     // Solo registrar en BD si es envío específico (no broadcast masivo)
     if (sendTo === 'specific') {
       const successfulNotifications: any[] = [];
       
-      if (result.data && Array.isArray(result.data)) {
-        result.data.forEach((item: any, index: number) => {
+      if (allResults && Array.isArray(allResults)) {
+        allResults.forEach((item: any, index: number) => {
           if (item.status === 'ok' && pushTokens[index]) {
             successfulNotifications.push({
               user_id: pushTokens[index].user_id,
