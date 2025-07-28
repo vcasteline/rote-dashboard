@@ -546,4 +546,57 @@ export async function createReservation(data: {
     console.error('Error in createReservation:', error);
     return { success: false, error: `Error inesperado: ${error.message}` };
   }
+}
+
+// Nueva función para salir de la lista de espera
+export async function leaveWaitlist(userId: string, classId: string) {
+  const supabase = createAdminClient();
+
+  if (!userId || !classId) {
+    return { error: 'Faltan datos requeridos: usuario y clase.' };
+  }
+
+  try {
+    console.log('Removing user from waitlist:', { userId, classId });
+
+    // Usar la función leave_waitlist de la base de datos
+    const { data, error } = await supabase.rpc('leave_waitlist', {
+      p_user_id: userId,
+      p_class_id: classId
+    });
+
+    if (error) {
+      console.error('Error calling leave_waitlist:', error);
+      
+      // Proporcionar mensajes de error más específicos
+      let userFriendlyMessage = 'Error al salir de la lista de espera.';
+      
+      if (error.message.includes('No estás en la lista de espera')) {
+        userFriendlyMessage = 'No estás en la lista de espera para esta clase.';
+      }
+      
+      return { error: `${userFriendlyMessage} (${error.message})` };
+    }
+
+    console.log('leave_waitlist result:', data);
+
+    // Verificar si la función retornó un resultado de éxito
+    if (data && typeof data === 'object' && 'message' in data) {
+      revalidatePath('/dashboard/reservations');
+      return { 
+        success: true, 
+        message: data.message || 'Usuario removido de la lista de espera exitosamente.' 
+      };
+    }
+
+    revalidatePath('/dashboard/reservations');
+    return { 
+      success: true, 
+      message: 'Usuario removido de la lista de espera exitosamente.' 
+    };
+
+  } catch (e: any) {
+    console.error('Unexpected error leaving waitlist:', e);
+    return { error: `Error inesperado: ${e.message}` };
+  }
 } 

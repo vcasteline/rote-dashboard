@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition, useEffect } from 'react';
 import { format } from 'date-fns';
 import { type ReservationData } from '../page'; // Importar tipo
-import { cancelReservation, updateReservationBikes, getAvailableBikes, getUsersWithCredits, getAvailableClasses, createReservation, type UserWithCredits, type AvailableClass } from '../actions';
+import { cancelReservation, updateReservationBikes, getAvailableBikes, getUsersWithCredits, getAvailableClasses, createReservation, leaveWaitlist, type UserWithCredits, type AvailableClass } from '../actions';
 import { Plus, X, User, Calendar, Clock, Users, Bike } from 'lucide-react';
 
 // Helper para formatear hora HH:MM
@@ -697,11 +697,51 @@ export default function ReservationsClient({ initialReservations }: { initialRes
   
   // Estados para el modal de crear reservación
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  
+  // Estados para waitlist
+  const [leavingWaitlistId, setLeavingWaitlistId] = useState<string | null>(null);
+  const [waitlistError, setWaitlistError] = useState<string | null>(null);
 
   const handleCreateSuccess = (message: string) => {
     setSuccessMessage(message);
     setCancelError(null);
     setEditError(null);
+    setWaitlistError(null);
+  };
+
+  const handleLeaveWaitlist = (reservation: ReservationData) => {
+    if (!reservation.users?.name && !reservation.users?.email) {
+      setWaitlistError('No se puede identificar al usuario');
+      return;
+    }
+
+    const userName = reservation.users.name || reservation.users.email || 'este usuario';
+    
+    if (confirm(`¿Estás seguro de que quieres sacar a ${userName} de la lista de espera?`)) {
+      if (!reservation.users || !reservation.classes?.id) {
+        setWaitlistError('Faltan datos de la reservación');
+        return;
+      }
+
+      setLeavingWaitlistId(reservation.id);
+      startTransition(async () => {
+        setCancelError(null);
+        setEditError(null);
+        setWaitlistError(null);
+        setSuccessMessage(null);
+        
+        // Necesitamos obtener el user_id de la reservación
+        const result = await leaveWaitlist(reservation.user_id!, reservation.classes!.id);
+        
+        setLeavingWaitlistId(null);
+        
+        if (result?.error) {
+          setWaitlistError(result.error);
+        } else {
+          setSuccessMessage(result.message || 'Usuario removido de la lista de espera exitosamente.');
+        }
+      });
+    }
   };
 
   // Agrupar reservaciones por clase, separando confirmadas de waitlist
@@ -850,6 +890,7 @@ export default function ReservationsClient({ initialReservations }: { initialRes
 
       {cancelError && <p className="mb-4 text-red-600">Error de cancelación: {cancelError}</p>}
       {editError && <p className="mb-4 text-red-600">Error de edición: {editError}</p>}
+      {waitlistError && <p className="mb-4 text-red-600">Error de lista de espera: {waitlistError}</p>}
       {successMessage && <p className="mb-4 text-green-600">{successMessage}</p>}
 
       {sortedClassIds.length === 0 && <p>No se encontraron reservaciones activas.</p>}
@@ -962,6 +1003,7 @@ export default function ReservationsClient({ initialReservations }: { initialRes
                          <th className="py-2 px-4 text-left">Email Usuario</th>
                          <th className="py-2 px-4 text-center">Talla Zapato</th>
                          <th className="py-2 px-4 text-center">Estado</th>
+                         <th className="py-2 px-4 text-center">Acciones</th>
                        </tr>
                      </thead>
                      <tbody className="text-gray-700 text-sm">
@@ -977,6 +1019,15 @@ export default function ReservationsClient({ initialReservations }: { initialRes
                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
                                En espera
                              </span>
+                           </td>
+                           <td className="py-2 px-4 text-center">
+                             <button
+                               onClick={() => handleLeaveWaitlist(res)}
+                               disabled={leavingWaitlistId === res.id}
+                               className="text-red-500 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold"
+                             >
+                               {leavingWaitlistId === res.id ? 'Cancelando...' : 'Cancelar'}
+                             </button>
                            </td>
                          </tr>
                        ))}

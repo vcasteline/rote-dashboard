@@ -9,6 +9,7 @@ export type ReservationData = {
   status: string | null;
   created_at: string; // Para ordenar waitlist por orden de llegada
   from_purchase_id: string | null;
+  user_id: string | null; // ID del usuario para poder usar en funciones
   users: {
     name: string | null; // Cambiado de full_name a name
     email: string | null;
@@ -44,6 +45,7 @@ export default async function ReservationsPage() {
       id,
       status,
       created_at,
+      user_id,
       users ( name, email, shoe_size ),
       classes ( id, date, start_time, instructors ( name ) ),
       reservation_bikes ( bikes ( static_bike_id ) )
