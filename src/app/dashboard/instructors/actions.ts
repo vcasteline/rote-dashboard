@@ -9,6 +9,7 @@ import { z } from 'zod';
 const instructorSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   bio: z.string().optional(),
+  profile_picture_url: z.string().url().optional().or(z.literal('')),
 });
 
 export async function addInstructor(formData: FormData) {
@@ -18,6 +19,7 @@ export async function addInstructor(formData: FormData) {
   const validatedFields = instructorSchema.safeParse({
     name: formData.get('name'),
     bio: formData.get('bio') || undefined,
+    profile_picture_url: formData.get('profile_picture_url') || undefined,
   });
 
   if (!validatedFields.success) {
@@ -33,6 +35,7 @@ export async function addInstructor(formData: FormData) {
       {
         name: validatedFields.data.name,
         bio: validatedFields.data.bio,
+        profile_picture_url: validatedFields.data.profile_picture_url || null,
       }
     ]);
 
@@ -60,6 +63,7 @@ export async function updateInstructor(id: string, formData: FormData) {
   const validatedFields = instructorSchema.safeParse({
     name: formData.get('name'),
     bio: formData.get('bio') || undefined,
+    profile_picture_url: formData.get('profile_picture_url') || undefined,
   });
 
   if (!validatedFields.success) {
@@ -75,6 +79,7 @@ export async function updateInstructor(id: string, formData: FormData) {
       {
         name: validatedFields.data.name,
         bio: validatedFields.data.bio,
+        profile_picture_url: validatedFields.data.profile_picture_url || null,
       }
     ).match({ id });
 
