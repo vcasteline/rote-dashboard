@@ -13,7 +13,8 @@ import {
   Settings, 
   BookOpen, 
   Bell,
-  UserCheck
+  UserCheck,
+  FileText
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -29,6 +30,7 @@ export default function Sidebar() {
     { href: '/dashboard/packages-management', label: 'Gestión de Paquetes', icon: Settings },
     { href: '/dashboard/reservations', label: 'Reservaciones', icon: BookOpen },
     { href: '/dashboard/notifications', label: 'Notificaciones Push', icon: Bell },
+    { href: '/dashboard/billing', label: 'Facturación', icon: FileText },
   ];
 
   return (

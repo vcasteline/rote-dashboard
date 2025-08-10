@@ -50,7 +50,8 @@ CREATE TABLE packages (
   price NUMERIC,
   class_credits INTEGER,
   expiration_days INTEGER,
-  created_at TIMESTAMP
+  created_at TIMESTAMP,
+  contifico_product_id TEXT -- id de producto en Contífico (opcional)
 );
 
 -- Table: users
@@ -92,4 +93,30 @@ CREATE TABLE reservation_bikes (
   id UUID PRIMARY KEY,
   reservation_id UUID REFERENCES reservations(id),
   bike_id UUID REFERENCES bikes(id)
+);
+
+-- Table: invoices (para facturación Contífico)
+CREATE TABLE invoices (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  purchase_id UUID REFERENCES purchases(id),
+  user_id UUID REFERENCES users(id),
+  package_id UUID REFERENCES packages(id),
+  package_name TEXT,
+  package_price NUMERIC,
+  quantity INTEGER,
+  iva_percentage NUMERIC, -- 0.12 por ejemplo
+  subtotal NUMERIC,
+  iva_amount NUMERIC,
+  total NUMERIC,
+  status TEXT, -- Draft | Draft-Incomplete | Sent
+  contifico_id TEXT,
+  contifico_error TEXT,
+  document_number TEXT,
+  customer_name TEXT,
+  customer_email TEXT,
+  customer_address TEXT,
+  customer_cedula TEXT,
+  missing_fields JSONB,
+  created_at TIMESTAMP DEFAULT now(),
+  updated_at TIMESTAMP DEFAULT now()
 );
