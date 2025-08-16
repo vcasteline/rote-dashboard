@@ -4,6 +4,28 @@ import { createAdminClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 
+// Acción para generar clases semanales usando service role key (admin)
+export async function generateWeeklyClasses(startDateISO: string) {
+  const supabase = createAdminClient();
+
+  if (!startDateISO) {
+    return { error: 'Fecha de inicio inválida.' };
+  }
+
+  const { error } = await supabase.rpc('generate_weekly_classes', {
+    start_date_input: startDateISO,
+  });
+
+  if (error) {
+    console.error('Error al generar clases semanales:', error);
+    return { error: `Error de base de datos: ${error.message}` };
+  }
+
+  // Revalidar para reflejar cualquier cambio derivado
+  revalidatePath('/dashboard/schedule');
+  return { message: `Clases generadas o ya existentes para la semana que inicia en ${startDateISO}.` };
+}
+
 // Acción para añadir una entrada al horario por defecto (actualizada)
 export async function addDefaultScheduleEntry(formData: FormData) {
   const supabase = createAdminClient();

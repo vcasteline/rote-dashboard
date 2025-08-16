@@ -26,6 +26,8 @@ type GroupedReservations = {
 type BikeOption = {
   id: string;
   static_bike_id: number;
+  number: number; // Número físico real de la bicicleta
+  displayNumber?: number; // Opcional para compatibilidad
 };
 
 // Componente para seleccionar bicicletas
@@ -72,13 +74,13 @@ function BikeSelector({
     const unique = combined.filter((bike, index, self) => 
       index === self.findIndex(b => b.static_bike_id === bike.static_bike_id)
     );
-    return unique.sort((a, b) => a.static_bike_id - b.static_bike_id);
+    return unique.sort((a, b) => a.number - b.number); // Ordenar por número físico
   }, [availableBikes, currentBikes]);
 
-  const handleBikeToggle = (staticBikeId: number) => {
-    const newSelection = selectedBikes.includes(staticBikeId)
-      ? selectedBikes.filter(id => id !== staticBikeId)
-      : [...selectedBikes, staticBikeId];
+  const handleBikeToggle = (bikeNumber: number) => {
+    const newSelection = selectedBikes.includes(bikeNumber)
+      ? selectedBikes.filter(id => id !== bikeNumber)
+      : [...selectedBikes, bikeNumber];
     
     onBikesChange(newSelection.sort((a, b) => a - b));
   };
@@ -114,7 +116,7 @@ function BikeSelector({
         ) : (
           <div className="grid grid-cols-5 gap-1">
             {allBikeOptions.map((bike) => {
-              const isSelected = selectedBikes.includes(bike.static_bike_id);
+              const isSelected = selectedBikes.includes(bike.number);
               const isCurrentlyReserved = currentBikes.some(cb => cb.static_bike_id === bike.static_bike_id);
               const isAvailable = availableBikes.some(ab => ab.static_bike_id === bike.static_bike_id);
               
@@ -135,11 +137,11 @@ function BikeSelector({
                   <input
                     type="checkbox"
                     checked={isSelected}
-                    onChange={() => handleBikeToggle(bike.static_bike_id)}
+                    onChange={() => handleBikeToggle(bike.number)}
                     disabled={disabled || (!isAvailable && !isCurrentlyReserved)}
                     className="sr-only"
                   />
-                  {bike.static_bike_id}
+                  {bike.number}
                 </label>
               );
             })}
@@ -265,7 +267,7 @@ function CreateReservationModal({
          const result = await createReservation({
        user_id: selectedUser.id,
        class_id: selectedClass.id,
-       bike_static_ids: selectedBikes,
+       bike_numbers: selectedBikes, // Ahora usa números físicos reales
        credits_to_use: 1 // Por ahora usar 1 crédito por defecto
      });
 
@@ -310,7 +312,7 @@ function CreateReservationModal({
                  <div
                    className={`rounded-full h-8 w-8 flex items-center justify-center text-sm font-semibold relative z-10 ${
                      i <= step
-                       ? 'bg-[#6758C2] text-white'
+                       ? 'bg-[#3D4AF5] text-white'
                        : 'bg-gray-200 text-gray-600'
                    }`}
                  >
@@ -327,13 +329,13 @@ function CreateReservationModal({
              <div className="absolute top-4 left-1/6 right-1/6 flex items-center">
                <div
                  className={`flex-1 h-1 ${
-                   1 < step ? 'bg-[#6758C2]' : 'bg-gray-200'
+                   1 < step ? 'bg-[#3D4AF5]' : 'bg-gray-200'
                  }`}
                />
                <div className="w-8"></div>
                <div
                  className={`flex-1 h-1 ${
-                   2 < step ? 'bg-[#6758C2]' : 'bg-gray-200'
+                   2 < step ? 'bg-[#3D4AF5]' : 'bg-gray-200'
                  }`}
                />
              </div>
@@ -371,7 +373,7 @@ function CreateReservationModal({
                     onClick={() => setSelectedUser(user)}
                     className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                       selectedUser?.id === user.id
-                        ? 'border-[#6758C2] bg-purple-50'
+                        ? 'border-[#3D4AF5] bg-purple-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
@@ -384,7 +386,7 @@ function CreateReservationModal({
                         )}
                       </div>
                       <div className="text-right">
-                        <div className="text-lg font-bold text-[#6758C2]">
+                        <div className="text-lg font-bold text-[#3D4AF5]">
                           {user.activeCredits} créditos
                         </div>
                         <div className="text-xs text-gray-500">
@@ -437,7 +439,7 @@ function CreateReservationModal({
                     onClick={() => setSelectedClass(cls)}
                     className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                       selectedClass?.id === cls.id
-                        ? 'border-[#6758C2] bg-purple-50'
+                        ? 'border-[#3D4AF5] bg-purple-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
@@ -528,7 +530,7 @@ function CreateReservationModal({
                             className={`
                               flex items-center justify-center p-2 text-sm border rounded cursor-pointer transition-colors
                               ${isSelected
-                                ? 'bg-[#6758C2] text-white border-[#6758C2]'
+                                ? 'bg-[#3D4AF5] text-white border-[#3D4AF5]'
                                 : 'bg-gray-50 border-gray-300 hover:bg-gray-100 text-gray-800'
                               }
                             `}
@@ -593,7 +595,7 @@ function CreateReservationModal({
                   (step === 1 && !selectedUser) ||
                   (step === 2 && !selectedClass)
                 }
-                className="px-4 py-2 bg-[#6758C2] text-white rounded-md hover:bg-[#5A4AB8] disabled:opacity-50"
+                className="px-4 py-2 bg-[#3D4AF5] text-white rounded-md hover:bg-[#5A4AB8] disabled:opacity-50"
               >
                 Siguiente
               </button>
@@ -787,7 +789,7 @@ export default function ReservationsClient({ initialReservations }: { initialRes
 
   const handleEdit = (reservation: ReservationData) => {
     setEditingReservationId(reservation.id);
-    const currentBikes = reservation.reservation_bikes?.map(rb => rb.bikes?.static_bike_id).filter((id): id is number => id !== undefined) || [];
+    const currentBikes = reservation.reservation_bikes?.map(rb => rb.bikes?.static_bikes?.number).filter((id): id is number => id !== undefined) || [];
     setSelectedBikes(currentBikes);
     setCancelError(null);
     setEditError(null);
@@ -839,7 +841,7 @@ export default function ReservationsClient({ initialReservations }: { initialRes
   // Función para obtener los números de bici como string
   const getBikeNumbers = (reservation: ReservationData): string => {
     return reservation.reservation_bikes
-        ?.map(rb => rb.bikes?.static_bike_id)
+        ?.map(rb => rb.bikes?.static_bikes?.number)
         .filter(num => num !== undefined && num !== null)
         .sort((a, b) => a! - b!) // Ordenar números
         .join(', ') || 'N/A';
@@ -854,7 +856,7 @@ export default function ReservationsClient({ initialReservations }: { initialRes
         </p>
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="px-4 py-2 bg-[#6758C2] text-white rounded-md hover:bg-[#5A4AB8] flex items-center"
+          className="px-4 py-2 bg-[#3D4AF5] text-white rounded-md hover:bg-[#5A4AB8] flex items-center"
         >
           <Plus className="w-4 h-4 mr-2" />
           Crear Reservación

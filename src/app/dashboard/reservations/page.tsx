@@ -25,7 +25,10 @@ export type ReservationData = {
   } | null;
   reservation_bikes: {
       bikes: {
-          static_bike_id: number; // El número de la bici
+          static_bike_id: number; // ID de la tabla static_bikes
+          static_bikes: {
+              number: number; // El número físico real de la bici
+          };
       } | null;
   }[]; // Array de bicicletas reservadas
 };
@@ -48,7 +51,7 @@ export default async function ReservationsPage() {
       user_id,
       users ( name, email, shoe_size ),
       classes ( id, date, start_time, instructors ( name ) ),
-      reservation_bikes ( bikes ( static_bike_id ) )
+      reservation_bikes ( bikes ( static_bike_id, static_bikes!inner(number) ) )
     `)
     .in('status', ['confirmed', 'waitlist']) // Incluir tanto confirmadas como waitlist
     .gte('classes.date', mondayOfThisWeek) // Solo clases desde esta semana

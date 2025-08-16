@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { type PurchaseData } from '../page';
 
 // Helper para formatear fechas
@@ -206,11 +207,15 @@ function CustomSelect({
   );
 }
 
-export default function PackagesClient({ initialPurchases, filteredUser }: { initialPurchases: PurchaseData[]; filteredUser: string | null }) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('todos');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+export default function PackagesClient({ purchases, total, page, pageSize, order, status, dateFrom: initialDateFrom, dateTo: initialDateTo, q: initialQ, filteredUser }: { purchases: PurchaseData[]; total: number; page: number; pageSize: number; order: 'asc' | 'desc'; status: string; dateFrom: string; dateTo: string; q: string; filteredUser: string | null }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const [searchTerm, setSearchTerm] = useState(initialQ || '');
+  const [statusFilter, setStatusFilter] = useState(status || 'todos');
+  const [dateFrom, setDateFrom] = useState(initialDateFrom || '');
+  const [dateTo, setDateTo] = useState(initialDateTo || '');
 
   // Funciones de atajo para fechas comunes
   const setDateShortcut = (type: 'today' | 'week' | 'month') => {
@@ -246,8 +251,8 @@ export default function PackagesClient({ initialPurchases, filteredUser }: { ini
     }
   };
 
-  // Filtrar paquetes
-  const filteredPurchases = initialPurchases.filter(purchase => {
+  // Filtrar paquetes (sobre la página actual)
+  const filteredPurchases = purchases.filter(purchase => {
     const matchesSearch = 
       purchase.users?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       purchase.users?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -270,6 +275,35 @@ export default function PackagesClient({ initialPurchases, filteredUser }: { ini
 
     return matchesSearch && matchesStatus && matchesDateRange;
   });
+
+  // Navegación/paginación/sort
+  const updateParams = (updates: Record<string, string | null | undefined>) => {
+    const params = new URLSearchParams(searchParams?.toString());
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === null || value === undefined || value === '') params.delete(key);
+      else params.set(key, value);
+    });
+    const query = params.toString();
+    router.push(`${pathname}${query ? `?${query}` : ''}`);
+  };
+
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+  const startIndex = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const endIndex = Math.min(total, (page - 1) * pageSize + purchases.length);
+
+  const goToPage = (newPage: number) => {
+    const safePage = Math.min(Math.max(1, newPage), pageCount);
+    updateParams({ page: String(safePage), pageSize: String(pageSize), order, status: statusFilter || null, dateFrom: dateFrom || null, dateTo: dateTo || null, q: searchTerm || null });
+  };
+
+  // Sincronizar filtros a URL con debounce/reset de página
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      updateParams({ page: '1', pageSize: String(pageSize), order, status: statusFilter || null, dateFrom: dateFrom || null, dateTo: dateTo || null, q: searchTerm || null });
+    }, 400);
+    return () => clearTimeout(handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, dateFrom, dateTo, searchTerm]);
 
   return (
     <div className="space-y-6">
@@ -307,6 +341,20 @@ export default function PackagesClient({ initialPurchases, filteredUser }: { ini
                     { value: 'por-vencer', label: 'Por vencer' },
                     { value: 'vencido', label: 'Vencidos' },
                     { value: 'agotado', label: 'Agotados' }
+                  ]}
+                />
+              </div>
+              {/* Orden */}
+              <div className="min-w-44">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Ordenar por compra
+                </label>
+                <CustomSelect
+                  value={order}
+                  onChange={(val) => updateParams({ order: val, page: '1', pageSize: String(pageSize) })}
+                  options={[
+                    { value: 'desc', label: 'Más recientes primero' },
+                    { value: 'asc', label: 'Más antiguos primero' },
                   ]}
                 />
               </div>
@@ -414,20 +462,15 @@ export default function PackagesClient({ initialPurchases, filteredUser }: { ini
 
                 {/* Botón de exportar */}
                 <div className="flex-shrink-0">
-                  <button
-                    onClick={() => exportToExcel(filteredPurchases, {
-                      searchTerm,
-                      statusFilter,
-                      dateFrom,
-                      dateTo
-                    })}
+                  <a
+                    href={`/api/purchases/export?order=${order}&status=${encodeURIComponent(statusFilter)}&dateFrom=${encodeURIComponent(dateFrom)}&dateTo=${encodeURIComponent(dateTo)}&q=${encodeURIComponent(searchTerm)}${filteredUser ? `&user=${encodeURIComponent(filteredUser)}` : ''}`}
                     className="px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2 shadow-sm"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <span>Exportar Excel ({filteredPurchases.length})</span>
-                  </button>
+                    <span>Exportar Excel</span>
+                  </a>
                 </div>
               </div>
             </div>
@@ -438,7 +481,7 @@ export default function PackagesClient({ initialPurchases, filteredUser }: { ini
         <div className="mt-6 pt-6 border-t border-gray-100">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="text-center bg-gray-50 rounded-lg p-4">
-              <div className="text-2xl font-bold text-gray-900">{filteredPurchases.length}</div>
+              <div className="text-2xl font-bold text-gray-900">{total}</div>
               <div className="text-sm text-gray-600">Total</div>
             </div>
             <div className="text-center bg-green-50 rounded-lg p-4">
@@ -466,6 +509,31 @@ export default function PackagesClient({ initialPurchases, filteredUser }: { ini
       {/* Tabla de paquetes */}
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
+          {/* Barra de resumen y paginación */}
+          <div className="flex items-center justify-between p-4 text-sm text-gray-600">
+            <div>
+              {total > 0 ? `Mostrando ${startIndex}-${endIndex} de ${total}` : '0 resultados'}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => goToPage(page - 1)}
+                disabled={page <= 1}
+                className="px-2 py-1 text-sm rounded border disabled:opacity-50"
+                title="Anterior"
+              >
+                «
+              </button>
+              <span className="text-sm text-gray-600">{page} / {Math.max(1, Math.ceil(total / pageSize))}</span>
+              <button
+                onClick={() => goToPage(page + 1)}
+                disabled={page >= Math.max(1, Math.ceil(total / pageSize))}
+                className="px-2 py-1 text-sm rounded border disabled:opacity-50"
+                title="Siguiente"
+              >
+                »
+              </button>
+            </div>
+          </div>
           <table className="min-w-full leading-normal">
             <thead>
               <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">

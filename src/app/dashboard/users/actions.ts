@@ -24,22 +24,51 @@ export interface Package {
   expiration_days: number | null;
 }
 
-export async function getUsersWithPurchaseCount(): Promise<User[]> {
+export async function getUsersWithPurchaseCount(params?: {
+  page?: number;
+  pageSize?: number;
+  searchTerm?: string;
+}): Promise<{ users: User[]; total: number }> {
   const supabase = createAdminClient();
-  
+
+  const page = Math.max(1, params?.page ?? 1);
+  const pageSize = Math.max(1, Math.min(200, params?.pageSize ?? 50));
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
   try {
-    const { data, error } = await supabase
-      .rpc('get_users_with_purchase_count');
+    let query = supabase
+      .rpc('get_users_with_purchase_count', {}, { count: 'exact' as const })
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    const term = (params?.searchTerm || '').trim();
+    if (term) {
+      const like = `%${term}%`;
+      // Buscar por múltiples columnas
+      query = query.or(
+        [
+          `name.ilike.${like}`,
+          `email.ilike.${like}`,
+          `phone.ilike.${like}`,
+          `address.ilike.${like}`,
+          `cedula.ilike.${like}`,
+          `shoe_size.ilike.${like}`,
+        ].join(',')
+      );
+    }
+
+    const { data, error, count } = await query;
     
     if (error) {
       console.error('Error fetching users with purchase count:', error);
-      return [];
+      return { users: [], total: 0 };
     }
     
-    return data || [];
+    return { users: (data as User[]) || [], total: count ?? 0 };
   } catch (error) {
     console.error('Error in getUsersWithPurchaseCount:', error);
-    return [];
+    return { users: [], total: 0 };
   }
 }
 
@@ -319,6 +348,117 @@ export async function createUserWithPackage(userData: {
     return { success: false, error: 'Error interno del servidor' };
   }
 } 
+
+export async function getTodaysBirthdays(): Promise<User[]> {
+  const supabase = createAdminClient();
+  
+  try {
+    // Obtener fecha actual en zona horaria de Ecuador
+    const now = new Date();
+    const ecuadorTime = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Guayaquil',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(now);
+    
+    const [year, month, day] = ecuadorTime.split('-');
+    const currentMonth = parseInt(month);
+    const currentDay = parseInt(day);
+    
+    // Buscar usuarios cuyo cumpleaños sea hoy
+    // Usamos una consulta SQL personalizada para manejar diferentes formatos de fecha
+    const { data, error } = await supabase.rpc('get_todays_birthdays', {
+      target_month: currentMonth,
+      target_day: currentDay
+    });
+    
+    if (error) {
+      console.error('Error fetching birthdays:', error);
+      // Si el RPC no existe, hacemos la consulta manualmente
+      return await getTodaysBirthdaysManual(currentMonth, currentDay);
+    }
+    
+    return (data as User[]) || [];
+  } catch (error) {
+    console.error('Error in getTodaysBirthdays:', error);
+    return [];
+  }
+}
+
+async function getTodaysBirthdaysManual(currentMonth: number, currentDay: number): Promise<User[]> {
+  const supabase = createAdminClient();
+  
+  try {
+    // Obtener todos los usuarios con fechas de nacimiento
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('id, email, name, phone, address, birthday, cedula, created_at, shoe_size')
+      .not('birthday', 'is', null);
+    
+    if (error) {
+      console.error('Error fetching users for birthday check:', error);
+      return [];
+    }
+    
+    // Filtrar en el servidor los usuarios que cumplen años hoy
+    const birthdayUsers = (users || []).filter(user => {
+      if (!user.birthday) return false;
+      
+      try {
+        const cleanDate = user.birthday.trim();
+        let month: number, day: number;
+        
+        // Parsear diferentes formatos de fecha
+        if (/^\d{8}$/.test(cleanDate)) {
+          // Formato DDMMYYYY
+          day = parseInt(cleanDate.substring(0, 2));
+          month = parseInt(cleanDate.substring(2, 4));
+        } else if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(cleanDate)) {
+          // Formato DD/MM/YYYY
+          const parts = cleanDate.split('/');
+          day = parseInt(parts[0]);
+          month = parseInt(parts[1]);
+        } else if (/^\d{1,2}-\d{1,2}-\d{4}$/.test(cleanDate)) {
+          // Formato DD-MM-YYYY
+          const parts = cleanDate.split('-');
+          day = parseInt(parts[0]);
+          month = parseInt(parts[1]);
+        } else if (/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(cleanDate)) {
+          // Formato DD.MM.YYYY
+          const parts = cleanDate.split('.');
+          day = parseInt(parts[0]);
+          month = parseInt(parts[1]);
+        } else if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(cleanDate)) {
+          // Formato YYYY-MM-DD
+          const parts = cleanDate.split('-');
+          day = parseInt(parts[2]);
+          month = parseInt(parts[1]);
+        } else if (/^\d{4}-\d{2}-\d{2}T/.test(cleanDate)) {
+          // Formato ISO con tiempo
+          const date = new Date(cleanDate);
+          day = date.getUTCDate();
+          month = date.getUTCMonth() + 1;
+        } else {
+          return false;
+        }
+        
+        return day === currentDay && month === currentMonth;
+      } catch (error) {
+        return false;
+      }
+    });
+    
+    // Agregar purchase_count = 0 para mantener compatibilidad con el tipo User
+    return birthdayUsers.map(user => ({
+      ...user,
+      purchase_count: 0
+    }));
+  } catch (error) {
+    console.error('Error in getTodaysBirthdaysManual:', error);
+    return [];
+  }
+}
 
 export async function updateUser(userId: string, userData: {
   name?: string;

@@ -3,16 +3,25 @@
 import { useState, useEffect } from 'react';
 import { User, Package, createUser, assignPackageToUser, createUserWithPackage, getAvailablePackages, updateUser } from '../actions';
 import { DateTime } from 'luxon';
-import { Mail, Phone, MapPin, Calendar, CreditCard, ShoppingBag, User as UserIcon, Cake, Search, X, Plus, UserPlus, Package as PackageIcon, Edit, Gift } from 'lucide-react';
+import { Mail, Phone, MapPin, Calendar, CreditCard, ShoppingBag, User as UserIcon, Cake, Search, X, Plus, UserPlus, Package as PackageIcon, Edit, Gift, PartyPopper } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 interface UsersClientProps {
   users: User[];
   onUserAdded?: (user: User) => void;
+  total: number;
+  page: number;
+  pageSize: number;
+  initialSearchTerm?: string;
+  birthdayUsers?: User[];
 }
 
-export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
-  const [searchTerm, setSearchTerm] = useState('');
+export default function UsersClient({ users, onUserAdded, total, page, pageSize, initialSearchTerm = '', birthdayUsers = [] }: UsersClientProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isPackageModalOpen, setIsPackageModalOpen] = useState(false);
@@ -235,18 +244,36 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
     }
   };
 
-  // Función para filtrar usuarios
-  const filteredUsers = users.filter(user => {
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      user.name?.toLowerCase().includes(searchLower) ||
-      user.email.toLowerCase().includes(searchLower) ||
-      user.phone?.toLowerCase().includes(searchLower) ||
-      user.address?.toLowerCase().includes(searchLower) ||
-      user.cedula?.toLowerCase().includes(searchLower) ||
-      user.shoe_size?.toLowerCase().includes(searchLower)
-    );
-  });
+  // Navegación/paginación
+  const updateParams = (updates: Record<string, string | null | undefined>) => {
+    const params = new URLSearchParams(searchParams?.toString());
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === null || value === undefined || value === '') params.delete(key);
+      else params.set(key, value);
+    });
+    const query = params.toString();
+    router.push(`${pathname}${query ? `?${query}` : ''}`);
+  };
+
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+  const startIndex = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const endIndex = Math.min(total, (page - 1) * pageSize + users.length);
+
+  const goToPage = (newPage: number) => {
+    const safePage = Math.min(Math.max(1, newPage), pageCount);
+    updateParams({ page: String(safePage), pageSize: String(pageSize), q: searchTerm || null });
+  };
+
+  // Búsqueda con debounce y reset de página
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      updateParams({ q: searchTerm || null, page: '1', pageSize: String(pageSize) });
+    }, 400);
+    return () => clearTimeout(handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm]);
+
+
 
   const formatBirthday = (dateString: string | null) => {
     if (!dateString) return 'No especificado';
@@ -280,9 +307,18 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
       else if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(cleanDate)) {
         dt = DateTime.fromFormat(cleanDate, 'yyyy-MM-dd');
       }
+      // Caso 6: ISO con tiempo y zona (YYYY-MM-DDTHH:mm:ssZ)
+      else if (/^\d{4}-\d{2}-\d{2}T/.test(cleanDate)) {
+        // Interpretar en UTC para evitar desplazamientos de día
+        dt = DateTime.fromISO(cleanDate, { zone: 'utc' });
+      }
       // Caso por defecto: intentar formato DD/MM/YYYY
       else {
-        dt = DateTime.fromFormat(cleanDate, 'dd/MM/yyyy');
+        // Últimos intentos: ISO genérico o DD/MM/YYYY
+        dt = DateTime.fromISO(cleanDate);
+        if (!dt.isValid) {
+          dt = DateTime.fromFormat(cleanDate, 'dd/MM/yyyy');
+        }
       }
       
       if (!dt.isValid) return 'Fecha inválida';
@@ -308,24 +344,81 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
   if (users.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="text-gray-500 text-lg">No hay usuarios registrados</div>
+        <div className="text-gray-500 text-lg">{searchTerm ? 'No se encontraron usuarios' : 'No hay usuarios registrados'}</div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
+      {/* Banner de cumpleaños */}
+      {birthdayUsers.length > 0 && (
+        <div className="bg-gradient-to-r from-pink-50 to-purple-50 border border-pink-200 rounded-lg p-4">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <PartyPopper className="h-8 w-8 text-pink-500" />
+            </div>
+            <div className="ml-3 flex-1">
+              <h3 className="text-lg font-medium text-pink-800">
+                 ¡Feliz Cumpleaños! 🎂
+              </h3>
+              <div className="mt-1 text-sm text-pink-700">
+                {birthdayUsers.length === 1 ? (
+                  <p>
+                    Hoy es el cumpleaños de <strong>{birthdayUsers[0].name || birthdayUsers[0].email}</strong>
+                  </p>
+                ) : (
+                  <div>
+                    <p className="mb-2">Hoy cumplen años:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {birthdayUsers.map((user, index) => (
+                        <span key={user.id} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-pink-100 text-pink-800">
+                          <Cake className="h-3 w-3 mr-1" />
+                          {user.name || user.email}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex-shrink-0 text-2xl">
+              🎈
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Search Bar */}
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Buscar Usuarios</h3>
           <div className="flex items-center gap-4">
             <div className="text-sm text-gray-500">
-              {searchTerm ? `${filteredUsers.length} de ${users.length} usuarios` : `${users.length} usuarios`}
+              {total > 0 ? `Mostrando ${startIndex}-${endIndex} de ${total} usuarios` : '0 usuarios'}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => goToPage(page - 1)}
+                disabled={page <= 1}
+                className="px-2 py-1 text-sm rounded border disabled:opacity-50"
+                title="Anterior"
+              >
+                «
+              </button>
+              <span className="text-sm text-gray-600">{page} / {pageCount}</span>
+              <button
+                onClick={() => goToPage(page + 1)}
+                disabled={page >= pageCount}
+                className="px-2 py-1 text-sm rounded border disabled:opacity-50"
+                title="Siguiente"
+              >
+                »
+              </button>
             </div>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 bg-[#6758C2] text-white font-medium rounded-lg hover:bg-[#5A4AB8] transition-colors shadow-sm"
+              className="inline-flex items-center px-4 py-2 bg-[#3D4AF5] text-white font-medium rounded-lg hover:bg-[#5A4AB8] transition-colors shadow-sm"
             >
               <UserPlus className="h-4 w-4 mr-2" />
               Agregar Usuario
@@ -341,7 +434,7 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Buscar por nombre, email, teléfono, cédula, dirección o talla..."
-            className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 placeholder-gray-500"
+            className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 placeholder-gray-500"
           />
           {searchTerm && (
             <button
@@ -381,13 +474,13 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredUsers.length > 0 ? (
-              filteredUsers.map((user) => (
+            {users.length > 0 ? (
+              users.map((user) => (
               <tr key={user.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10">
-                      <div className="h-10 w-10 rounded-full bg-[#6758C2] flex items-center justify-center">
+                      <div className="h-10 w-10 rounded-full bg-[#3D4AF5] flex items-center justify-center">
                         <span className="text-white font-medium">
                           {user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
                         </span>
@@ -453,7 +546,7 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <Link 
                     href={`/dashboard/packages?user=${encodeURIComponent(user.email)}`}
-                    className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#6758C2] text-white hover:bg-[#5A4AB8] transition-colors"
+                    className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#3D4AF5] text-white hover:bg-[#5A4AB8] transition-colors"
                   >
                     <ShoppingBag className="h-4 w-4 mr-1" />
                     {user.purchase_count} paquete{user.purchase_count !== 1 ? 's' : ''}
@@ -547,7 +640,7 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
                       required
                       value={editFormData.name}
                       onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
                       placeholder="Nombre completo"
                     />
                   </div>
@@ -562,7 +655,7 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
                       type="tel"
                       value={editFormData.phone}
                       onChange={(e) => setEditFormData({...editFormData, phone: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
                       placeholder="0999999999"
                     />
                   </div>
@@ -574,7 +667,7 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
                       type="text"
                       value={editFormData.cedula}
                       onChange={(e) => setEditFormData({...editFormData, cedula: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
                       placeholder="1234567890"
                       maxLength={10}
                     />
@@ -589,7 +682,7 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
                     type="text"
                     value={editFormData.address}
                     onChange={(e) => setEditFormData({...editFormData, address: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
                     placeholder="Dirección completa"
                   />
                 </div>
@@ -603,7 +696,7 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
                       type="text"
                       value={editFormData.birthday}
                       onChange={(e) => setEditFormData({...editFormData, birthday: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
                       placeholder="DD/MM/YYYY o DDMMYYYY"
                     />
                   </div>
@@ -615,7 +708,7 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
                       type="text"
                       value={editFormData.shoe_size}
                       onChange={(e) => setEditFormData({...editFormData, shoe_size: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
                       placeholder="38, 39, 40..."
                     />
                   </div>
@@ -637,7 +730,7 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="px-4 py-2 bg-[#6758C2] text-white rounded-md hover:bg-[#5A4AB8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-[#3D4AF5] text-white rounded-md hover:bg-[#5A4AB8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? 'Actualizando...' : 'Actualizar Usuario'}
                   </button>
@@ -681,7 +774,7 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
                     required
                     value={packageFormData.package_id}
                     onChange={(e) => setPackageFormData({...packageFormData, package_id: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
                   >
                     <option value="">Seleccionar paquete...</option>
                     {packages.map(pkg => (
@@ -701,7 +794,7 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
                       type="text"
                       value={packageFormData.transaction_id}
                       onChange={(e) => setPackageFormData({...packageFormData, transaction_id: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
                       placeholder="ID de transacción (opcional)"
                     />
                   </div>
@@ -713,7 +806,7 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
                       type="text"
                       value={packageFormData.authorization_code}
                       onChange={(e) => setPackageFormData({...packageFormData, authorization_code: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
                       placeholder="Código de autorización (opcional)"
                     />
                   </div>
@@ -841,7 +934,7 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
                       required
                       value={formData.email}
                       onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
                       placeholder="usuario@ejemplo.com"
                     />
                   </div>
@@ -854,7 +947,7 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
                       required
                       value={formData.name}
                       onChange={(e) => setFormData({...formData, name: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
                       placeholder="Nombre completo"
                     />
                   </div>
@@ -869,7 +962,7 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
                       placeholder="0999999999"
                     />
                   </div>
@@ -881,7 +974,7 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
                       type="text"
                       value={formData.cedula}
                       onChange={(e) => setFormData({...formData, cedula: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
                       placeholder="1234567890"
                       maxLength={10}
                     />
@@ -896,7 +989,7 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
                     type="text"
                     value={formData.address}
                     onChange={(e) => setFormData({...formData, address: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
                     placeholder="Dirección completa"
                   />
                 </div>
@@ -910,7 +1003,7 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
                       type="text"
                       value={formData.birthday}
                       onChange={(e) => setFormData({...formData, birthday: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
                       placeholder="DD/MM/YYYY o DDMMYYYY"
                     />
                   </div>
@@ -922,7 +1015,7 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
                       type="text"
                       value={formData.shoe_size}
                       onChange={(e) => setFormData({...formData, shoe_size: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
                       placeholder="38, 39, 40..."
                     />
                   </div>
@@ -931,7 +1024,7 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
                 {/* Sección de paquetes */}
                 <div className="border-t pt-6">
                   <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <PackageIcon className="h-5 w-5 mr-2 text-[#6758C2]" />
+                    <PackageIcon className="h-5 w-5 mr-2 text-[#3D4AF5]" />
                     Asignar Paquete (Opcional)
                   </h3>
                   
@@ -943,7 +1036,7 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
                       <select
                         value={formData.package_id}
                         onChange={(e) => setFormData({...formData, package_id: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
                       >
                         <option value="">Sin paquete</option>
                         {packages.map(pkg => (
@@ -964,7 +1057,7 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
                             type="text"
                             value={formData.transaction_id}
                             onChange={(e) => setFormData({...formData, transaction_id: e.target.value})}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
                             placeholder="ID de transacción"
                           />
                         </div>
@@ -976,7 +1069,7 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
                             type="text"
                             value={formData.authorization_code}
                             onChange={(e) => setFormData({...formData, authorization_code: e.target.value})}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent text-gray-900 bg-white"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
                             placeholder="Código de autorización"
                           />
                         </div>
@@ -1000,7 +1093,7 @@ export default function UsersClient({ users, onUserAdded }: UsersClientProps) {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="px-4 py-2 bg-[#6758C2] text-white rounded-md hover:bg-[#5A4AB8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-[#3D4AF5] text-white rounded-md hover:bg-[#5A4AB8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? 'Creando...' : 'Crear Usuario'}
                   </button>

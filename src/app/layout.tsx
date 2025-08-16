@@ -11,8 +11,8 @@ const workSans = Work_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Giro Admin Dashboard",
-  description: "Admin dashboard for Giro",
+  title: "Volta Admin Dashboard",
+  description: "Admin dashboard for Volta",
 };
 
 export default function RootLayout({

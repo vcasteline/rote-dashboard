@@ -118,7 +118,7 @@ export default function LoginPage() {
 
             <button
               onClick={handleLogout}
-              className="w-full bg-gradient-to-r from-[#6758C2] to-[#5A4CB8] text-white py-3 px-6 rounded-xl hover:from-[#5A4CB8] hover:to-[#4A3D9A] transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center space-x-2"
+              className="w-full bg-gradient-to-r from-[#3D4AF5] to-[#5A4CB8] text-white py-3 px-6 rounded-xl hover:from-[#5A4CB8] hover:to-[#4A3D9A] transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center space-x-2"
             >
               <LogIn className="w-5 h-5" />
               <span>Intentar con Otra Cuenta</span>
@@ -158,10 +158,10 @@ export default function LoginPage() {
             {/* Header del formulario */}
             <div className="text-center mb-8">
               <div className="md:hidden inline-flex items-center space-x-2 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#6758C2] to-[#5A4CB8] rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-br from-[#3D4AF5] to-[#5A4CB8] rounded-lg flex items-center justify-center">
                   <Shield className="w-6 h-6 text-white" />
                 </div>
-                <span className="text-2xl font-bold bg-gradient-to-r from-[#6758C2] to-[#5A4CB8] bg-clip-text text-transparent">
+                <span className="text-2xl font-bold bg-gradient-to-r from-[#3D4AF5] to-[#5A4CB8] bg-clip-text text-transparent">
                   Giro Admin
                 </span>
               </div>
@@ -191,7 +191,7 @@ export default function LoginPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     disabled={loading}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent disabled:opacity-50 disabled:bg-gray-50 text-gray-900 placeholder-gray-500 transition-all duration-200"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent disabled:opacity-50 disabled:bg-gray-50 text-gray-900 placeholder-gray-500 transition-all duration-200"
                     placeholder="admin@giro.com"
                   />
                 </div>
@@ -213,7 +213,7 @@ export default function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     disabled={loading}
-                    className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6758C2] focus:border-transparent disabled:opacity-50 disabled:bg-gray-50 text-gray-900 placeholder-gray-500 transition-all duration-200"
+                    className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent disabled:opacity-50 disabled:bg-gray-50 text-gray-900 placeholder-gray-500 transition-all duration-200"
                     placeholder="••••••••"
                   />
                   <button
@@ -241,7 +241,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-[#6758C2] to-[#5A4CB8] text-white py-3 px-6 rounded-xl hover:from-[#5A4CB8] hover:to-[#4A3D9A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#6758C2] disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center space-x-2"
+                className="w-full bg-gradient-to-r from-[#3D4AF5] to-[#5A4CB8] text-white py-3 px-6 rounded-xl hover:from-[#5A4CB8] hover:to-[#4A3D9A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3D4AF5] disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center space-x-2"
               >
                 {loading ? (
                   <>

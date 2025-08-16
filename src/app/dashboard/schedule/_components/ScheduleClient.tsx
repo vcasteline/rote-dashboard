@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { getNextMonday, formatDate, toISOString } from '@/lib/utils/dateUtils';
-import { addDefaultScheduleEntry, deleteDefaultScheduleEntry, updateDefaultScheduleEntry } from '../actions';
+import { addDefaultScheduleEntry, deleteDefaultScheduleEntry, updateDefaultScheduleEntry, generateWeeklyClasses } from '../actions';
 import { type DefaultScheduleEntry, type Instructor } from '../page'; // Importar tipos desde la página
 import CustomSelect from './CustomSelect';
 import CustomTimeInput from './CustomTimeInput';
@@ -72,7 +71,7 @@ export default function ScheduleClient({
   const [editStartTime, setEditStartTime] = useState('');
   const [editEndTime, setEditEndTime] = useState('');
 
-  const supabase = createClient(); // Para RPC
+  // Eliminamos el uso del cliente de navegador para RPCs privilegiados
 
   // Preparar opciones para el selector de instructores
   const instructorOptions = instructors.map(instructor => ({
@@ -88,11 +87,12 @@ export default function ScheduleClient({
     const nextMondayString = toISOString(nextMonday).split('T')[0];
 
     try {
-      const { error: rpcError } = await supabase.rpc('generate_weekly_classes', {
-        start_date_input: nextMondayString,
-      });
-      if (rpcError) throw rpcError;
-      setGenerateMessage(`Clases para la semana del ${nextMondayString} generadas o ya existentes.`);
+      const result = await generateWeeklyClasses(nextMondayString);
+      if (result.error) {
+        setGenerateError(result.error);
+      } else {
+        setGenerateMessage(result.message || `Clases para la semana del ${nextMondayString} generadas o ya existentes.`);
+      }
     } catch (err: any) {
       console.error('Error generando horario:', err);
       setGenerateError(`Error al generar el horario: ${err.message}`);
@@ -377,7 +377,7 @@ export default function ScheduleClient({
               </div>
             )}
           </div>
-          {/* <button
+          <button
             onClick={handleGenerateSchedule}
             disabled={isGenerating}
             className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-medium rounded-lg hover:from-indigo-700 hover:to-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
@@ -395,7 +395,7 @@ export default function ScheduleClient({
                 {`Generar para semana del ${formatDate(getNextMonday())}`}
               </div>
             )}
-          </button> */}
+          </button>
         </div>
       </div>
 

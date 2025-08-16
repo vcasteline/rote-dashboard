@@ -25,17 +25,16 @@ export default function Sidebar() {
     { href: '/dashboard/schedule', label: 'Gestionar Horario', icon: Clock },
     { href: '/dashboard/instructors', label: 'Instructores', icon: Users },
     { href: '/dashboard/users', label: 'Usuarios', icon: UserCheck },
-    { href: '/dashboard/banners', label: 'Banners Promocionales', icon: ImageIcon },
     { href: '/dashboard/packages', label: 'Paquetes Comprados', icon: Package },
     { href: '/dashboard/packages-management', label: 'Gestión de Paquetes', icon: Settings },
     { href: '/dashboard/reservations', label: 'Reservaciones', icon: BookOpen },
     { href: '/dashboard/notifications', label: 'Notificaciones Push', icon: Bell },
-    { href: '/dashboard/billing', label: 'Facturación', icon: FileText },
+    { href: '/dashboard/menu-shakes', label: 'Menu Shakes', icon: FileText },
   ];
 
   return (
     <aside className="w-64 bg-[#111619] text-white p-4 flex flex-col">
-      <Image src="/logo-white.png" alt="Giro Logo" width={100} height={100} />
+      <Image src="/volta-logo-slogan.png" alt="Volta Logo" className='my-12 mx-auto' width={130} height={130} />
       <nav className="flex-grow">
         <ul>
           {menuItems.map((item) => {
@@ -47,7 +46,7 @@ export default function Sidebar() {
                   href={item.href} 
                   className={`flex items-center py-2 px-3 rounded transition-colors ${
                     isActive 
-                      ? 'bg-[#6758C2] text-white font-medium border-l-4 border-[#8B7EE6]' 
+                      ? 'bg-[#3D4AF5] text-white font-medium border-l-4 border-[#8B7EE6]' 
                       : 'hover:bg-gray-700'
                   }`}
                 >

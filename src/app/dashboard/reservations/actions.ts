@@ -86,11 +86,11 @@ export async function cancelReservation(reservationId: string) {
 
 export async function updateReservationBikes(
   reservationId: string,
-  newBikeStaticBikeIds: number[]
+  newBikeNumbers: number[] // Ahora recibe números físicos reales
 ) {
   console.log('Server Action: updateReservationBikes');
   console.log('Reservation ID:', reservationId);
-  console.log('New Static Bike IDs:', newBikeStaticBikeIds);
+  console.log('New Bike Numbers:', newBikeNumbers);
 
   try {
     const supabase = createAdminClient();
@@ -101,7 +101,7 @@ export async function updateReservationBikes(
     }
 
     // Validar que los números de bici sean válidos
-    if (!Array.isArray(newBikeStaticBikeIds) || newBikeStaticBikeIds.some(id => !Number.isInteger(id) || id <= 0)) {
+    if (!Array.isArray(newBikeNumbers) || newBikeNumbers.some(id => !Number.isInteger(id) || id <= 0)) {
       return { error: 'Los números de bicicleta deben ser números enteros positivos.' };
     }
 
@@ -122,6 +122,26 @@ export async function updateReservationBikes(
       return { error: 'La reservación no tiene una clase asociada.' };
     }
 
+    // Primero convertir números físicos a static_bike_ids
+    const { data: staticBikesData, error: staticBikesError } = await supabase
+      .from('static_bikes')
+      .select('id, number')
+      .in('number', newBikeNumbers);
+
+    if (staticBikesError) {
+      console.error('Error fetching static bikes:', staticBikesError);
+      return { error: 'Error al obtener información de bicicletas.' };
+    }
+
+    if (!staticBikesData || staticBikesData.length !== newBikeNumbers.length) {
+      const foundNumbers = staticBikesData?.map(sb => sb.number) || [];
+      const missingNumbers = newBikeNumbers.filter(num => !foundNumbers.includes(num));
+      return { error: `Los siguientes números de bicicleta no existen: ${missingNumbers.join(', ')}` };
+    }
+
+    // Obtener los static_bike_ids correspondientes
+    const newBikeStaticBikeIds = staticBikesData.map(sb => sb.id);
+
     // Obtener los bike_ids que corresponden a los static_bike_ids para esta clase
     const { data: classBikes, error: classBikesError } = await supabase
       .from('bikes')
@@ -136,10 +156,17 @@ export async function updateReservationBikes(
 
     // Verificar que todas las bicicletas solicitadas existen en esta clase
     const foundStaticIds = classBikes?.map(b => b.static_bike_id) || [];
-    const missingBikes = newBikeStaticBikeIds.filter(id => !foundStaticIds.includes(id));
+    const missingStaticBikeIds = newBikeStaticBikeIds.filter(id => !foundStaticIds.includes(id));
     
-    if (missingBikes.length > 0) {
-      return { error: `Las siguientes bicicletas no están disponibles en esta clase: ${missingBikes.join(', ')}` };
+    if (missingStaticBikeIds.length > 0) {
+      // Convertir los static_bike_ids faltantes a números para el mensaje de error
+      const { data: missingStaticBikes } = await supabase
+        .from('static_bikes')
+        .select('number')
+        .in('id', missingStaticBikeIds);
+      
+      const missingNumbers = missingStaticBikes?.map(sb => sb.number) || missingStaticBikeIds;
+      return { error: `Las siguientes bicicletas no están disponibles en esta clase: ${missingNumbers.join(', ')}` };
     }
 
     // Mapear a bike_ids para usar en la función modify_reservation
@@ -179,7 +206,7 @@ export async function updateReservationBikes(
     revalidatePath('/dashboard/reservations');
     return { 
       success: true, 
-      message: `Bicicletas actualizadas exitosamente. Nuevas bicicletas: ${newBikeStaticBikeIds.join(', ')}` 
+      message: `Bicicletas actualizadas exitosamente. Nuevas bicicletas: ${newBikeNumbers.join(', ')}` 
     };
 
   } catch (e: any) {
@@ -197,12 +224,15 @@ export async function getAvailableBikes(classId: string, excludeReservationId?: 
   }
 
   try {
-    // Obtener todas las bicicletas de la clase
+    // Obtener todas las bicicletas de la clase con el número real de static_bikes
     const { data: allBikes, error: bikesError } = await supabase
       .from('bikes')
-      .select('id, static_bike_id')
-      .eq('class_id', classId)
-      .order('static_bike_id', { ascending: true });
+      .select(`
+        id, 
+        static_bike_id,
+        static_bikes!inner(number)
+      `)
+      .eq('class_id', classId);
 
     if (bikesError) {
       console.error('Error fetching bikes:', bikesError);
@@ -234,8 +264,10 @@ export async function getAvailableBikes(classId: string, excludeReservationId?: 
     // Crear set de bike_ids reservados para comparación rápida
     const reservedBikeIds = new Set(reservedBikes?.map(rb => rb.bike_id) || []);
 
-    // Filtrar bicicletas disponibles
-    const availableBikes = allBikes?.filter(bike => !reservedBikeIds.has(bike.id)) || [];
+    // Filtrar bicicletas disponibles y ordenar por número físico
+    const availableBikes = allBikes
+      ?.filter(bike => !reservedBikeIds.has(bike.id))
+      .sort((a, b) => ((a.static_bikes as any)?.number || 0) - ((b.static_bikes as any)?.number || 0)) || [];
 
     // También obtener las bicicletas actualmente asignadas a esta reservación (si estamos editando)
     let currentBikes: any[] = [];
@@ -243,21 +275,32 @@ export async function getAvailableBikes(classId: string, excludeReservationId?: 
       const { data: currentReservationBikes, error: currentError } = await supabase
         .from('reservation_bikes')
         .select(`
-          bikes(id, static_bike_id)
+          bikes(id, static_bike_id, static_bikes!inner(number))
         `)
         .eq('reservation_id', excludeReservationId);
 
       if (!currentError && currentReservationBikes) {
         currentBikes = currentReservationBikes
           .map(rb => rb.bikes)
-          .filter(bike => bike !== null);
+          .filter(bike => bike !== null)
+          .sort((a, b) => ((a.static_bikes as any)?.number || 0) - ((b.static_bikes as any)?.number || 0));
       }
     }
 
     return {
       success: true,
-      availableBikes: availableBikes,
-      currentBikes: currentBikes
+      availableBikes: availableBikes.map(bike => ({
+        id: bike.id, // Mantener el ID para operaciones internas
+        static_bike_id: bike.static_bike_id, // ID de la tabla static_bikes
+        number: (bike.static_bikes as any)?.number || 0, // Número físico real de la bicicleta
+        displayNumber: (bike.static_bikes as any)?.number || 0 // Alias claro para el número a mostrar
+      })),
+      currentBikes: currentBikes.map(bike => ({
+        id: bike.id,
+        static_bike_id: bike.static_bike_id,
+        number: (bike.static_bikes as any)?.number || 0,
+        displayNumber: (bike.static_bikes as any)?.number || 0
+      }))
     };
 
   } catch (e: any) {
@@ -445,7 +488,7 @@ export async function getAvailableClasses(): Promise<{ success: boolean; classes
 export async function createReservation(data: {
   user_id: string;
   class_id: string;
-  bike_static_ids: number[];
+  bike_numbers: number[]; // Ahora recibe números físicos reales
   purchase_id?: string;
   credits_to_use?: number;
 }): Promise<{ success: boolean; message?: string; error?: string }> {
@@ -453,26 +496,54 @@ export async function createReservation(data: {
 
   try {
     // Validaciones básicas
-    if (!data.user_id || !data.class_id || !data.bike_static_ids || data.bike_static_ids.length === 0) {
+    if (!data.user_id || !data.class_id || !data.bike_numbers || data.bike_numbers.length === 0) {
       return { success: false, error: 'Faltan datos requeridos' };
     }
+
+    // Primero convertir números físicos a static_bike_ids
+    const { data: staticBikesData, error: staticBikesError } = await supabase
+      .from('static_bikes')
+      .select('id, number')
+      .in('number', data.bike_numbers);
+
+    if (staticBikesError) {
+      console.error('Error fetching static bikes:', staticBikesError);
+      return { success: false, error: 'Error al obtener información de bicicletas' };
+    }
+
+    if (!staticBikesData || staticBikesData.length !== data.bike_numbers.length) {
+      const foundNumbers = staticBikesData?.map(sb => sb.number) || [];
+      const missingNumbers = data.bike_numbers.filter(num => !foundNumbers.includes(num));
+      return { success: false, error: `Los siguientes números de bicicleta no existen: ${missingNumbers.join(', ')}` };
+    }
+
+    // Obtener los static_bike_ids correspondientes
+    const bikeStaticIds = staticBikesData.map(sb => sb.id);
 
     // Obtener los bike_ids correspondientes a los static_bike_ids para esta clase
     const { data: classBikes, error: bikesError } = await supabase
       .from('bikes')
       .select('id, static_bike_id')
       .eq('class_id', data.class_id)
-      .in('static_bike_id', data.bike_static_ids);
+      .in('static_bike_id', bikeStaticIds);
 
     if (bikesError) {
       console.error('Error fetching bikes for class:', bikesError);
       return { success: false, error: 'Error al obtener bicicletas de la clase' };
     }
 
-    if (!classBikes || classBikes.length !== data.bike_static_ids.length) {
+    if (!classBikes || classBikes.length !== data.bike_numbers.length) {
       const foundIds = classBikes?.map(b => b.static_bike_id) || [];
-      const missingIds = data.bike_static_ids.filter(id => !foundIds.includes(id));
-      return { success: false, error: `Bicicletas no encontradas en esta clase: ${missingIds.join(', ')}` };
+      const missingStaticIds = bikeStaticIds.filter(id => !foundIds.includes(id));
+      
+      // Convertir los static_bike_ids faltantes a números para el mensaje de error
+      const { data: missingStaticBikes } = await supabase
+        .from('static_bikes')
+        .select('number')
+        .in('id', missingStaticIds);
+      
+      const missingNumbers = missingStaticBikes?.map(sb => sb.number) || missingStaticIds;
+      return { success: false, error: `Bicicletas no encontradas en esta clase: ${missingNumbers.join(', ')}` };
     }
 
     // Mapear a bike_ids
