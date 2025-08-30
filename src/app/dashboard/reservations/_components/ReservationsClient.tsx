@@ -947,7 +947,6 @@ export default function ReservationsClient({ initialReservations }: { initialRes
                         <th className="py-2 px-4 text-left">Bicis</th>
                         <th className="py-2 px-4 text-left">Nombre Usuario</th>
                         <th className="py-2 px-4 text-left">Email Usuario</th>
-                        <th className="py-2 px-4 text-center">Talla Zapato</th>
                         <th className="py-2 px-4 text-center">Acciones</th>
                       </tr>
                     </thead>
@@ -957,7 +956,6 @@ export default function ReservationsClient({ initialReservations }: { initialRes
                           <td className="py-2 px-4 text-left font-medium whitespace-nowrap">{getBikeNumbers(res)}</td>
                           <td className="py-2 px-4 text-left">{res.users?.name ?? 'N/D'}</td>
                           <td className="py-2 px-4 text-left">{res.users?.email ?? 'N/D'}</td>
-                          <td className="py-2 px-4 text-center">{res.users?.shoe_size ?? 'N/D'}</td>
                           <td className="py-2 px-4 text-center">
                             <>
                               <button

@@ -134,19 +134,19 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-white to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-black to-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-6xl grid md:grid-cols-2 gap-8 items-center">
         {/* Panel izquierdo - Branding */}
         <div className="hidden md:block">
           <div className="text-center">
             <div className="mb-8">
               <img 
-                src="/logo-purple.png" 
+                src="/volta-logo-slogan.png" 
                 alt="Giro Indoor Cycling Studio" 
-                className="mx-auto h-48 w-auto mb-6"
+                className="mx-auto h-28 w-auto mb-6"
               />
-              <p className="text-xl text-gray-600 leading-relaxed">
-                Panel de administración para gestionar tu estudio de spinning
+              <p className="text-xl text-white leading-relaxed">
+                Panel de administración para gestionar tu estudio.
               </p>
             </div>
           </div>
@@ -241,7 +241,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-[#3D4AF5] to-[#5A4CB8] text-white py-3 px-6 rounded-xl hover:from-[#5A4CB8] hover:to-[#4A3D9A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3D4AF5] disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center space-x-2"
+                className="w-full bg-gradient-to-r from-[#3D4AF5] to-[#4B56F6] text-white py-3 px-6 rounded-xl hover:from-[#2A35CC] hover:to-[#3642E6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3D4AF5] disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center space-x-2"
               >
                 {loading ? (
                   <>

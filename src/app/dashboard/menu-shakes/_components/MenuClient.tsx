@@ -14,6 +14,7 @@ function MenuItemForm({
   submitButtonText,
   formError,
   onCancel,
+  resetForm,
 }: {
   menuItem?: MenuItem | null; // Null para añadir, objeto para editar
   onSubmit: (formData: FormData) => Promise<void>;
@@ -21,6 +22,7 @@ function MenuItemForm({
   submitButtonText: string;
   formError?: string | null;
   onCancel?: () => void; // Para el modo edición
+  resetForm?: boolean; // Para resetear el formulario después de éxito
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -50,6 +52,16 @@ function MenuItemForm({
       }
     }
   }, [menuItem]);
+
+  // Efecto para resetear el formulario cuando se indica desde el componente padre
+  useEffect(() => {
+    if (resetForm && formRef.current) {
+      formRef.current.reset();
+      setItemName('');
+      setImageFile(null);
+      setCurrentImageUrl(null);
+    }
+  }, [resetForm]);
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setItemName(e.target.value);
@@ -138,6 +150,7 @@ function MenuItemForm({
               onImageSelected={setImageFile}
               disabled={isSubmitting}
               itemName={itemName || 'item'}
+              resetUploader={resetForm}
             />
           </div>
         </div>
@@ -189,6 +202,7 @@ export default function MenuClient({ initialItems }: { initialItems: MenuItem[] 
   const [isPendingDelete, startTransitionDelete] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [shouldResetForm, setShouldResetForm] = useState(false);
 
   const handleAddSubmit = async (formData: FormData) => {
     startTransitionAdd(async () => {
@@ -224,6 +238,11 @@ export default function MenuClient({ initialItems }: { initialItems: MenuItem[] 
           
           setItems(prev => [...prev, newItem].sort((a, b) => a.name.localeCompare(b.name)));
           setFormError(null);
+          
+          // Activar el reseteo del formulario
+          setShouldResetForm(true);
+          // Resetear la bandera después de un breve delay
+          setTimeout(() => setShouldResetForm(false), 100);
         } else {
           setFormError(result.error || 'Error al crear el ítem');
         }
@@ -320,6 +339,7 @@ export default function MenuClient({ initialItems }: { initialItems: MenuItem[] 
         submitButtonText={currentSubmitButtonText}
         formError={formError}
         onCancel={isEditing ? handleCancelEdit : undefined}
+        resetForm={shouldResetForm}
       />
 
       {/* Tabla de Ítems del Menú */}

@@ -49,7 +49,7 @@ supabase login
 
 ### 2. Inicializar proyecto (si no está hecho)
 ```bash
-cd giro-admin-dashboard
+cd volta-admin-dashboard
 supabase init
 ```
 

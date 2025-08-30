@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 // Iconos SVG
 const CloudUploadIcon = ({ className }: { className?: string }) => (
@@ -20,13 +20,15 @@ interface ImageUploaderProps {
   onImageSelected: (file: File | null) => void;
   disabled?: boolean;
   itemName?: string;
+  resetUploader?: boolean;
 }
 
 export default function ImageUploader({ 
   currentImageUrl, 
   onImageSelected, 
   disabled = false,
-  itemName = 'item'
+  itemName = 'item',
+  resetUploader = false
 }: ImageUploaderProps) {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
@@ -35,6 +37,18 @@ export default function ImageUploader({
 
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
   const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+
+  // Efecto para resetear el uploader cuando se indica desde el componente padre
+  useEffect(() => {
+    if (resetUploader) {
+      setPreviewUrl(null);
+      setUploadError(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      onImageSelected(null);
+    }
+  }, [resetUploader, onImageSelected]);
 
   const validateFile = (file: File): string | null => {
     if (!ALLOWED_TYPES.includes(file.type)) {

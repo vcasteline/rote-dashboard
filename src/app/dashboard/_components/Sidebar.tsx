@@ -14,7 +14,8 @@ import {
   BookOpen, 
   Bell,
   UserCheck,
-  FileText
+  FileText,
+  ShoppingCart
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -30,6 +31,7 @@ export default function Sidebar() {
     { href: '/dashboard/reservations', label: 'Reservaciones', icon: BookOpen },
     { href: '/dashboard/notifications', label: 'Notificaciones Push', icon: Bell },
     { href: '/dashboard/menu-shakes', label: 'Menu Shakes', icon: FileText },
+    { href: '/dashboard/menu-orders', label: 'Órdenes del Menú', icon: ShoppingCart },
   ];
 
   return (
