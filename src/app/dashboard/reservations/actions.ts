@@ -267,7 +267,11 @@ export async function getAvailableBikes(classId: string, excludeReservationId?: 
     // Filtrar bicicletas disponibles y ordenar por número físico
     const availableBikes = allBikes
       ?.filter(bike => !reservedBikeIds.has(bike.id))
-      .sort((a, b) => ((a.static_bikes as any)?.number || 0) - ((b.static_bikes as any)?.number || 0)) || [];
+      .sort((a, b) => {
+        const aNum = (((a as any)?.static_bikes as any)?.number ?? 0) as number;
+        const bNum = (((b as any)?.static_bikes as any)?.number ?? 0) as number;
+        return aNum - bNum;
+      }) || [];
 
     // También obtener las bicicletas actualmente asignadas a esta reservación (si estamos editando)
     let currentBikes: any[] = [];
@@ -281,9 +285,13 @@ export async function getAvailableBikes(classId: string, excludeReservationId?: 
 
       if (!currentError && currentReservationBikes) {
         currentBikes = currentReservationBikes
-          .map(rb => rb.bikes)
+          .map(rb => (rb as any).bikes)
           .filter(bike => bike !== null)
-          .sort((a, b) => ((a.static_bikes as any)?.number || 0) - ((b.static_bikes as any)?.number || 0));
+          .sort((a, b) => {
+            const aNum = ((((a as any))?.static_bikes as any)?.number ?? 0) as number;
+            const bNum = ((((b as any))?.static_bikes as any)?.number ?? 0) as number;
+            return aNum - bNum;
+          });
       }
     }
 
