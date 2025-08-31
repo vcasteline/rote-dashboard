@@ -360,7 +360,7 @@ export default function ScheduleClient({
         </h2>
         <p className="mb-6 text-gray-600 leading-relaxed">
           El horario que configures abajo será utilizado para generar automáticamente las clases de la próxima semana.
-          La generación ocurre cada domingo a las 9:00 PM, creando el horario que iniciará el lunes siguiente.
+          La generación ocurre cada domingo a las 11:00 AM, creando el horario que iniciará el lunes siguiente.
         </p>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -377,7 +377,7 @@ export default function ScheduleClient({
               </div>
             )}
           </div>
-          <button
+          {/* <button
             onClick={handleGenerateSchedule}
             disabled={isGenerating}
             className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-medium rounded-lg hover:from-indigo-700 hover:to-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
@@ -395,7 +395,7 @@ export default function ScheduleClient({
                 {`Generar para semana del ${formatDate(getNextMonday())}`}
               </div>
             )}
-          </button>
+          </button> */}
         </div>
       </div>
 

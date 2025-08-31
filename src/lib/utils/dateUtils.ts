@@ -30,11 +30,14 @@ export function getThisWeekMonday(): DateTime {
 }
 
 /**
- * Para compatibilidad - alias de getThisWeekMonday
- * @deprecated Usar getThisWeekMonday en su lugar
+ * Obtiene el lunes de la PRÓXIMA semana en zona horaria de Ecuador.
+ * Si hoy es lunes, devuelve el lunes de la semana siguiente (hoy + 7 días).
  */
 export function getNextMonday(): DateTime {
-  return getThisWeekMonday();
+  const today = getNowInEcuador();
+  const dayOfWeek = today.weekday; // Monday = 1 ... Sunday = 7
+  const daysToAdd = dayOfWeek === 1 ? 7 : 8 - dayOfWeek; // si es lunes -> 7; si es domingo (7) -> 1; etc.
+  return today.plus({ days: daysToAdd }).startOf('day');
 }
 
 /**
