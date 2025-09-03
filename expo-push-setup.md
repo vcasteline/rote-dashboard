@@ -11,7 +11,7 @@ npx expo install expo-notifications expo-device expo-constants
 ```json
 {
   "expo": {
-    "name": "Giro App",
+    "name": "Volta App",
     "plugins": [
       [
         "expo-notifications",

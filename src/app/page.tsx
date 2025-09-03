@@ -46,9 +46,7 @@ export default function Home() {
 
         {/* Footer */}
         <div className="pt-8">
-          <p className="text-xs text-gray-600">
-            © 2024 Giro Fitness Studio. Todos los derechos reservados.
-          </p>
+         
         </div>
       </div>
 

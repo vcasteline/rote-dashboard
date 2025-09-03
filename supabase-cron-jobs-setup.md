@@ -1,6 +1,6 @@
-# ⏰ Configuración de Cron Jobs para Giro Dashboard
+# ⏰ Configuración de Cron Jobs para Volta Dashboard
 
-Este documento explica cómo configurar y desplegar los cron jobs automatizados para el sistema de Giro.
+Este documento explica cómo configurar y desplegar los cron jobs automatizados para el sistema de Volta.
 
 ## 📋 **Cron Jobs Implementados**
 

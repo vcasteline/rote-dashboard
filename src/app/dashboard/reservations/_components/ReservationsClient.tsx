@@ -105,7 +105,7 @@ function BikeSelector({
           </div>
           <div className="ml-2">
             <p className="text-xs text-blue-700">
-              <strong>Nota:</strong> El layout físico de las bicicletas puedes verlo en la app móvil de Giro.
+              <strong>Nota:</strong> El layout físico de las bicicletas puedes verlo en la app móvil.
             </p>
           </div>
         </div>
@@ -512,7 +512,7 @@ function CreateReservationModal({
                      </div>
                      <div className="ml-2">
                        <p className="text-xs text-blue-700">
-                         <strong>Nota:</strong> El layout físico de las bicicletas en el estudio puedes verlo en la app móvil de Giro.
+                         <strong>Nota:</strong> El layout físico de las bicicletas en el estudio puedes verlo en la app móvil.
                        </p>
                      </div>
                    </div>

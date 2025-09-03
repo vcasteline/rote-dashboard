@@ -113,7 +113,7 @@ export default function LoginPage() {
             </div>
             
             <p className="text-gray-600 mb-8 leading-relaxed">
-              Esta cuenta no tiene permisos para acceder al panel de administración de Giro.
+              Esta cuenta no tiene permisos para acceder al panel de administración de Volta.
             </p>
 
             <button
@@ -142,7 +142,7 @@ export default function LoginPage() {
             <div className="mb-8">
               <img 
                 src="/volta-logo-slogan.png" 
-                alt="Giro Indoor Cycling Studio" 
+                alt="Volta Indoor Cycling Studio" 
                 className="mx-auto h-28 w-auto mb-6"
               />
               <p className="text-xl text-white leading-relaxed">
@@ -162,7 +162,7 @@ export default function LoginPage() {
                   <Shield className="w-6 h-6 text-white" />
                 </div>
                 <span className="text-2xl font-bold bg-gradient-to-r from-[#3D4AF5] to-[#5A4CB8] bg-clip-text text-transparent">
-                  Giro Admin
+                  Volta Admin
                 </span>
               </div>
               
@@ -192,7 +192,7 @@ export default function LoginPage() {
                     required
                     disabled={loading}
                     className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent disabled:opacity-50 disabled:bg-gray-50 text-gray-900 placeholder-gray-500 transition-all duration-200"
-                    placeholder="admin@giro.com"
+                    placeholder="tuemail@ejemplo.com"
                   />
                 </div>
               </div>
