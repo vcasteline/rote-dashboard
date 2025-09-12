@@ -1,7 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import ReservationsClient from './_components/ReservationsClient';
-import { getNextMonday, toISOString } from '@/lib/utils/dateUtils';
+import { getThisWeekMonday, toISOString } from '@/lib/utils/dateUtils';
 
 // Tipo actualizado
 export type ReservationData = {
@@ -37,9 +37,7 @@ export default async function ReservationsPage() {
   const supabase = createAdminClient();
 
   // Obtener el lunes de esta semana usando Luxon
-  const mondayOfThisWeek = toISOString(getNextMonday()).split('T')[0];
-
-  console.log('Filtrando reservaciones desde (Luxon):', mondayOfThisWeek); // Para debug
+  const mondayOfThisWeek = toISOString(getThisWeekMonday()).split('T')[0];
 
   // Obtener reservaciones futuras con detalles anidados (confirmadas Y waitlist)
   const { data: reservations, error } = await supabase

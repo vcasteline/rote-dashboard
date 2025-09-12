@@ -523,7 +523,7 @@ function CreateReservationModal({
                   ) : (
                     <div className="grid grid-cols-8 gap-2">
                       {availableBikes.map((bike) => {
-                        const isSelected = selectedBikes.includes(bike.static_bike_id);
+                        const isSelected = selectedBikes.includes(bike.number);
                         return (
                           <label
                             key={bike.static_bike_id}
@@ -540,14 +540,14 @@ function CreateReservationModal({
                               checked={isSelected}
                               onChange={() => {
                                 if (isSelected) {
-                                  setSelectedBikes(selectedBikes.filter(id => id !== bike.static_bike_id));
+                                  setSelectedBikes(selectedBikes.filter(id => id !== bike.number));
                                 } else {
-                                  setSelectedBikes([...selectedBikes, bike.static_bike_id].sort((a, b) => a - b));
+                                  setSelectedBikes([...selectedBikes, bike.number].sort((a, b) => a - b));
                                 }
                               }}
                               className="sr-only"
                             />
-                            {bike.static_bike_id}
+                            {bike.number}
                           </label>
                         );
                       })}
@@ -1001,7 +1001,6 @@ export default function ReservationsClient({ initialReservations }: { initialRes
                          <th className="py-2 px-4 text-center w-16">#</th>
                          <th className="py-2 px-4 text-left">Nombre Usuario</th>
                          <th className="py-2 px-4 text-left">Email Usuario</th>
-                         <th className="py-2 px-4 text-center">Talla Zapato</th>
                          <th className="py-2 px-4 text-center">Estado</th>
                          <th className="py-2 px-4 text-center">Acciones</th>
                        </tr>
@@ -1014,7 +1013,6 @@ export default function ReservationsClient({ initialReservations }: { initialRes
                            </td>
                            <td className="py-2 px-4 text-left">{res.users?.name ?? 'N/D'}</td>
                            <td className="py-2 px-4 text-left">{res.users?.email ?? 'N/D'}</td>
-                           <td className="py-2 px-4 text-center">{res.users?.shoe_size ?? 'N/D'}</td>
                            <td className="py-2 px-4 text-center">
                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
                                En espera

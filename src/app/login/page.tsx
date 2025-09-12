@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, Eye, EyeOff, LogIn, AlertTriangle, User, Shield } from 'lucide-react';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -158,20 +159,20 @@ export default function LoginPage() {
             {/* Header del formulario */}
             <div className="text-center mb-8">
               <div className="md:hidden inline-flex items-center space-x-2 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#3D4AF5] to-[#5A4CB8] rounded-lg flex items-center justify-center">
-                  <Shield className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+                <Image src="/isotipo-black.png" alt="Volta Logo" width={200} height={200} />
                 </div>
-                <span className="text-2xl font-bold bg-gradient-to-r from-[#3D4AF5] to-[#5A4CB8] bg-clip-text text-transparent">
+                <span className="text-2xl font-bold text-gray-800">
                   Volta Admin
                 </span>
               </div>
               
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">
+              {/* <h3 className="text-2xl font-bold text-gray-800 mb-2">
                 Iniciar Sesión
-              </h3>
-              <p className="text-gray-600">
+              </h3> */}
+              {/* <p className="text-gray-800">
                 Ingresa tus credenciales para acceder
-              </p>
+              </p> */}
             </div>
 
             <form onSubmit={handleLogin} className="space-y-6">
