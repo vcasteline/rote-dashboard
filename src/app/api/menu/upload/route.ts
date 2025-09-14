@@ -2,12 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 
 export async function POST(request: NextRequest) {
+  console.log('=== DEBUG MENU UPLOAD ===');
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const menuItemId = formData.get('id') as string;
 
+    console.log('File:', file?.name, file?.size, file?.type);
+    console.log('Menu Item ID:', menuItemId);
+
     if (!file || !menuItemId) {
+      console.log('Missing file or menuItemId');
       return NextResponse.json({ 
         success: false, 
         error: 'Archivo y ID del ítem son requeridos' 
@@ -58,6 +63,7 @@ export async function POST(request: NextRequest) {
     const fileName = `${menuItemId}.${fileExtension}`;
 
     // Subir nueva imagen
+    console.log('Uploading file:', fileName, 'to bucket: menu');
     const { error: uploadError } = await supabase.storage
       .from('menu')
       .upload(fileName, file, {
@@ -70,7 +76,7 @@ export async function POST(request: NextRequest) {
       console.error('Error uploading image:', uploadError);
       return NextResponse.json({ 
         success: false, 
-        error: 'Error al subir la imagen' 
+        error: `Error al subir la imagen: ${uploadError.message}` 
       }, { status: 500 });
     }
 

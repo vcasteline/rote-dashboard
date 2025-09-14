@@ -10,6 +10,7 @@ export type ClassData = {
   start_time: string;
   end_time: string;
   name: string | null;
+  instructor_id: string;
   instructors: {
     name: string;
   } | null;
@@ -38,6 +39,7 @@ export default async function DashboardPage() {
       start_time,
       end_time,
       name,
+      instructor_id,
       instructors ( name )
     `)
     .gte('date', todayInEcuador) // Cambiar a desde hoy en adelante

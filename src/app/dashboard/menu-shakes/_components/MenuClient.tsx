@@ -269,19 +269,29 @@ export default function MenuClient({ initialItems }: { initialItems: MenuItem[] 
           
           // Manejar subida de imagen si hay archivo
           const imageFile = formData.get('imageFile') as File;
+          console.log('=== DEBUG CLIENT UPLOAD ===');
+          console.log('Image file:', imageFile?.name, imageFile?.size);
           if (imageFile && imageFile.size > 0) {
             const fd = new FormData();
             fd.append('id', updatedItem.id);
             fd.append('file', imageFile);
             
+            console.log('Sending upload request for item:', updatedItem.id);
             try {
               const res = await fetch('/api/menu/upload', { method: 'POST', body: fd });
               const json = await res.json();
+              console.log('Upload response:', json);
               if (json.success && json.item) {
                 updatedItem = json.item as MenuItem;
+              } else {
+                console.error('Upload failed:', json.error);
+                setFormError(json.error || 'Error al subir imagen');
+                return;
               }
             } catch (error) {
               console.error('Error al subir imagen:', error);
+              setFormError('Error de conexión al subir imagen');
+              return;
             }
           }
           

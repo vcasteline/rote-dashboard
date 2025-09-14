@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useRef, useEffect } from 'react';
 import { type ClassData, type Instructor } from '../page'; // Importar tipos desde la página
-import { updateClassName, createClass, deleteClass } from '../actions';
+import { updateClassName, updateClassInstructor, createClass, deleteClass } from '../actions';
 import { formatTime, formatDateFromString, getNowInEcuador, toISOString, toEcuadorDateTime } from '@/lib/utils/dateUtils';
 import { AlertTriangle, Plus, Trash2, X } from 'lucide-react';
 
@@ -50,6 +50,74 @@ function EditableClassName({ cls, isPending }: { cls: ClassData; isPending: bool
     return (
         <span onClick={() => setIsEditing(true)} className="cursor-pointer hover:bg-gray-200 px-1 rounded">
             {cls.name || <span className="text-gray-400 italic">Clic para añadir nombre</span>}
+        </span>
+    );
+}
+
+// Componente para manejar la edición inline del instructor
+function EditableInstructor({ 
+    cls, 
+    instructors, 
+    isPending 
+}: { 
+    cls: ClassData; 
+    instructors: Instructor[]; 
+    isPending: boolean 
+}) {
+    const [isEditing, setIsEditing] = useState(false);
+    const [selectedInstructorId, setSelectedInstructorId] = useState(cls.instructor_id || '');
+    const [localIsPending, startTransition] = useTransition();
+
+    const handleSave = (instructorId: string) => {
+        if (instructorId === cls.instructor_id) {
+            setIsEditing(false);
+            return;
+        }
+
+        startTransition(async () => {
+            const result = await updateClassInstructor(cls.id, instructorId);
+            if (result.error) {
+                alert(result.error);
+                setSelectedInstructorId(cls.instructor_id || ''); // Revertir cambios
+            }
+            setIsEditing(false);
+            // La UI se actualizará por revalidatePath
+        });
+    };
+
+    const handleCancel = () => {
+        setSelectedInstructorId(cls.instructor_id || '');
+        setIsEditing(false);
+    };
+
+    if (isEditing) {
+        return (
+            <div className="relative">
+                <select
+                    value={selectedInstructorId}
+                    onChange={(e) => handleSave(e.target.value)}
+                    onBlur={() => handleCancel()}
+                    disabled={localIsPending || isPending}
+                    className="px-1 py-0.5 border rounded bg-white w-full text-sm"
+                    autoFocus
+                >
+                    <option value="">Seleccionar instructor</option>
+                    {instructors.map((instructor) => (
+                        <option key={instructor.id} value={instructor.id}>
+                            {instructor.name}
+                        </option>
+                    ))}
+                </select>
+            </div>
+        );
+    }
+
+    return (
+        <span 
+            onClick={() => setIsEditing(true)} 
+            className="cursor-pointer hover:bg-gray-200 px-1 rounded"
+        >
+            {cls.instructors?.name || <span className="text-gray-400 italic">Clic para asignar</span>}
         </span>
     );
 }
@@ -367,6 +435,7 @@ export default function ClassesClient({
   instructors: Instructor[];
 }) {
   const [isPendingName, startTransitionName] = useTransition(); // Para el componente hijo
+  const [isPendingInstructor, startTransitionInstructor] = useTransition(); // Para el instructor
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [classToDelete, setClassToDelete] = useState<ClassData | null>(null);
@@ -450,7 +519,11 @@ export default function ClassesClient({
                     {`${cls.start_time} - ${cls.end_time}`}
                 </td>
                 <td className="py-3 px-5 text-left">
-                  {cls.instructors?.name ?? 'N/A'}
+                  <EditableInstructor 
+                    cls={cls} 
+                    instructors={instructors} 
+                    isPending={isPendingInstructor} 
+                  />
                 </td>
                 <td className="py-3 px-5 text-left">
                     <EditableClassName cls={cls} isPending={isPendingName} />

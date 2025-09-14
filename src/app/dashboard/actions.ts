@@ -123,6 +123,70 @@ export async function updateClassName(id: string, newName: string | null) {
   return { message: 'Class name updated.' };
 }
 
+// Acción para actualizar el instructor de una clase
+export async function updateClassInstructor(id: string, instructorId: string) {
+  const supabase = createAdminClient();
+
+  if (!id) {
+    return { error: 'ID de clase inválido.' };
+  }
+
+  if (!instructorId) {
+    return { error: 'ID de instructor requerido.' };
+  }
+
+  // Verificar que el instructor existe
+  const { data: instructor, error: instructorError } = await supabase
+    .from('instructors')
+    .select('id, name')
+    .eq('id', instructorId)
+    .is('deleted_at', null)
+    .single();
+
+  if (instructorError || !instructor) {
+    return { error: 'Instructor no encontrado o inválido.' };
+  }
+
+  // Obtener datos de la clase para verificar conflictos de horario
+  const { data: classData, error: classError } = await supabase
+    .from('classes')
+    .select('date, start_time, end_time')
+    .eq('id', id)
+    .single();
+
+  if (classError || !classData) {
+    return { error: 'Clase no encontrada.' };
+  }
+
+  // Verificar si ya existe una clase en esa fecha y horario con el nuevo instructor
+  const { data: existingClass } = await supabase
+    .from('classes')
+    .select('id')
+    .eq('date', classData.date)
+    .eq('instructor_id', instructorId)
+    .neq('id', id) // Excluir la clase actual
+    .or(`and(start_time.lte.${classData.start_time},end_time.gt.${classData.start_time}),and(start_time.lt.${classData.end_time},end_time.gte.${classData.end_time}),and(start_time.gte.${classData.start_time},end_time.lte.${classData.end_time})`)
+    .single();
+
+  if (existingClass) {
+    return { error: 'El instructor ya tiene una clase programada en este horario.' };
+  }
+
+  // Actualizar el instructor de la clase
+  const { error } = await supabase
+    .from('classes')
+    .update({ instructor_id: instructorId })
+    .match({ id });
+
+  if (error) {
+    console.error('Error updating class instructor:', error);
+    return { error: `Error al actualizar instructor: ${error.message}` };
+  }
+
+  revalidatePath('/dashboard');
+  return { message: 'Instructor actualizado exitosamente.' };
+}
+
 // Acción para borrar una clase junto con sus bicis
 export async function deleteClass(classId: string) {
   const supabase = createAdminClient();
