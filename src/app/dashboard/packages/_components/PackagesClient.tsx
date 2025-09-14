@@ -544,6 +544,7 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
                 <th className="py-3 px-5 text-center">Compra</th>
                 <th className="py-3 px-5 text-center">Vencimiento</th>
                 <th className="py-3 px-5 text-center">Estado</th>
+                <th className="py-3 px-5 text-center">Contabilidad</th>
                 <th className="py-3 px-5 text-center">Detalles</th>
               </tr>
             </thead>
@@ -587,6 +588,15 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
                         </span>
                       </td>
                       <td className="py-3 px-5 text-center">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          purchase.contabilidad 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {purchase.contabilidad ? 'Sí' : 'No'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-5 text-center">
                         <div className="text-xs text-gray-500">
                           {purchase.authorization_code && (
                             <div>Autorización: {purchase.authorization_code}</div>
@@ -604,7 +614,7 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
                 })
               ) : (
                 <tr>
-                  <td colSpan={8} className="py-6 px-5 text-center text-gray-500">
+                  <td colSpan={9} className="py-6 px-5 text-center text-gray-500">
                     No se encontraron paquetes con los filtros aplicados.
                   </td>
                 </tr>

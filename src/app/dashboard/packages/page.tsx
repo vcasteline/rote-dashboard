@@ -9,6 +9,7 @@ export type PurchaseData = {
   credits_remaining: number;
   authorization_code: string | null;
   transaction_id: string | null;
+  contabilidad: boolean;
   users: {
     name: string | null;
     email: string;
@@ -59,6 +60,7 @@ export default async function PackagesPage({ searchParams }: PackagesPageProps) 
         credits_remaining,
         authorization_code,
         transaction_id,
+        contabilidad,
         users ( name, email, phone, cedula, address ),
         packages ( name, price, class_credits, expiration_days )
       `,

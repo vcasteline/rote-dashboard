@@ -8,6 +8,7 @@ type PurchaseRow = {
   credits_remaining: number;
   authorization_code: string | null;
   transaction_id: string | null;
+  contabilidad: boolean;
   users: {
     name: string | null;
     email: string;
@@ -55,10 +56,12 @@ export async function GET(req: NextRequest) {
         credits_remaining,
         authorization_code,
         transaction_id,
+        contabilidad,
         users ( name, email, phone, cedula, address ),
         packages ( name, price, class_credits, expiration_days )
       `
       )
+      .eq('contabilidad', true)
       .order('purchase_date', { ascending: order === 'asc' });
 
     if (user) {

@@ -42,7 +42,8 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
     shoe_size: '',
     package_id: '',
     transaction_id: '',
-    authorization_code: ''
+    authorization_code: '',
+    contabilidad: false
   });
 
   // Estados del formulario para editar usuario
@@ -59,7 +60,8 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
   const [packageFormData, setPackageFormData] = useState({
     package_id: '',
     transaction_id: '',
-    authorization_code: ''
+    authorization_code: '',
+    contabilidad: false
   });
   
   // Cargar paquetes disponibles
@@ -80,7 +82,8 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
       shoe_size: '',
       package_id: '',
       transaction_id: '',
-      authorization_code: ''
+      authorization_code: '',
+      contabilidad: false
     });
     setGeneratedPassword('');
   };
@@ -100,7 +103,8 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
     setPackageFormData({
       package_id: '',
       transaction_id: '',
-      authorization_code: ''
+      authorization_code: '',
+      contabilidad: false
     });
   };
 
@@ -148,6 +152,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
           package_id: formData.package_id,
           transaction_id: formData.transaction_id || undefined,
           authorization_code: formData.authorization_code || undefined,
+          contabilidad: formData.contabilidad,
         });
       } else {
         // Crear usuario sin paquete
@@ -225,6 +230,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
         package_id: packageFormData.package_id,
         transaction_id: packageFormData.transaction_id || undefined,
         authorization_code: packageFormData.authorization_code || undefined,
+        contabilidad: packageFormData.contabilidad,
       });
       
       if (result.success) {
@@ -810,6 +816,20 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       placeholder="Código de autorización (opcional)"
                     />
                   </div>
+                </div>
+
+                {/* Checkbox de contabilidad */}
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="contabilidad"
+                    checked={packageFormData.contabilidad}
+                    onChange={(e) => setPackageFormData({...packageFormData, contabilidad: e.target.checked})}
+                    className="h-4 w-4 text-[#3D4AF5] focus:ring-[#3D4AF5] border-gray-300 rounded"
+                  />
+                  <label htmlFor="contabilidad" className="ml-2 block text-sm text-gray-700">
+                    Incluir en contabilidad
+                  </label>
                 </div>
 
                 {/* Botones */}

@@ -193,6 +193,7 @@ export async function assignPackageToUser(userData: {
   package_id: string;
   transaction_id?: string;
   authorization_code?: string;
+  contabilidad?: boolean;
 }): Promise<{ success: boolean; error?: string }> {
   const supabase = createAdminClient();
   
@@ -226,6 +227,7 @@ export async function assignPackageToUser(userData: {
         expiration_date: expirationDate,
         transaction_id: userData.transaction_id || null,
         authorization_code: userData.authorization_code || null,
+        contabilidad: userData.contabilidad || false,
       }])
       .select()
       .single();
@@ -258,6 +260,7 @@ export async function createUserWithPackage(userData: {
   package_id: string;
   transaction_id?: string;
   authorization_code?: string;
+  contabilidad?: boolean;
 }): Promise<{ success: boolean; user?: User; error?: string; password?: string }> {
   const supabase = createAdminClient();
   const adminClient = createAdminClient();
@@ -322,6 +325,7 @@ export async function createUserWithPackage(userData: {
       package_id: packageData.package_id,
       transaction_id: packageData.transaction_id,
       authorization_code: packageData.authorization_code,
+      contabilidad: packageData.contabilidad,
     });
     
     if (!packageResult.success) {
