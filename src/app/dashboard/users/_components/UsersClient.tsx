@@ -705,19 +705,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
                       placeholder="DD/MM/YYYY o DDMMYYYY"
                     />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Talla de Zapato
-                    </label>
-                    <input
-                      type="text"
-                      value={editFormData.shoe_size}
-                      onChange={(e) => setEditFormData({...editFormData, shoe_size: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
-                      placeholder="38, 39, 40..."
-                    />
-                  </div>
+                  </div> 
                 </div>
 
                 {/* Botones */}
@@ -1027,18 +1015,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       placeholder="DD/MM/YYYY o DDMMYYYY"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Talla de Zapato
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.shoe_size}
-                      onChange={(e) => setFormData({...formData, shoe_size: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
-                      placeholder="38, 39, 40..."
-                    />
-                  </div>
+                  
                 </div>
 
                 {/* Sección de paquetes */}

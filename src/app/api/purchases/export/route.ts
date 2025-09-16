@@ -74,11 +74,11 @@ export async function GET(req: NextRequest) {
         base = base.eq('user_id', userRow.id);
       } else {
         // No hay datos que exportar
-        const emptyCsv = '\ufeff' + ['Fecha Compra,Cliente,Email,Teléfono,Cédula,Dirección,Paquete,Precio,Créditos Totales,Créditos Restantes,Fecha Vencimiento,Estado,Código Autorización,ID Transacción'];
+        const emptyCsv = '\ufeff' + ['TIPO,CANTIDAD,VALOR X UNIDAD,VALOR TOTAL,MÉTODO DE PAGO,NOMBRE,APELLIDO,CÉDULA,DIRECCIÓN,CORREO,TELÉFONO,TRANSACTION ID'];
         return new Response(emptyCsv, {
           headers: {
             'Content-Type': 'text/csv; charset=utf-8',
-            'Content-Disposition': `attachment; filename="paquetes_comprados_vacio.csv"`,
+            'Content-Disposition': `attachment; filename="paquetes_clases_agrupados_vacio.csv"`,
           },
         });
       }
@@ -135,47 +135,108 @@ export async function GET(req: NextRequest) {
 
     // Construir CSV
     const headers = [
-      'Fecha Compra',
-      'Cliente',
-      'Email',
-      'Teléfono',
-      'Cédula',
-      'Dirección',
-      'Paquete',
-      'Precio',
-      'Créditos Totales',
-      'Créditos Restantes',
-      'Fecha Vencimiento',
-      'Estado',
-      'Código Autorización',
-      'ID Transacción',
+      'TIPO',
+      'CANTIDAD',
+      'VALOR X UNIDAD',
+      'VALOR TOTAL',
+      'MÉTODO DE PAGO',
+      'NOMBRE',
+      'APELLIDO',
+      'CÉDULA',
+      'DIRECCIÓN',
+      'CORREO',
+      'TELÉFONO',
+      'TRANSACTION ID'
     ];
 
-    const rows = all.map((p) => {
-      const now = new Date();
-      const exp = p.expiration_date ? new Date(p.expiration_date) : null;
-      let estado = 'Activo';
-      if (p.credits_remaining <= 0) estado = 'Agotado';
-      else if (exp && exp < now) estado = 'Vencido';
-      else if (exp) {
-        const daysToExpire = Math.ceil((exp.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-        if (daysToExpire <= 7) estado = `Vence en ${daysToExpire} días`;
+    // Agrupar compras por usuario y paquete
+    const groupedPurchases = new Map();
+    
+    all.forEach((p) => {
+      const key = `${p.users?.email || 'N/A'}_${p.packages?.name || 'N/A'}`;
+      
+      if (groupedPurchases.has(key)) {
+        const existing = groupedPurchases.get(key);
+        existing.cantidad += 1;
+        existing.valorTotal += (p.packages?.price ?? 0);
+        
+        // Agregar transaction_id y authorization_code a las listas
+        if (p.transaction_id && p.transaction_id !== 'N/A') {
+          existing.transactionIds.push(p.transaction_id);
+        }
+        if (p.authorization_code && p.authorization_code !== 'N/A') {
+          existing.authorizationCodes.push(p.authorization_code);
+        }
+      } else {
+        // Separar nombre y apellido
+        const fullName = p.users?.name || 'N/A';
+        const nameParts = fullName.split(' ');
+        const nombre = nameParts[0] || 'N/A';
+        const apellido = nameParts.slice(1).join(' ') || '';
+        
+        // Crear arrays para recopilar todos los IDs
+        const transactionIds: string[] = [];
+        const authorizationCodes: string[] = [];
+        
+        if (p.transaction_id && p.transaction_id !== 'N/A') {
+          transactionIds.push(p.transaction_id);
+        }
+        if (p.authorization_code && p.authorization_code !== 'N/A') {
+          authorizationCodes.push(p.authorization_code);
+        }
+        
+        groupedPurchases.set(key, {
+          tipo: p.packages?.name || 'N/A',
+          cantidad: 1,
+          valorXUnidad: p.packages?.price ?? 0,
+          valorTotal: p.packages?.price ?? 0,
+          nombre: nombre,
+          apellido: apellido,
+          cedula: p.users?.cedula || 'N/A',
+          direccion: p.users?.address || 'N/A',
+          correo: p.users?.email || 'N/A',
+          telefono: p.users?.phone || 'N/A',
+          transactionIds: transactionIds,
+          authorizationCodes: authorizationCodes
+        });
       }
+    });
+
+    const rows = Array.from(groupedPurchases.values()).map((group) => {
+      // Calcular valor por unidad con IVA y redondearlo a 2 decimales
+      const valorXUnidadConIva = Math.round((group.valorXUnidad * 1.15) * 100) / 100;
+      
+      // Calcular total: precio unitario con IVA redondeado × cantidad
+      const total = valorXUnidadConIva * group.cantidad;
+      
+      // Determinar método de pago
+      const hasTransactionId = group.transactionIds.length > 0;
+      const hasAuthorizationCode = group.authorizationCodes.length > 0;
+      const metodoPago = (hasTransactionId || hasAuthorizationCode) ? 'App' : 'Otros';
+      
+      // Crear lista de todos los IDs (transaction_ids primero, luego authorization_codes si no hay transaction_ids)
+      let allIds: string[] = [];
+      if (hasTransactionId) {
+        allIds = [...group.transactionIds];
+      } else if (hasAuthorizationCode) {
+        allIds = [...group.authorizationCodes];
+      }
+      
+      const transactionIdString = allIds.length > 0 ? allIds.join(', ') : 'N/A';
+      
       return [
-        formatDate(p.purchase_date),
-        p.users?.name || 'N/A',
-        p.users?.email || 'N/A',
-        p.users?.phone || 'N/A',
-        p.users?.cedula || 'N/A',
-        p.users?.address || 'N/A',
-        p.packages?.name || 'N/A',
-        String(p.packages?.price ?? 0),
-        String(p.packages?.class_credits ?? 0),
-        String(p.credits_remaining),
-        formatDate(p.expiration_date),
-        estado,
-        p.authorization_code || 'N/A',
-        p.transaction_id || 'N/A',
+        group.tipo,
+        String(group.cantidad),
+        `$${valorXUnidadConIva.toFixed(2)}`, // Valor por unidad con IVA incluido
+        `$${total.toFixed(2)}`, // Total: valor unitario con IVA × cantidad
+        metodoPago,
+        group.nombre,
+        group.apellido,
+        group.cedula,
+        group.direccion,
+        group.correo,
+        group.telefono,
+        transactionIdString // Todos los transaction IDs o authorization codes
       ];
     });
 
@@ -183,7 +244,7 @@ export async function GET(req: NextRequest) {
       .map((row) => row.map((f) => `"${String(f).replace(/"/g, '""')}"`).join(','))
       .join('\n');
 
-    const fileNameParts = ['paquetes_comprados'];
+    const fileNameParts = ['paquetes_clases_agrupados'];
     if (user) fileNameParts.push(`usuario_${user}`);
     if (status && status !== 'todos') fileNameParts.push(status);
     if (dateFrom || dateTo) fileNameParts.push('filtrado_fecha');
