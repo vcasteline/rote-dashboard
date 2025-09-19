@@ -12,7 +12,6 @@ export interface User {
   birthday: string | null;
   cedula: string | null;
   created_at: string;
-  shoe_size: string | null;
   purchase_count: number;
 }
 
@@ -53,7 +52,6 @@ export async function getUsersWithPurchaseCount(params?: {
           `phone.ilike.${like}`,
           `address.ilike.${like}`,
           `cedula.ilike.${like}`,
-          `shoe_size.ilike.${like}`,
         ].join(',')
       );
     }
@@ -112,7 +110,6 @@ export async function createUser(userData: {
   address?: string;
   birthday?: string;
   cedula?: string;
-  shoe_size?: string;
 }): Promise<{ success: boolean; user?: User; error?: string; password?: string }> {
   const supabase = createAdminClient();
   const adminClient = createAdminClient();
@@ -143,7 +140,6 @@ export async function createUser(userData: {
         address: userData.address || null,
         birthday: userData.birthday || null,
         cedula: userData.cedula || null,
-        shoe_size: userData.shoe_size || null,
       }
     });
     
@@ -155,7 +151,7 @@ export async function createUser(userData: {
       return { success: false, error: 'Error al crear el usuario en el sistema de autenticación' };
     }
 
-    // El trigger automáticamente crea el usuario en la tabla pública (incluyendo shoe_size)
+    // El trigger automáticamente crea el usuario en la tabla pública
     // Esperar un momento para que el trigger se ejecute
     await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -255,7 +251,6 @@ export async function createUserWithPackage(userData: {
   address?: string;
   birthday?: string;
   cedula?: string;
-  shoe_size?: string;
 }, packageData: {
   package_id: string;
   transaction_id?: string;
@@ -291,7 +286,6 @@ export async function createUserWithPackage(userData: {
         address: userData.address || null,
         birthday: userData.birthday || null,
         cedula: userData.cedula || null,
-        shoe_size: userData.shoe_size || null,
       }
     });
     
@@ -303,7 +297,7 @@ export async function createUserWithPackage(userData: {
       return { success: false, error: 'Error al crear el usuario en el sistema de autenticación' };
     }
     
-    // El trigger automáticamente crea el usuario en la tabla pública (incluyendo shoe_size)
+    // El trigger automáticamente crea el usuario en la tabla pública
     // Esperar un momento para que el trigger se ejecute
     await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -397,7 +391,7 @@ async function getTodaysBirthdaysManual(currentMonth: number, currentDay: number
     // Obtener todos los usuarios con fechas de nacimiento
     const { data: users, error } = await supabase
       .from('users')
-      .select('id, email, name, phone, address, birthday, cedula, created_at, shoe_size')
+      .select('id, email, name, phone, address, birthday, cedula, created_at')
       .not('birthday', 'is', null);
     
     if (error) {
@@ -470,7 +464,7 @@ export async function updateUser(userId: string, userData: {
   address?: string;
   birthday?: string;
   cedula?: string;
-  shoe_size?: string;
+  password?: string;
 }): Promise<{ success: boolean; user?: User; error?: string }> {
   const supabase = createAdminClient();
   const adminClient = createAdminClient();
@@ -496,7 +490,6 @@ export async function updateUser(userId: string, userData: {
         address: userData.address || null,
         birthday: userData.birthday || null,
         cedula: userData.cedula || null,
-        shoe_size: userData.shoe_size || null,
       })
       .eq('id', userId)
       .select()
@@ -507,18 +500,24 @@ export async function updateUser(userId: string, userData: {
       return { success: false, error: 'Error al actualizar el usuario' };
     }
 
-    // También actualizar en Auth user metadata
+    // También actualizar en Auth user metadata y password si se proporciona
     try {
-      await adminClient.auth.admin.updateUserById(userId, {
+      const authUpdateData: any = {
         user_metadata: {
           name: userData.name || currentUser.name,
           phone: userData.phone || null,
           address: userData.address || null,
           birthday: userData.birthday || null,
           cedula: userData.cedula || null,
-          shoe_size: userData.shoe_size || null,
         }
-      });
+      };
+
+      // Solo incluir password si se proporciona
+      if (userData.password && userData.password.trim() !== '') {
+        authUpdateData.password = userData.password;
+      }
+
+      await adminClient.auth.admin.updateUserById(userId, authUpdateData);
     } catch (authError) {
       console.error('Error updating auth user metadata:', authError);
       // No fallar si el update de auth falla, ya que el usuario ya está actualizado en la tabla pública

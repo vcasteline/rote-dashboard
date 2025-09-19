@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { User, Package, createUser, assignPackageToUser, createUserWithPackage, getAvailablePackages, updateUser } from '../actions';
 import { DateTime } from 'luxon';
-import { Mail, Phone, MapPin, Calendar, CreditCard, ShoppingBag, User as UserIcon, Cake, Search, X, Plus, UserPlus, Package as PackageIcon, Edit, Gift, PartyPopper } from 'lucide-react';
+import { Mail, Phone, MapPin, Calendar, CreditCard, ShoppingBag, User as UserIcon, Cake, Search, X, Plus, UserPlus, Package as PackageIcon, Edit, Gift, PartyPopper, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
@@ -30,6 +30,16 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
   const [generatedPassword, setGeneratedPassword] = useState<string>('');
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
   const [userForPackage, setUserForPackage] = useState<User | null>(null);
+  const [successModal, setSuccessModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    title: '',
+    message: ''
+  });
+  const [showPassword, setShowPassword] = useState(false);
   
   // Estados del formulario para crear usuario
   const [formData, setFormData] = useState({
@@ -39,7 +49,6 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
     address: '',
     birthday: '',
     cedula: '',
-    shoe_size: '',
     package_id: '',
     transaction_id: '',
     authorization_code: '',
@@ -53,7 +62,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
     address: '',
     birthday: '',
     cedula: '',
-    shoe_size: ''
+    password: ''
   });
 
   // Estados del formulario para asignar paquetes
@@ -70,6 +79,29 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
       getAvailablePackages().then(setPackages);
     }
   }, [isModalOpen, isPackageModalOpen]);
+
+  // Función para mostrar modal de éxito
+  const showSuccessModal = (title: string, message: string) => {
+    setSuccessModal({
+      isOpen: true,
+      title,
+      message
+    });
+    
+    // Auto-cerrar después de 3 segundos
+    setTimeout(() => {
+      closeSuccessModal();
+    }, 3000);
+  };
+
+  // Función para cerrar modal de éxito
+  const closeSuccessModal = () => {
+    setSuccessModal({
+      isOpen: false,
+      title: '',
+      message: ''
+    });
+  };
   
   const resetForm = () => {
     setFormData({
@@ -79,7 +111,6 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
       address: '',
       birthday: '',
       cedula: '',
-      shoe_size: '',
       package_id: '',
       transaction_id: '',
       authorization_code: '',
@@ -95,8 +126,9 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
       address: '',
       birthday: '',
       cedula: '',
-      shoe_size: ''
+      password: ''
     });
+    setShowPassword(false); // Resetear el estado de mostrar password
   };
 
   const resetPackageForm = () => {
@@ -117,8 +149,9 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
       address: user.address || '',
       birthday: user.birthday || '',
       cedula: user.cedula || '',
-      shoe_size: user.shoe_size || ''
+      password: ''
     });
+    setShowPassword(false); // Iniciar con contraseña oculta
     setIsEditModalOpen(true);
   };
 
@@ -141,7 +174,6 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
         address: formData.address || undefined,
         birthday: formData.birthday || undefined,
         cedula: formData.cedula || undefined,
-        shoe_size: formData.shoe_size || undefined,
       };
       
       let result;
@@ -197,15 +229,17 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
         address: editFormData.address || undefined,
         birthday: editFormData.birthday || undefined,
         cedula: editFormData.cedula || undefined,
-        shoe_size: editFormData.shoe_size || undefined,
+        password: editFormData.password || undefined,
       });
       
       if (result.success) {
-        alert('Usuario actualizado correctamente');
+        showSuccessModal('Usuario Actualizado', 'Los datos del usuario han sido actualizados correctamente.');
         setIsEditModalOpen(false);
         setUserToEdit(null);
         resetEditForm();
-        window.location.reload();
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000); // Esperar 2 segundos para que el usuario vea el mensaje
       } else {
         alert(result.error || 'Error al actualizar el usuario');
       }
@@ -234,11 +268,13 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
       });
       
       if (result.success) {
-        alert('Paquete asignado correctamente');
+        showSuccessModal('Paquete Asignado', 'El paquete ha sido asignado correctamente al usuario.');
         setIsPackageModalOpen(false);
         setUserForPackage(null);
         resetPackageForm();
-        window.location.reload();
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000); // Esperar 2 segundos para que el usuario vea el mensaje
       } else {
         alert(result.error || 'Error al asignar el paquete');
       }
@@ -439,7 +475,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar por nombre, email, teléfono, cédula, dirección o talla..."
+            placeholder="Buscar por nombre, email, teléfono, cédula o dirección..."
             className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 placeholder-gray-500"
           />
           {searchTerm && (
@@ -538,13 +574,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                         {user.cedula}
                       </div>
                     )}
-                    {user.shoe_size && (
-                      <div className="text-sm text-gray-500 flex items-center">
-                        <UserIcon className="h-4 w-4 mr-1 text-gray-400" />
-                        Talla: {user.shoe_size}
-                      </div>
-                    )}
-                    {!user.birthday && !user.cedula && !user.shoe_size && (
+                    {!user.birthday && !user.cedula && (
                       <div className="text-sm text-gray-500">No especificado</div>
                     )}
                   </div>
@@ -693,19 +723,48 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Fecha de Nacimiento
-                    </label>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Fecha de Nacimiento
+                  </label>
+                  <input
+                    type="text"
+                    value={editFormData.birthday}
+                    onChange={(e) => setEditFormData({...editFormData, birthday: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
+                    placeholder="DD/MM/YYYY o DDMMYYYY"
+                  />
+                </div>
+
+                {/* Campo de nueva contraseña */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nueva Contraseña (opcional)
+                  </label>
+                  <div className="relative">
                     <input
-                      type="text"
-                      value={editFormData.birthday}
-                      onChange={(e) => setEditFormData({...editFormData, birthday: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
-                      placeholder="DD/MM/YYYY o DDMMYYYY"
+                      type={showPassword ? "text" : "password"}
+                      value={editFormData.password}
+                      onChange={(e) => setEditFormData({...editFormData, password: e.target.value})}
+                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
+                      placeholder="Dejar en blanco para no cambiar"
                     />
-                  </div> 
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                      title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Solo completa este campo si deseas cambiar la contraseña del usuario
+                  </p>
                 </div>
 
                 {/* Botones */}
@@ -1097,6 +1156,42 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                 </div>
               </form>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Éxito */}
+      {successModal.isOpen && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 animate-in fade-in duration-200" style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
+          <div className="bg-white rounded-lg shadow-2xl border-2 border-green-200 w-full max-w-md mx-4 transform transition-all duration-300 scale-100 animate-in zoom-in">
+            <div className="p-6 text-center">
+              <div className="flex items-center justify-center mb-4">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center animate-pulse">
+                  <CheckCircle className="h-8 w-8 text-green-600" />
+                </div>
+              </div>
+              
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                {successModal.title}
+              </h3>
+              
+              <p className="text-gray-600 mb-6">
+                {successModal.message}
+              </p>
+              
+              <button
+                onClick={closeSuccessModal}
+                className="w-full px-4 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+              >
+                Continuar
+              </button>
+              
+              <div className="mt-3">
+                <p className="text-xs text-gray-400">
+                  Este mensaje se cerrará automáticamente en unos segundos
+                </p>
+              </div>
             </div>
           </div>
         </div>
