@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { type PurchaseData } from '../page';
+import { updatePurchaseCredits } from '../actions';
+import { Edit, X, CheckCircle } from 'lucide-react';
 
 // Helper para formatear fechas
 const formatDate = (dateString: string | null) => {
@@ -216,6 +218,87 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
   const [statusFilter, setStatusFilter] = useState(status || 'todos');
   const [dateFrom, setDateFrom] = useState(initialDateFrom || '');
   const [dateTo, setDateTo] = useState(initialDateTo || '');
+  
+  // Estados para editar créditos
+  const [editingPurchaseId, setEditingPurchaseId] = useState<string | null>(null);
+  const [editCreditsValue, setEditCreditsValue] = useState<string>('');
+  const [isUpdatingCredits, setIsUpdatingCredits] = useState(false);
+  const [successModal, setSuccessModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    title: '',
+    message: ''
+  });
+
+  // Función para mostrar modal de éxito
+  const showSuccessModal = (title: string, message: string) => {
+    setSuccessModal({
+      isOpen: true,
+      title,
+      message
+    });
+    
+    // Auto-cerrar después de 3 segundos
+    setTimeout(() => {
+      closeSuccessModal();
+    }, 3000);
+  };
+
+  // Función para cerrar modal de éxito
+  const closeSuccessModal = () => {
+    setSuccessModal({
+      isOpen: false,
+      title: '',
+      message: ''
+    });
+  };
+
+  // Función para iniciar edición de créditos
+  const startEditingCredits = (purchaseId: string, currentCredits: number) => {
+    setEditingPurchaseId(purchaseId);
+    setEditCreditsValue(currentCredits.toString());
+  };
+
+  // Función para cancelar edición de créditos
+  const cancelEditingCredits = () => {
+    setEditingPurchaseId(null);
+    setEditCreditsValue('');
+  };
+
+  // Función para guardar créditos editados
+  const saveEditedCredits = async (purchaseId: string) => {
+    const newCredits = parseInt(editCreditsValue);
+    
+    if (isNaN(newCredits) || newCredits < 0) {
+      alert('Por favor ingresa un número válido mayor o igual a 0');
+      return;
+    }
+
+    setIsUpdatingCredits(true);
+    
+    try {
+      const result = await updatePurchaseCredits(purchaseId, newCredits);
+      
+      if (result.success) {
+        showSuccessModal('Créditos Actualizados', 'Los créditos han sido actualizados correctamente.');
+        setEditingPurchaseId(null);
+        setEditCreditsValue('');
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        alert(result.error || 'Error al actualizar los créditos');
+      }
+    } catch (error) {
+      console.error('Error updating credits:', error);
+      alert('Error al actualizar los créditos');
+    } finally {
+      setIsUpdatingCredits(false);
+    }
+  };
 
   // Funciones de atajo para fechas comunes
   const setDateShortcut = (type: 'today' | 'week' | 'month') => {
@@ -546,6 +629,7 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
                 <th className="py-3 px-5 text-center">Estado</th>
                 <th className="py-3 px-5 text-center">Contabilidad</th>
                 <th className="py-3 px-5 text-center">Detalles</th>
+                <th className="py-3 px-5 text-center">Acciones</th>
               </tr>
             </thead>
             <tbody className="text-gray-700 text-sm font-light">
@@ -570,8 +654,39 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
                         </div>
                       </td>
                       <td className="py-3 px-5 text-center">
-                        <div className="font-medium">{purchase.credits_remaining}</div>
-                        <div className="text-xs text-gray-500">restantes</div>
+                        {editingPurchaseId === purchase.id ? (
+                          <div className="flex items-center justify-center space-x-2">
+                            <input
+                              type="number"
+                              min="0"
+                              value={editCreditsValue}
+                              onChange={(e) => setEditCreditsValue(e.target.value)}
+                              className="w-16 px-2 py-1 border border-gray-300 rounded text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              autoFocus
+                            />
+                            <button
+                              onClick={() => saveEditedCredits(purchase.id)}
+                              disabled={isUpdatingCredits}
+                              className="text-green-600 hover:text-green-800 disabled:opacity-50"
+                              title="Guardar"
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={cancelEditingCredits}
+                              disabled={isUpdatingCredits}
+                              className="text-red-600 hover:text-red-800 disabled:opacity-50"
+                              title="Cancelar"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div>
+                            <div className="font-medium">{purchase.credits_remaining}</div>
+                            <div className="text-xs text-gray-500">restantes</div>
+                          </div>
+                        )}
                       </td>
                       <td className="py-3 px-5 text-center font-medium">
                         {formatCurrency(purchase.packages?.price || 0)}
@@ -609,12 +724,26 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
                           )}
                         </div>
                       </td>
+                      <td className="py-3 px-5 text-center">
+                        {editingPurchaseId === purchase.id ? (
+                          <div className="text-xs text-gray-500">Editando...</div>
+                        ) : (
+                          <button
+                            onClick={() => startEditingCredits(purchase.id, purchase.credits_remaining)}
+                            className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-150"
+                            title="Editar créditos"
+                          >
+                            <Edit className="h-3 w-3 mr-1" />
+                            Editar
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   );
                 })
               ) : (
                 <tr>
-                  <td colSpan={9} className="py-6 px-5 text-center text-gray-500">
+                  <td colSpan={10} className="py-6 px-5 text-center text-gray-500">
                     No se encontraron paquetes con los filtros aplicados.
                   </td>
                 </tr>
@@ -623,6 +752,42 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
           </table>
         </div>
       </div>
+
+      {/* Modal de Éxito */}
+      {successModal.isOpen && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 animate-in fade-in duration-200" style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
+          <div className="bg-white rounded-lg shadow-2xl border-2 border-green-200 w-full max-w-md mx-4 transform transition-all duration-300 scale-100 animate-in zoom-in">
+            <div className="p-6 text-center">
+              <div className="flex items-center justify-center mb-4">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center animate-pulse">
+                  <CheckCircle className="h-8 w-8 text-green-600" />
+                </div>
+              </div>
+              
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                {successModal.title}
+              </h3>
+              
+              <p className="text-gray-600 mb-6">
+                {successModal.message}
+              </p>
+              
+              <button
+                onClick={closeSuccessModal}
+                className="w-full px-4 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+              >
+                Continuar
+              </button>
+              
+              <div className="mt-3">
+                <p className="text-xs text-gray-400">
+                  Este mensaje se cerrará automáticamente en unos segundos
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
