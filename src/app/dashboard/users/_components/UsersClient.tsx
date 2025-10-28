@@ -57,6 +57,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
 
   // Estados del formulario para editar usuario
   const [editFormData, setEditFormData] = useState({
+    email: '',
     name: '',
     phone: '',
     address: '',
@@ -121,6 +122,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
 
   const resetEditForm = () => {
     setEditFormData({
+      email: '',
       name: '',
       phone: '',
       address: '',
@@ -144,6 +146,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
   const handleEditUser = (user: User) => {
     setUserToEdit(user);
     setEditFormData({
+      email: user.email || '',
       name: user.name || '',
       phone: user.phone || '',
       address: user.address || '',
@@ -224,6 +227,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
     
     try {
       const result = await updateUser(userToEdit.id, {
+        email: editFormData.email || undefined,
         name: editFormData.name || undefined,
         phone: editFormData.phone || undefined,
         address: editFormData.address || undefined,
@@ -658,14 +662,19 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email (no editable)
+                      Email *
                     </label>
                     <input
                       type="email"
-                      value={userToEdit.email}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
+                      required
+                      value={editFormData.email}
+                      onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
+                      placeholder="usuario@ejemplo.com"
                     />
+                    <p className="text-sm text-gray-500 mt-1">
+                      Cambiar el email actualizará tanto la autenticación como los datos del usuario
+                    </p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">

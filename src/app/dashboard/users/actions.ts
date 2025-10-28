@@ -465,6 +465,7 @@ export async function updateUser(userId: string, userData: {
   birthday?: string;
   cedula?: string;
   password?: string;
+  email?: string;
 }): Promise<{ success: boolean; user?: User; error?: string }> {
   const supabase = createAdminClient();
   const adminClient = createAdminClient();
@@ -481,6 +482,20 @@ export async function updateUser(userId: string, userData: {
       return { success: false, error: 'Usuario no encontrado' };
     }
 
+    // Si se está cambiando el email, verificar que no exista otro usuario con ese email
+    if (userData.email && userData.email !== currentUser.email) {
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', userData.email)
+        .neq('id', userId)
+        .single();
+      
+      if (existingUser) {
+        return { success: false, error: 'Ya existe otro usuario con este email' };
+      }
+    }
+
     // Actualizar en la tabla users
     const { data: updatedUser, error: updateError } = await supabase
       .from('users')
@@ -490,6 +505,7 @@ export async function updateUser(userId: string, userData: {
         address: userData.address || null,
         birthday: userData.birthday || null,
         cedula: userData.cedula || null,
+        email: userData.email || currentUser.email,
       })
       .eq('id', userId)
       .select()
@@ -500,7 +516,7 @@ export async function updateUser(userId: string, userData: {
       return { success: false, error: 'Error al actualizar el usuario' };
     }
 
-    // También actualizar en Auth user metadata y password si se proporciona
+    // También actualizar en Auth user metadata, email y password si se proporciona
     try {
       const authUpdateData: any = {
         user_metadata: {
@@ -512,6 +528,11 @@ export async function updateUser(userId: string, userData: {
         }
       };
 
+      // Solo incluir email si se proporciona y es diferente
+      if (userData.email && userData.email !== currentUser.email) {
+        authUpdateData.email = userData.email;
+      }
+
       // Solo incluir password si se proporciona
       if (userData.password && userData.password.trim() !== '') {
         authUpdateData.password = userData.password;
@@ -519,8 +540,16 @@ export async function updateUser(userId: string, userData: {
 
       await adminClient.auth.admin.updateUserById(userId, authUpdateData);
     } catch (authError) {
-      console.error('Error updating auth user metadata:', authError);
-      // No fallar si el update de auth falla, ya que el usuario ya está actualizado en la tabla pública
+      console.error('Error updating auth user:', authError);
+      // Si falla el update del email en auth, revertir el cambio en la tabla pública
+      if (userData.email && userData.email !== currentUser.email) {
+        await supabase
+          .from('users')
+          .update({ email: currentUser.email })
+          .eq('id', userId);
+        return { success: false, error: 'Error al actualizar el email en el sistema de autenticación' };
+      }
+      // Para otros errores de auth, no fallar ya que el usuario ya está actualizado en la tabla pública
     }
     
     // Revalidate the users page
