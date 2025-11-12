@@ -1,6 +1,6 @@
-# ⏰ Configuración de Cron Jobs para Volta Dashboard
+# ⏰ Configuración de Cron Jobs para Hundred Dashboard
 
-Este documento explica cómo configurar y desplegar los cron jobs automatizados para el sistema de Volta.
+Este documento explica cómo configurar y desplegar los cron jobs automatizados para el sistema de Hundred.
 
 ## 📋 **Cron Jobs Implementados**
 
@@ -49,7 +49,7 @@ supabase login
 
 ### 2. Inicializar proyecto (si no está hecho)
 ```bash
-cd volta-admin-dashboard
+cd hundred-admin-dashboard
 supabase init
 ```
 

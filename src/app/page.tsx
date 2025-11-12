@@ -5,11 +5,11 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center p-4">
       <div className="max-w-md w-full space-y-8 text-center">
-        {/* Logo de Volta */}
+        {/* Logo de Hundred */}
         <div className="flex justify-center">
           <Image
-            src="/volta-logo-slogan.png"
-            alt="Volta Logo"
+            src="/hundred-logo.png"
+            alt="Hundred Logo"
             width={200}
             height={200}
             priority
@@ -20,13 +20,13 @@ export default function Home() {
         {/* Título y descripción */}
         <div className="space-y-4">
           <h1 className="text-4xl font-bold text-white tracking-tight">
-            Volta Studio
+            Hundred
           </h1>
           <p className="text-xl text-gray-300">
             Panel de Administración
           </p>
           <p className="text-sm text-gray-400 max-w-sm mx-auto">
-            Sistema de gestión para clases, reservaciones, instructores y paquetes de Volta.
+            Sistema de gestión para clases, reservaciones, instructores y paquetes de Hundred.
           </p>
         </div>
 
@@ -52,7 +52,7 @@ export default function Home() {
 
       {/* Elementos decorativos de fondo */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-indigo-600/20 to-blue-600/20 rounded-full blur-3xl"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-400/20 to-purple-600/20 rounded-full blur-3xl"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-blue-600/20 to-cyan-600/20 rounded-full blur-3xl"></div>
       </div>
     </div>

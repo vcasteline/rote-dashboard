@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useTransition, useRef, useEffect } from 'react';
+import { useState, useTransition, useRef, useEffect, useMemo } from 'react';
 import { type ClassData, type Instructor } from '../page'; // Importar tipos desde la página
-import { updateClassName, updateClassInstructor, createClass, deleteClass } from '../actions';
+import { updateClassName, updateClassInstructor, createClass, deleteClass, getLocations } from '../actions';
 import { formatTime, formatDateFromString, getNowInEcuador, toISOString, toEcuadorDateTime } from '@/lib/utils/dateUtils';
 import { AlertTriangle, Plus, Trash2, X } from 'lucide-react';
+import CustomSelect from '../schedule/_components/CustomSelect';
 
 // Componente para manejar la edición inline del nombre
 function EditableClassName({ cls, isPending }: { cls: ClassData; isPending: boolean }) {
@@ -135,6 +136,21 @@ function AddClassModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [locations, setLocations] = useState<Array<{ id: string; name: string; address: string | null }>>([]);
+  const [selectedModality, setSelectedModality] = useState<string>('');
+
+  useEffect(() => {
+    if (isOpen) {
+      getLocations().then(result => {
+        if (result.locations) {
+          setLocations(result.locations);
+        }
+      });
+    } else {
+      // Limpiar estado cuando se cierra el modal
+      setSelectedModality('');
+    }
+  }, [isOpen]);
 
   const handleSubmit = async (formData: FormData) => {
     setIsSubmitting(true);
@@ -195,7 +211,7 @@ function AddClassModal({
               min={todayString}
               max={maxDateString}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 bg-white"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] text-gray-900 bg-white"
             />
             <p className="text-xs text-gray-500 mt-1">Puedes agregar clases desde hoy hasta 7 días adelante</p>
           </div>
@@ -210,7 +226,7 @@ function AddClassModal({
                 id="start_time"
                 name="start_time"
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 bg-white"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] text-gray-900 bg-white"
               />
             </div>
             <div>
@@ -222,7 +238,7 @@ function AddClassModal({
                 id="end_time"
                 name="end_time"
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 bg-white"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] text-gray-900 bg-white"
               />
             </div>
           </div>
@@ -235,7 +251,7 @@ function AddClassModal({
               id="instructor_id"
               name="instructor_id"
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 bg-white"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] text-gray-900 bg-white"
             >
               <option value="">Selecciona un instructor</option>
               {instructors.map((instructor) => (
@@ -246,16 +262,64 @@ function AddClassModal({
             </select>
           </div>
 
+          {locations.length > 0 && (
+            <div>
+              <label htmlFor="location_id" className="block text-sm font-medium text-gray-700 mb-1">
+                Ubicación (opcional)
+              </label>
+              <select
+                id="location_id"
+                name="location_id"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] text-gray-900 bg-white"
+              >
+                <option value="">Sin ubicación específica</option>
+                {locations.map((location) => (
+                  <option key={location.id} value={location.id}>
+                    {location.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div>
+            <label htmlFor="modality" className="block text-sm font-medium text-gray-700 mb-1">
+              Modalidad
+            </label>
+            <select
+              id="modality"
+              name="modality"
+              value={selectedModality}
+              onChange={(e) => setSelectedModality(e.target.value)}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] text-gray-900 bg-white"
+            >
+              <option value="">Selecciona una modalidad</option>
+              <option value="cycle">Cycle (Capacidad: 16)</option>
+              <option value="resilience">Resilience (Capacidad: 10)</option>
+              <option value="pilates">Pilates (Capacidad: 12)</option>
+            </select>
+            {selectedModality && (
+              <p className="text-xs text-gray-500 mt-1">
+                Capacidad automática: {
+                  selectedModality === 'cycle' ? '16' :
+                  selectedModality === 'resilience' ? '10' :
+                  selectedModality === 'pilates' ? '12' : ''
+                } espacios
+              </p>
+            )}
+          </div>
+
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-              Nombre de la Clase (opcional)
+              Nombre de la Clase
             </label>
             <input
               type="text"
               id="name"
               name="name"
               placeholder="Ej: Cycling Intenso"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 bg-white"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] text-gray-900 bg-white"
             />
           </div>
 
@@ -283,11 +347,11 @@ function AddClassModal({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 flex items-center"
+              className="px-4 py-2 bg-[#D7BAF6] text-black rounded-md hover:bg-[#8B7EE6] disabled:opacity-50 flex items-center"
             >
               {isSubmitting ? (
                 <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
@@ -375,7 +439,7 @@ function DeleteClassModal({
               <ul className="list-disc list-inside space-y-1 text-xs">
                 <li><strong>Sin reservas:</strong> Se borra completamente de la base de datos (cualquier clase)</li>
                 <li><strong>Con reservas:</strong> Se marca como cancelada para preservar el historial</li>
-                <li><strong>Bicis:</strong> Se borran en ambos casos</li>
+                <li><strong>Spots:</strong> Se borran en ambos casos</li>
                 <li><strong>Reservas activas:</strong> Impiden el borrado de clases futuras</li>
               </ul>
             </div>
@@ -442,6 +506,28 @@ export default function ClassesClient({
   const [deleteMessage, setDeleteMessage] = useState('');
   const [deleteError, setDeleteError] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+  const [locations, setLocations] = useState<Array<{ id: string; name: string; address: string | null }>>([]);
+  const [selectedLocationFilter, setSelectedLocationFilter] = useState<string>('');
+
+  // Cargar ubicaciones al montar el componente
+  useEffect(() => {
+    getLocations().then(result => {
+      if (result.locations) {
+        setLocations(result.locations);
+      }
+    });
+  }, []);
+
+  // Filtrar clases por ubicación
+  const filteredClasses = useMemo(() => {
+    if (!selectedLocationFilter) {
+      return initialClasses;
+    }
+    return initialClasses.filter(cls => {
+      // Comparar location_id directamente
+      return cls.location_id === selectedLocationFilter;
+    });
+  }, [initialClasses, selectedLocationFilter]);
 
   // Función para abrir el modal de confirmación de borrado
   const handleDeleteClick = (cls: ClassData) => {
@@ -482,18 +568,43 @@ export default function ClassesClient({
 
   return (
     <div>
-      {/* Botón para agregar nueva clase */}
+      {/* Botón para agregar nueva clase y filtro */}
       <div className="mb-6 flex justify-between items-center">
         <p className="text-gray-600">
           Aquí puedes ver y gestionar las próximas clases programadas
         </p>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 flex items-center"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Agregar Clase para Esta Semana
-        </button>
+        <div className="flex items-center gap-4">
+          {/* Filtro por ubicación */}
+          {locations.length > 0 && (
+            <div className="flex items-center gap-2">
+              <label htmlFor="location_filter" className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                Filtrar por ubicación:
+              </label>
+              <div className="w-48">
+                <CustomSelect
+                  id="location_filter"
+                  options={[
+                    { value: '', label: 'Todas las ubicaciones' },
+                    ...locations.map(location => ({
+                      value: location.id,
+                      label: location.name
+                    }))
+                  ]}
+                  value={selectedLocationFilter}
+                  onChange={setSelectedLocationFilter}
+                  placeholder="Todas las ubicaciones"
+                />
+              </div>
+            </div>
+          )}
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="px-4 py-2 bg-[#D7BAF6] text-black rounded-md hover:bg-[#8B7EE6] flex items-center"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Agregar Clase para Esta Semana
+          </button>
+        </div>
       </div>
 
       {/* Tabla de clases */}
@@ -504,13 +615,15 @@ export default function ClassesClient({
             <th className="py-3 px-5 text-left">Fecha</th>
             <th className="py-3 px-5 text-left">Hora</th>
             <th className="py-3 px-5 text-left">Instructor</th>
+            <th className="py-3 px-5 text-left">Modalidad</th>
+            <th className="py-3 px-5 text-left">Ubicación</th>
             <th className="py-3 px-5 text-left">Nombre Clase</th>
             <th className="py-3 px-5 text-center">Acciones</th>
           </tr>
         </thead>
         <tbody className="text-gray-700 text-sm font-light">
-          {initialClasses.length > 0 ? (
-            initialClasses.map((cls) => (
+          {filteredClasses.length > 0 ? (
+            filteredClasses.map((cls) => (
               <tr key={cls.id} className="border-b border-gray-200 hover:bg-gray-100">
                 <td className="py-3 px-5 text-left whitespace-nowrap">
                     {formatDateFromString(cls.date)}
@@ -524,6 +637,18 @@ export default function ClassesClient({
                     instructors={instructors} 
                     isPending={isPendingInstructor} 
                   />
+                </td>
+                <td className="py-3 px-5 text-left">
+                  {cls.modality ? (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 capitalize">
+                      {cls.modality}
+                    </span>
+                  ) : (
+                    <span className="text-gray-400 italic">N/A</span>
+                  )}
+                </td>
+                <td className="py-3 px-5 text-left">
+                  {cls.locations?.name || <span className="text-gray-400 italic">N/A</span>}
                 </td>
                 <td className="py-3 px-5 text-left">
                     <EditableClassName cls={cls} isPending={isPendingName} />
@@ -542,7 +667,12 @@ export default function ClassesClient({
             ))
           ) : (
             <tr>
-              <td colSpan={5} className="py-3 px-5 text-center">No se encontraron próximas clases.</td>
+              <td colSpan={7} className="py-3 px-5 text-center">
+                {selectedLocationFilter 
+                  ? `No se encontraron clases para la ubicación seleccionada.`
+                  : 'No se encontraron próximas clases.'
+                }
+              </td>
             </tr>
           )}
         </tbody>

@@ -47,7 +47,7 @@ export default function ImageUploader({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
 
-  const BUCKET_NAME = 'instructor-photos';
+  const BUCKET_NAME = 'instructors';
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
   const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
@@ -182,8 +182,8 @@ export default function ImageUploader({
         onClick={handleClick}
         className={`
           relative border-2 border-dashed rounded-lg p-6 transition-colors cursor-pointer
-          ${dragActive ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300'}
-          ${disabled || isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:border-indigo-400 hover:bg-gray-50'}
+          ${dragActive ? 'border-[#D7BAF6] bg-purple-50' : 'border-gray-300'}
+          ${disabled || isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:border-[#8B7EE6] hover:bg-gray-50'}
           ${uploadError ? 'border-red-300 bg-red-50' : ''}
         `}
       >
@@ -199,7 +199,7 @@ export default function ImageUploader({
         <div className="text-center">
           {isUploading ? (
             <div className="flex flex-col items-center">
-              <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+              <div className="w-8 h-8 border-2 border-[#D7BAF6] border-t-transparent rounded-full animate-spin mb-2"></div>
               <p className="text-sm text-gray-600">Subiendo imagen...</p>
             </div>
           ) : uploadError ? (

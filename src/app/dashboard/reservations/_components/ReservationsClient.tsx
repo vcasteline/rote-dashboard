@@ -3,8 +3,9 @@
 import { useMemo, useState, useTransition, useEffect } from 'react';
 import { format } from 'date-fns';
 import { type ReservationData } from '../page'; // Importar tipo
-import { cancelReservation, updateReservationBikes, getAvailableBikes, getUsersWithCredits, getAvailableClasses, createReservation, leaveWaitlist, type UserWithCredits, type AvailableClass } from '../actions';
+import { cancelReservation, updateReservationBikes, getAvailableBikes, getUsersWithCredits, getAvailableClasses, createReservation, leaveWaitlist, getLocations, type UserWithCredits, type AvailableClass } from '../actions';
 import { Plus, X, User, Calendar, Clock, Users, Bike } from 'lucide-react';
+import CustomSelect from '../../schedule/_components/CustomSelect';
 
 // Helper para formatear hora HH:MM
 const formatTime = (timeString: string | null | undefined) => {
@@ -86,7 +87,7 @@ function BikeSelector({
   };
 
   if (loading) {
-    return <div className="text-sm text-gray-500">Cargando bicicletas...</div>;
+    return <div className="text-sm text-gray-500">Cargando spots...</div>;
   }
 
   if (error) {
@@ -96,7 +97,7 @@ function BikeSelector({
   return (
     <div className="space-y-2">
       <div className="text-xs text-gray-600 mb-2">
-        Selecciona las bicicletas (disponibles: {availableBikes.length})
+        Selecciona los spots (disponibles: {availableBikes.length})
       </div>
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 mb-2">
         <div className="flex items-start">
@@ -105,14 +106,14 @@ function BikeSelector({
           </div>
           <div className="ml-2">
             <p className="text-xs text-blue-700">
-              <strong>Nota:</strong> El layout físico de las bicicletas puedes verlo en la app móvil.
+              <strong>Nota:</strong> El layout físico de los spots puedes verlo en la app móvil.
             </p>
           </div>
         </div>
       </div>
       <div className="max-h-32 overflow-y-auto border border-gray-300 rounded p-2 bg-white">
         {allBikeOptions.length === 0 ? (
-          <div className="text-sm text-gray-500">No hay bicicletas disponibles</div>
+          <div className="text-sm text-gray-500">No hay spots disponibles</div>
         ) : (
           <div className="grid grid-cols-5 gap-1">
             {allBikeOptions.map((bike) => {
@@ -175,6 +176,8 @@ function CreateReservationModal({
   const [users, setUsers] = useState<UserWithCredits[]>([]);
   const [classes, setClasses] = useState<AvailableClass[]>([]);
   const [availableBikes, setAvailableBikes] = useState<BikeOption[]>([]);
+  const [locations, setLocations] = useState<Array<{ id: string; name: string; address: string | null }>>([]);
+  const [selectedLocationId, setSelectedLocationId] = useState<string>('');
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -192,6 +195,17 @@ function CreateReservationModal({
       (user.phone && user.phone.toLowerCase().includes(searchLower))
     );
   });
+
+  // Cargar ubicaciones cuando se abre el modal
+  useEffect(() => {
+    if (isOpen) {
+      getLocations().then(result => {
+        if (result.success) {
+          setLocations(result.locations || []);
+        }
+      });
+    }
+  }, [isOpen]);
 
   // Cargar usuarios cuando se abre el modal
   useEffect(() => {
@@ -243,6 +257,7 @@ function CreateReservationModal({
      setSelectedUser(null);
      setSelectedClass(null);
      setSelectedBikes([]);
+     setSelectedLocationId('');
      setError(null);
      setUserSearchQuery(''); // Limpiar búsqueda
      onClose();
@@ -281,8 +296,7 @@ function CreateReservationModal({
          const result = await createReservation({
        user_id: selectedUser.id,
        class_id: selectedClass.id,
-       bike_numbers: selectedBikes, // Ahora usa números físicos reales
-       credits_to_use: 1 // Por ahora usar 1 crédito por defecto
+       bike_numbers: selectedBikes // Números de spot
      });
 
     if (result.success) {
@@ -326,7 +340,7 @@ function CreateReservationModal({
                  <div
                    className={`rounded-full h-8 w-8 flex items-center justify-center text-sm font-semibold relative z-10 ${
                      i <= step
-                       ? 'bg-[#3D4AF5] text-white'
+                       ? 'bg-[#D7BAF6] text-black'
                        : 'bg-gray-200 text-gray-600'
                    }`}
                  >
@@ -335,7 +349,7 @@ function CreateReservationModal({
                  <span className="text-center text-xs text-gray-600 mt-3">
                    {i === 1 && 'Seleccionar Usuario'}
                    {i === 2 && 'Seleccionar Clase'}
-                   {i === 3 && 'Seleccionar Bicicletas'}
+                   {i === 3 && 'Seleccionar Spots'}
                  </span>
                </div>
              ))}
@@ -343,13 +357,13 @@ function CreateReservationModal({
              <div className="absolute top-4 left-1/6 right-1/6 flex items-center">
                <div
                  className={`flex-1 h-1 ${
-                   1 < step ? 'bg-[#3D4AF5]' : 'bg-gray-200'
+                   1 < step ? 'bg-[#D7BAF6]' : 'bg-gray-200'
                  }`}
                />
                <div className="w-8"></div>
                <div
                  className={`flex-1 h-1 ${
-                   2 < step ? 'bg-[#3D4AF5]' : 'bg-gray-200'
+                   2 < step ? 'bg-[#D7BAF6]' : 'bg-gray-200'
                  }`}
                />
              </div>
@@ -381,7 +395,7 @@ function CreateReservationModal({
               <input
                 type="text"
                 placeholder="Buscar por nombre, email o teléfono..."
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-[#3D4AF5] focus:border-[#3D4AF5]"
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-[#D7BAF6] focus:border-[#8B7EE6]"
                 value={userSearchQuery}
                 onChange={(e) => setUserSearchQuery(e.target.value)}
               />
@@ -416,7 +430,7 @@ function CreateReservationModal({
                 {userSearchQuery && (
                   <button
                     onClick={() => setUserSearchQuery('')}
-                    className="mt-2 text-sm text-[#3D4AF5] hover:underline"
+                    className="mt-2 text-sm text-[#D7BAF6] hover:underline"
                   >
                     Limpiar búsqueda
                   </button>
@@ -433,7 +447,7 @@ function CreateReservationModal({
                     onClick={() => setSelectedUser(user)}
                     className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                       selectedUser?.id === user.id
-                        ? 'border-[#3D4AF5] bg-purple-50'
+                        ? 'border-[#8B7EE6] bg-purple-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
@@ -446,7 +460,7 @@ function CreateReservationModal({
                         )}
                       </div>
                       <div className="text-right">
-                        <div className="text-lg font-bold text-[#3D4AF5]">
+                        <div className="text-lg font-bold text-[#D7BAF6]">
                           {user.activeCredits} créditos
                         </div>
                         <div className="text-xs text-gray-500">
@@ -483,6 +497,28 @@ function CreateReservationModal({
               Seleccionar Clase para {selectedUser?.name}
             </h4>
             
+            {/* Selector de ubicación */}
+            {locations.length > 0 && (
+              <div>
+                <label htmlFor="location_filter" className="block text-sm font-medium text-gray-700 mb-2">
+                  Filtrar por Ubicación
+                </label>
+                <CustomSelect
+                  id="location_filter"
+                  options={[
+                    { value: '', label: 'Todas las ubicaciones' },
+                    ...locations.map(location => ({
+                      value: location.id,
+                      label: location.name
+                    }))
+                  ]}
+                  value={selectedLocationId}
+                  onChange={setSelectedLocationId}
+                  placeholder="Todas las ubicaciones"
+                />
+              </div>
+            )}
+            
             {loading ? (
               <div className="text-center py-8">
                 <div className="text-gray-500">Cargando clases...</div>
@@ -493,13 +529,15 @@ function CreateReservationModal({
               </div>
             ) : (
               <div className="grid gap-4 max-h-96 overflow-y-auto">
-                {classes.map((cls) => (
+                {classes
+                  .filter(cls => !selectedLocationId || cls.location_id === selectedLocationId)
+                  .map((cls) => (
                   <div
                     key={cls.id}
                     onClick={() => setSelectedClass(cls)}
                     className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                       selectedClass?.id === cls.id
-                        ? 'border-[#3D4AF5] bg-purple-50'
+                        ? 'border-[#8B7EE6] bg-purple-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
@@ -516,6 +554,15 @@ function CreateReservationModal({
                           <div className="flex items-center text-sm text-gray-500 mt-1">
                             <User className="h-4 w-4 mr-1" />
                             {cls.instructor_name}
+                          </div>
+                        )}
+                        {cls.location_name && (
+                          <div className="flex items-center text-sm text-gray-500 mt-1">
+                            <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            {cls.location_name}
                           </div>
                         )}
                         {cls.name && (
@@ -541,7 +588,7 @@ function CreateReservationModal({
           <div className="space-y-4">
             <h4 className="text-md font-semibold text-gray-800 flex items-center">
               <Bike className="h-5 w-5 mr-2" />
-              Seleccionar Bicicletas para {selectedUser?.name}
+                Seleccionar los spots para {selectedUser?.name}
             </h4>
             
             <div className="bg-gray-50 p-4 rounded-lg">
@@ -558,12 +605,12 @@ function CreateReservationModal({
 
                          {loading ? (
                <div className="text-center py-4">
-                 <div className="text-gray-500">Cargando bicicletas...</div>
+                 <div className="text-gray-500">Cargando spots...</div>
                </div>
              ) : (
                <div className="space-y-2">
                  <div className="text-sm text-gray-600">
-                   Selecciona las bicicletas (disponibles: {availableBikes.length})
+                   Selecciona los spots (disponibles: {availableBikes.length})
                  </div>
                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
                    <div className="flex items-start">
@@ -572,14 +619,14 @@ function CreateReservationModal({
                      </div>
                      <div className="ml-2">
                        <p className="text-xs text-blue-700">
-                         <strong>Nota:</strong> El layout físico de las bicicletas en el estudio puedes verlo en la app móvil.
+                         <strong>Nota:</strong> El layout físico de los spots en el estudio puedes verlo en la app móvil.
                        </p>
                      </div>
                    </div>
                  </div>
                 <div className="max-h-40 overflow-y-auto border border-gray-300 rounded p-4 bg-white">
                   {availableBikes.length === 0 ? (
-                    <div className="text-sm text-gray-500">No hay bicicletas disponibles</div>
+                    <div className="text-sm text-gray-500">No hay spots disponibles</div>
                   ) : (
                     <div className="grid grid-cols-8 gap-2">
                       {availableBikes.map((bike) => {
@@ -590,7 +637,7 @@ function CreateReservationModal({
                             className={`
                               flex items-center justify-center p-2 text-sm border rounded cursor-pointer transition-colors
                               ${isSelected
-                                ? 'bg-[#3D4AF5] text-white border-[#3D4AF5]'
+                                ? 'bg-[#D7BAF6] text-black border-[#8B7EE6]'
                                 : 'bg-gray-50 border-gray-300 hover:bg-gray-100 text-gray-800'
                               }
                             `}
@@ -616,7 +663,7 @@ function CreateReservationModal({
                 </div>
                 {selectedBikes.length > 0 && (
                   <div className="text-sm text-gray-600">
-                    Bicicletas seleccionadas: {selectedBikes.join(', ')}
+                    Spots seleccionados: {selectedBikes.join(', ')}
                   </div>
                 )}
               </div>
@@ -655,7 +702,7 @@ function CreateReservationModal({
                   (step === 1 && !selectedUser) ||
                   (step === 2 && !selectedClass)
                 }
-                className="px-4 py-2 bg-[#3D4AF5] text-white rounded-md hover:bg-[#5A4AB8] disabled:opacity-50"
+                className="px-4 py-2 bg-[#D7BAF6] text-black rounded-md hover:bg-[#8B7EE6] disabled:opacity-50"
               >
                 Siguiente
               </button>
@@ -764,6 +811,19 @@ export default function ReservationsClient({ initialReservations }: { initialRes
   const [leavingWaitlistId, setLeavingWaitlistId] = useState<string | null>(null);
   const [waitlistError, setWaitlistError] = useState<string | null>(null);
 
+  // Estados para el filtro de ubicación
+  const [locations, setLocations] = useState<Array<{ id: string; name: string; address: string | null }>>([]);
+  const [selectedLocationFilter, setSelectedLocationFilter] = useState<string>('');
+
+  // Cargar ubicaciones al montar el componente
+  useEffect(() => {
+    getLocations().then(result => {
+      if (result.success && result.locations) {
+        setLocations(result.locations);
+      }
+    });
+  }, []);
+
   const handleCreateSuccess = (message: string) => {
     setSuccessMessage(message);
     setCancelError(null);
@@ -806,9 +866,19 @@ export default function ReservationsClient({ initialReservations }: { initialRes
     }
   };
 
+  // Filtrar reservaciones por ubicación y luego agrupar por clase
+  const filteredReservations = useMemo(() => {
+    if (!selectedLocationFilter) {
+      return initialReservations;
+    }
+    return initialReservations.filter(res => {
+      return res.classes?.location_id === selectedLocationFilter;
+    });
+  }, [initialReservations, selectedLocationFilter]);
+
   // Agrupar reservaciones por clase, separando confirmadas de waitlist
   const groupedReservations = useMemo(() => {
-    return initialReservations.reduce<GroupedReservations>((acc, res) => {
+    return filteredReservations.reduce<GroupedReservations>((acc, res) => {
       const classId = res.classes?.id;
       if (!classId) return acc; // Ignorar si no hay info de clase
 
@@ -829,7 +899,7 @@ export default function ReservationsClient({ initialReservations }: { initialRes
       
       return acc;
     }, {});
-  }, [initialReservations]);
+  }, [filteredReservations]);
 
   const handleCancel = (reservationId: string) => {
     if (confirm('¿Estás seguro de cancelar esta reservación? Esta acción no se puede deshacer y los créditos serán devueltos al usuario.')) {
@@ -849,7 +919,7 @@ export default function ReservationsClient({ initialReservations }: { initialRes
 
   const handleEdit = (reservation: ReservationData) => {
     setEditingReservationId(reservation.id);
-    const currentBikes = reservation.reservation_bikes?.map(rb => rb.bikes?.static_bikes?.number).filter((id): id is number => id !== undefined) || [];
+    const currentBikes = reservation.reservation_spots?.map(rs => rs.class_spots?.spot_number).filter((num): num is number => num !== undefined && num !== null) || [];
     setSelectedBikes(currentBikes);
     setCancelError(null);
     setEditError(null);
@@ -867,7 +937,7 @@ export default function ReservationsClient({ initialReservations }: { initialRes
 
     // Validación del lado del cliente
     if (selectedBikes.length === 0) {
-      setEditError('Debes seleccionar al menos una bicicleta.');
+      setEditError('Debes seleccionar al menos un spot.');
       return;
     }
 
@@ -881,7 +951,7 @@ export default function ReservationsClient({ initialReservations }: { initialRes
       } else {
         setEditingReservationId(null);
         setSelectedBikes([]);
-        setSuccessMessage(result.message || 'Bicicletas actualizadas exitosamente.');
+        setSuccessMessage(result.message || 'Spots actualizados exitosamente.');
       }
     });
   };
@@ -900,8 +970,8 @@ export default function ReservationsClient({ initialReservations }: { initialRes
 
   // Función para obtener los números de bici como string
   const getBikeNumbers = (reservation: ReservationData): string => {
-    return reservation.reservation_bikes
-        ?.map(rb => rb.bikes?.static_bikes?.number)
+    return reservation.reservation_spots
+        ?.map(rs => rs.class_spots?.spot_number)
         .filter(num => num !== undefined && num !== null)
         .sort((a, b) => a! - b!) // Ordenar números
         .join(', ') || 'N/A';
@@ -909,18 +979,43 @@ export default function ReservationsClient({ initialReservations }: { initialRes
 
   return (
     <div>
-      {/* Botón para crear nueva reservación */}
+      {/* Botón para crear nueva reservación y filtro */}
       <div className="mb-6 flex justify-between items-center">
         <p className="text-gray-600">
           Gestiona las reservaciones existentes y crea nuevas reservaciones para tus usuarios
         </p>
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="px-4 py-2 bg-[#3D4AF5] text-white rounded-md hover:bg-[#5A4AB8] flex items-center"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Crear Reservación
-        </button>
+        <div className="flex items-center gap-4">
+          {/* Filtro por ubicación */}
+          {locations.length > 0 && (
+            <div className="flex items-center gap-2">
+              <label htmlFor="location_filter_reservations" className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                Filtrar por ubicación:
+              </label>
+              <div className="w-48">
+                <CustomSelect
+                  id="location_filter_reservations"
+                  options={[
+                    { value: '', label: 'Todas las ubicaciones' },
+                    ...locations.map(location => ({
+                      value: location.id,
+                      label: location.name
+                    }))
+                  ]}
+                  value={selectedLocationFilter}
+                  onChange={setSelectedLocationFilter}
+                  placeholder="Todas las ubicaciones"
+                />
+              </div>
+            </div>
+          )}
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="px-4 py-2 bg-[#D7BAF6] text-black rounded-md hover:bg-[#8B7EE6] flex items-center"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Crear Reservación
+          </button>
+        </div>
       </div>
 
       {/* Warning sobre modificaciones de reservaciones */}
@@ -941,7 +1036,7 @@ export default function ReservationsClient({ initialReservations }: { initialRes
               </p>
               <ul className="list-disc list-inside mt-1 space-y-1">
                 <li><strong>Cancelar:</strong> Devuelve los créditos utilizados al usuario</li>
-                <li><strong>Modificar bicicletas:</strong> Puede ajustar créditos si cambia la cantidad de bicicletas reservadas</li>
+                <li><strong>Modificar spots:</strong> Puede ajustar créditos si cambia la cantidad de spots reservadas</li>
                 <li><strong>Waitlist:</strong> Si se cancela una reserva confirmada, la primera persona en lista de espera será promovida automáticamente</li>
                 <li>Los cambios en créditos se reflejan inmediatamente en la cuenta del usuario</li>
               </ul>
@@ -955,7 +1050,14 @@ export default function ReservationsClient({ initialReservations }: { initialRes
       {waitlistError && <p className="mb-4 text-red-600">Error de lista de espera: {waitlistError}</p>}
       {successMessage && <p className="mb-4 text-green-600">{successMessage}</p>}
 
-      {sortedClassIds.length === 0 && <p>No se encontraron reservaciones activas.</p>}
+      {sortedClassIds.length === 0 && (
+        <p>
+          {selectedLocationFilter 
+            ? 'No se encontraron reservaciones activas para la ubicación seleccionada.'
+            : 'No se encontraron reservaciones activas.'
+          }
+        </p>
+      )}
 
       {sortedClassIds.map((classId) => {
         const group = groupedReservations[classId];
@@ -1004,7 +1106,7 @@ export default function ReservationsClient({ initialReservations }: { initialRes
                   <table className="min-w-full leading-normal">
                     <thead>
                       <tr className="bg-gray-50 text-gray-600 uppercase text-sm leading-tight">
-                        <th className="py-2 px-4 text-left">Bicis</th>
+                        <th className="py-2 px-4 text-left">Spots</th>
                         <th className="py-2 px-4 text-left">Nombre Usuario</th>
                         <th className="py-2 px-4 text-left">Email Usuario</th>
                         <th className="py-2 px-4 text-center">Acciones</th>
@@ -1045,9 +1147,9 @@ export default function ReservationsClient({ initialReservations }: { initialRes
             {/* Lista de Espera (Waitlist) */}
             {hasWaitlist && (
               <div>
-                <div className="bg-orange-50 px-4 py-2 border-b">
+                <div className="bg-purple-50 px-4 py-2 border-b">
                   <h3 className="text-sm font-semibold text-orange-800 flex items-center">
-                    <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
+                    <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
                     Lista de Espera ({group.waitlistReservations.length})
                     {/* <span className="ml-2 text-xs text-orange-600 font-normal">
                       (en orden de llegada)
@@ -1057,7 +1159,7 @@ export default function ReservationsClient({ initialReservations }: { initialRes
                 <div className="overflow-x-auto">
                   <table className="min-w-full leading-normal">
                                          <thead>
-                       <tr className="bg-orange-50 text-orange-700 uppercase text-sm leading-tight">
+                       <tr className="bg-purple-50 text-orange-700 uppercase text-sm leading-tight">
                          <th className="py-2 px-4 text-center w-16">#</th>
                          <th className="py-2 px-4 text-left">Nombre Usuario</th>
                          <th className="py-2 px-4 text-left">Email Usuario</th>
@@ -1067,7 +1169,7 @@ export default function ReservationsClient({ initialReservations }: { initialRes
                      </thead>
                      <tbody className="text-gray-700 text-sm">
                        {group.waitlistReservations.map((res, index) => (
-                         <tr key={res.id} className="border-b border-orange-100 hover:bg-orange-50/50">
+                         <tr key={res.id} className="border-b border-orange-100 hover:bg-purple-50/50">
                            <td className="py-2 px-4 text-center font-bold text-orange-600">
                              {index + 1}
                            </td>
@@ -1094,7 +1196,7 @@ export default function ReservationsClient({ initialReservations }: { initialRes
                 </div>
                 
                 {/* Información adicional sobre el waitlist */}
-                <div className="bg-orange-50 px-4 py-3 border-t border-orange-100">
+                <div className="bg-purple-50 px-4 py-3 border-t border-orange-100">
                   <div className="flex items-start">
                     <div className="flex-shrink-0">
                       <svg className="h-4 w-4 text-orange-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

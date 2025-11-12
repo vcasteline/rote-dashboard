@@ -35,6 +35,7 @@ export async function addDefaultScheduleEntry(formData: FormData) {
     start_time: formData.get('start_time') as string,
     end_time: formData.get('end_time') as string,
     instructor_id: formData.get('instructor_id') as string,
+    location_id: formData.get('location_id') as string | null,
   };
 
   // Validación básica actualizada
@@ -42,7 +43,18 @@ export async function addDefaultScheduleEntry(formData: FormData) {
     return { error: 'Missing required fields.' };
   }
 
-  const { error } = await supabase.from('class_schedules').insert(rawFormData);
+  const insertData: any = {
+    weekday: rawFormData.weekday,
+    start_time: rawFormData.start_time,
+    end_time: rawFormData.end_time,
+    instructor_id: rawFormData.instructor_id,
+  };
+
+  if (rawFormData.location_id) {
+    insertData.location_id = rawFormData.location_id;
+  }
+
+  const { error } = await supabase.from('class_schedules').insert(insertData);
 
   if (error) {
     console.error('Error adding default schedule entry:', error);
@@ -88,6 +100,7 @@ export async function updateDefaultScheduleEntry(id: string, formData: FormData)
     start_time: formData.get('start_time') as string,
     end_time: formData.get('end_time') as string,
     instructor_id: formData.get('instructor_id') as string,
+    location_id: formData.get('location_id') as string | null,
   };
 
   // Validación básica
@@ -95,9 +108,22 @@ export async function updateDefaultScheduleEntry(id: string, formData: FormData)
     return { error: 'Todos los campos son obligatorios.' };
   }
 
+  const updateData: any = {
+    weekday: rawFormData.weekday,
+    start_time: rawFormData.start_time,
+    end_time: rawFormData.end_time,
+    instructor_id: rawFormData.instructor_id,
+  };
+
+  if (rawFormData.location_id) {
+    updateData.location_id = rawFormData.location_id;
+  } else {
+    updateData.location_id = null;
+  }
+
   const { error } = await supabase
     .from('class_schedules')
-    .update(rawFormData)
+    .update(updateData)
     .eq('id', id);
 
   if (error) {

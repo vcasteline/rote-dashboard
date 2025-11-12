@@ -71,10 +71,10 @@ export default function CustomTimeInput({
           }}
           className={`
             w-full px-3 py-2 pr-10 bg-white border border-gray-300 rounded-md shadow-sm
-            focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+            focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-[#D7BAF6]
             disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50
             text-gray-900 placeholder-gray-500
-            ${focused ? 'ring-2 ring-indigo-500 border-indigo-500' : 'hover:border-gray-400'}
+            ${focused ? 'ring-2 ring-[#D7BAF6] border-[#D7BAF6]' : 'hover:border-gray-400'}
             [&::-webkit-calendar-picker-indicator]:hidden
             [&::-webkit-inner-spin-button]:hidden
             [&::-webkit-outer-spin-button]:hidden

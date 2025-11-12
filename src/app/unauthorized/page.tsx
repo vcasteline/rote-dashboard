@@ -31,7 +31,7 @@ export default function UnauthorizedPage() {
         <div className="space-y-3">
           <button
             onClick={handleLogout}
-            className="w-full bg-[#3D4AF5] text-white py-2 px-4 rounded-md hover:bg-[#5A4CB8] transition-colors"
+            className="w-full bg-[#D7BAF6] text-black py-2 px-4 rounded-md hover:bg-[#8B7EE6] transition-colors"
           >
             Cerrar Sesión y Volver al Login
           </button>

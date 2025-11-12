@@ -57,7 +57,7 @@ function InstructorForm({
       className="p-6 border border-gray-200 rounded-lg bg-gradient-to-r from-gray-50 to-white shadow-sm mb-6"
     >
       <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-        <div className="w-2 h-2 bg-indigo-500 rounded-full mr-3"></div>
+        <div className="w-2 h-2 bg-[#D7BAF6] rounded-full mr-3"></div>
         {instructor ? 'Editar Instructor' : 'Añadir Nuevo Instructor'}
       </h3>
       <div className="space-y-6">
@@ -71,7 +71,7 @@ function InstructorForm({
             required
             defaultValue={instructor?.name ?? ''}
             onChange={handleNameChange}
-            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 ${fieldErrors?.name ? 'border-red-500' : 'border-gray-300'}`}
+            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-[#D7BAF6] text-gray-900 ${fieldErrors?.name ? 'border-red-500' : 'border-gray-300'}`}
             placeholder="Nombre completo del instructor"
           />
            {fieldErrors?.name && <p className="mt-1 text-xs text-red-500">{fieldErrors.name.join(', ')}</p>}
@@ -95,7 +95,7 @@ function InstructorForm({
             name="bio"
             rows={3}
             defaultValue={instructor?.bio ?? ''}
-            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 ${fieldErrors?.bio ? 'border-red-500' : 'border-gray-300'}`}
+            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-[#D7BAF6] text-gray-900 ${fieldErrors?.bio ? 'border-red-500' : 'border-gray-300'}`}
             placeholder="Describe la experiencia y especialidades del instructor..."
           />
           {fieldErrors?.bio && <p className="mt-1 text-xs text-red-500">{fieldErrors.bio.join(', ')}</p>}
@@ -124,11 +124,11 @@ function InstructorForm({
           <button
              type="submit"
              disabled={isSubmitting}
-             className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-medium rounded-lg hover:from-indigo-700 hover:to-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+             className="px-6 py-2 bg-[#D7BAF6] text-black font-medium rounded-lg hover:bg-[#8B7EE6] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
            >
              {isSubmitting ? (
                <div className="flex items-center">
-                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                 <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2"></div>
                  Guardando...
                </div>
              ) : submitButtonText}
@@ -236,7 +236,7 @@ export default function InstructorsClient({ initialInstructors }: { initialInstr
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-            <div className="w-3 h-3 bg-indigo-500 rounded-full mr-3"></div>
+            <div className="w-3 h-3 bg-[#D7BAF6] rounded-full mr-3"></div>
             Instructores Registrados
           </h2>
         </div>
@@ -312,7 +312,7 @@ export default function InstructorsClient({ initialInstructors }: { initialInstr
                             <button
                               onClick={() => handleEditClick(instructor)}
                               disabled={isPendingUpdate || isPendingDelete || isPendingAdd}
-                              className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                              className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-purple-700 bg-purple-100 hover:bg-purple-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D7BAF6] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
                             >
                               <Edit className="w-4 h-4 mr-1" />
                               Editar

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { User, Package, createUser, assignPackageToUser, createUserWithPackage, getAvailablePackages, updateUser } from '../actions';
 import { DateTime } from 'luxon';
-import { Mail, Phone, MapPin, Calendar, CreditCard, ShoppingBag, User as UserIcon, Cake, Search, X, Plus, UserPlus, Package as PackageIcon, Edit, Gift, PartyPopper, CheckCircle, Eye, EyeOff } from 'lucide-react';
+import { Mail, Phone, MapPin, Calendar, CreditCard, ShoppingBag, User as UserIcon, Cake, Search, X, Plus, UserPlus, Package as PackageIcon, Edit, Gift, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
@@ -14,10 +14,9 @@ interface UsersClientProps {
   page: number;
   pageSize: number;
   initialSearchTerm?: string;
-  birthdayUsers?: User[];
 }
 
-export default function UsersClient({ users, onUserAdded, total, page, pageSize, initialSearchTerm = '', birthdayUsers = [] }: UsersClientProps) {
+export default function UsersClient({ users, onUserAdded, total, page, pageSize, initialSearchTerm = '' }: UsersClientProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -397,44 +396,6 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
 
   return (
     <div className="space-y-6">
-      {/* Banner de cumpleaños */}
-      {birthdayUsers.length > 0 && (
-        <div className="bg-gradient-to-r from-pink-50 to-purple-50 border border-pink-200 rounded-lg p-4">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <PartyPopper className="h-8 w-8 text-pink-500" />
-            </div>
-            <div className="ml-3 flex-1">
-              <h3 className="text-lg font-medium text-pink-800">
-                 ¡Feliz Cumpleaños! 🎂
-              </h3>
-              <div className="mt-1 text-sm text-pink-700">
-                {birthdayUsers.length === 1 ? (
-                  <p>
-                    Hoy es el cumpleaños de <strong>{birthdayUsers[0].name || birthdayUsers[0].email}</strong>
-                  </p>
-                ) : (
-                  <div>
-                    <p className="mb-2">Hoy cumplen años:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {birthdayUsers.map((user, index) => (
-                        <span key={user.id} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-pink-100 text-pink-800">
-                          <Cake className="h-3 w-3 mr-1" />
-                          {user.name || user.email}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="flex-shrink-0 text-2xl">
-              🎈
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Search Bar */}
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
         <div className="flex items-center justify-between mb-4">
@@ -464,7 +425,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
             </div>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 bg-[#3D4AF5] text-white font-medium rounded-lg hover:bg-[#5A4AB8] transition-colors shadow-sm"
+              className="inline-flex items-center px-4 py-2 bg-[#D7BAF6] text-black font-medium rounded-lg hover:bg-[#8B7EE6] transition-colors shadow-sm"
             >
               <UserPlus className="h-4 w-4 mr-2" />
               Agregar Usuario
@@ -480,7 +441,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Buscar por nombre, email, teléfono, cédula o dirección..."
-            className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 placeholder-gray-500"
+            className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 placeholder-gray-500"
           />
           {searchTerm && (
             <button
@@ -526,8 +487,8 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10">
-                      <div className="h-10 w-10 rounded-full bg-[#3D4AF5] flex items-center justify-center">
-                        <span className="text-white font-medium">
+                      <div className="h-10 w-10 rounded-full bg-[#D7BAF6] flex items-center justify-center">
+                        <span className="text-black font-medium">
                           {user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
                         </span>
                       </div>
@@ -586,7 +547,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                 <td className="px-6 py-4 whitespace-nowrap">
                   <Link 
                     href={`/dashboard/packages?user=${encodeURIComponent(user.email)}`}
-                    className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#3D4AF5] text-white hover:bg-[#5A4AB8] transition-colors"
+                    className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#D7BAF6] text-black hover:bg-[#8B7EE6] transition-colors"
                   >
                     <ShoppingBag className="h-4 w-4 mr-1" />
                     {user.purchase_count} paquete{user.purchase_count !== 1 ? 's' : ''}
@@ -669,7 +630,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       required
                       value={editFormData.email}
                       onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
                       placeholder="usuario@ejemplo.com"
                     />
                     <p className="text-sm text-gray-500 mt-1">
@@ -685,7 +646,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       required
                       value={editFormData.name}
                       onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
                       placeholder="Nombre completo"
                     />
                   </div>
@@ -700,7 +661,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       type="tel"
                       value={editFormData.phone}
                       onChange={(e) => setEditFormData({...editFormData, phone: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
                       placeholder="0999999999"
                     />
                   </div>
@@ -712,7 +673,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       type="text"
                       value={editFormData.cedula}
                       onChange={(e) => setEditFormData({...editFormData, cedula: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
                       placeholder="1234567890"
                       maxLength={10}
                     />
@@ -727,7 +688,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                     type="text"
                     value={editFormData.address}
                     onChange={(e) => setEditFormData({...editFormData, address: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
                     placeholder="Dirección completa"
                   />
                 </div>
@@ -740,7 +701,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                     type="text"
                     value={editFormData.birthday}
                     onChange={(e) => setEditFormData({...editFormData, birthday: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
                     placeholder="DD/MM/YYYY o DDMMYYYY"
                   />
                 </div>
@@ -755,7 +716,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       type={showPassword ? "text" : "password"}
                       value={editFormData.password}
                       onChange={(e) => setEditFormData({...editFormData, password: e.target.value})}
-                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
                       placeholder="Dejar en blanco para no cambiar"
                     />
                     <button
@@ -792,7 +753,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="px-4 py-2 bg-[#3D4AF5] text-white rounded-md hover:bg-[#5A4AB8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-[#D7BAF6] text-black rounded-md hover:bg-[#8B7EE6] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? 'Actualizando...' : 'Actualizar Usuario'}
                   </button>
@@ -836,7 +797,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                     required
                     value={packageFormData.package_id}
                     onChange={(e) => setPackageFormData({...packageFormData, package_id: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
                   >
                     <option value="">Seleccionar paquete...</option>
                     {packages.map(pkg => (
@@ -856,7 +817,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       type="text"
                       value={packageFormData.transaction_id}
                       onChange={(e) => setPackageFormData({...packageFormData, transaction_id: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
                       placeholder="ID de transacción (opcional)"
                     />
                   </div>
@@ -868,7 +829,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       type="text"
                       value={packageFormData.authorization_code}
                       onChange={(e) => setPackageFormData({...packageFormData, authorization_code: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
                       placeholder="Código de autorización (opcional)"
                     />
                   </div>
@@ -881,7 +842,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                     id="contabilidad"
                     checked={packageFormData.contabilidad}
                     onChange={(e) => setPackageFormData({...packageFormData, contabilidad: e.target.checked})}
-                    className="h-4 w-4 text-[#3D4AF5] focus:ring-[#3D4AF5] border-gray-300 rounded"
+                    className="h-4 w-4 text-[#D7BAF6] focus:ring-[#D7BAF6] border-gray-300 rounded"
                   />
                   <label htmlFor="contabilidad" className="ml-2 block text-sm text-gray-700">
                     Incluir en contabilidad
@@ -1010,7 +971,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       required
                       value={formData.email}
                       onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
                       placeholder="usuario@ejemplo.com"
                     />
                   </div>
@@ -1023,7 +984,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       required
                       value={formData.name}
                       onChange={(e) => setFormData({...formData, name: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
                       placeholder="Nombre completo"
                     />
                   </div>
@@ -1038,7 +999,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
                       placeholder="0999999999"
                     />
                   </div>
@@ -1050,7 +1011,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       type="text"
                       value={formData.cedula}
                       onChange={(e) => setFormData({...formData, cedula: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
                       placeholder="1234567890"
                       maxLength={10}
                     />
@@ -1065,7 +1026,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                     type="text"
                     value={formData.address}
                     onChange={(e) => setFormData({...formData, address: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
                     placeholder="Dirección completa"
                   />
                 </div>
@@ -1079,7 +1040,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       type="text"
                       value={formData.birthday}
                       onChange={(e) => setFormData({...formData, birthday: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
                       placeholder="DD/MM/YYYY o DDMMYYYY"
                     />
                   </div>
@@ -1089,7 +1050,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                 {/* Sección de paquetes */}
                 <div className="border-t pt-6">
                   <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <PackageIcon className="h-5 w-5 mr-2 text-[#3D4AF5]" />
+                    <PackageIcon className="h-5 w-5 mr-2 text-[#D7BAF6]" />
                     Asignar Paquete (Opcional)
                   </h3>
                   
@@ -1101,7 +1062,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       <select
                         value={formData.package_id}
                         onChange={(e) => setFormData({...formData, package_id: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
                       >
                         <option value="">Sin paquete</option>
                         {packages.map(pkg => (
@@ -1122,7 +1083,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                             type="text"
                             value={formData.transaction_id}
                             onChange={(e) => setFormData({...formData, transaction_id: e.target.value})}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
                             placeholder="ID de transacción"
                           />
                         </div>
@@ -1134,7 +1095,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                             type="text"
                             value={formData.authorization_code}
                             onChange={(e) => setFormData({...formData, authorization_code: e.target.value})}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent text-gray-900 bg-white"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
                             placeholder="Código de autorización"
                           />
                         </div>
@@ -1158,7 +1119,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="px-4 py-2 bg-[#3D4AF5] text-white rounded-md hover:bg-[#5A4AB8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-[#D7BAF6] text-black rounded-md hover:bg-[#8B7EE6] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? 'Creando...' : 'Crear Usuario'}
                   </button>

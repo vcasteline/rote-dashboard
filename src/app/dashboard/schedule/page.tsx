@@ -14,7 +14,11 @@ export type DefaultScheduleEntry = {
   start_time: string;
   end_time: string;
   instructor_id: string;
+  location_id: string | null;
   instructors: {
+    name: string;
+  } | null;
+  locations: {
     name: string;
   } | null;
 };
@@ -38,7 +42,9 @@ export default async function SchedulePage() {
       start_time,
       end_time,
       instructor_id,
-      instructors ( name )
+      location_id,
+      instructors ( name ),
+      locations ( name )
     `)
     .returns<DefaultScheduleEntry[]>();
 

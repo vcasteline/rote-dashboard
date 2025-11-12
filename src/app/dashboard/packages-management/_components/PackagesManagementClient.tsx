@@ -40,7 +40,7 @@ function PackageForm({
       className="p-6 border border-gray-200 rounded-lg bg-gradient-to-r from-gray-50 to-white shadow-sm mb-6"
     >
       <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-        <div className="w-2 h-2 bg-indigo-500 rounded-full mr-3"></div>
+        <div className="w-2 h-2 bg-[#D7BAF6] rounded-full mr-3"></div>
         {pkg ? 'Editar Paquete' : 'Crear Nuevo Paquete'}
       </h3>
       
@@ -57,7 +57,7 @@ function PackageForm({
             required
             defaultValue={pkg?.name ?? ''}
             autoComplete="off"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-[#D7BAF6] text-gray-900"
             placeholder="ej: Paquete 10 clases"
           />
           {fieldErrors?.name && <p className="mt-1 text-xs text-red-500">{fieldErrors.name.join(', ')}</p>}
@@ -77,7 +77,7 @@ function PackageForm({
             step="0.01"
             defaultValue={pkg?.price ?? ''}
             autoComplete="off"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-[#D7BAF6] text-gray-900"
             placeholder="ej: 50.00"
           />
           {fieldErrors?.price && <p className="mt-1 text-xs text-red-500">{fieldErrors.price.join(', ')}</p>}
@@ -96,7 +96,7 @@ function PackageForm({
             min="1"
             defaultValue={pkg?.class_credits ?? ''}
             autoComplete="off"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-[#D7BAF6] text-gray-900"
             placeholder="ej: 10"
           />
           {fieldErrors?.class_credits && <p className="mt-1 text-xs text-red-500">{fieldErrors.class_credits.join(', ')}</p>}
@@ -114,7 +114,7 @@ function PackageForm({
             min="1"
             defaultValue={pkg?.expiration_days ?? ''}
             autoComplete="off"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-[#D7BAF6] text-gray-900"
             placeholder="ej: 90 (opcional)"
           />
           {fieldErrors?.expiration_days && <p className="mt-1 text-xs text-red-500">{fieldErrors.expiration_days.join(', ')}</p>}
@@ -145,11 +145,11 @@ function PackageForm({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-medium rounded-lg hover:from-indigo-700 hover:to-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+            className="px-6 py-2 bg-[#D7BAF6] text-black font-medium rounded-lg hover:bg-[#8B7EE6] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
           >
             {isSubmitting ? (
               <div className="flex items-center">
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2"></div>
                 Guardando...
               </div>
             ) : submitButtonText}
@@ -297,7 +297,7 @@ export default function PackagesManagementClient({ packages }: { packages: Packa
                         <button
                           onClick={() => handleEditClick(pkg)}
                           disabled={isPendingUpdate || isPendingDelete}
-                          className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                          className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-purple-700 bg-purple-100 hover:bg-purple-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D7BAF6] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
                         >
                           <Edit className="w-4 h-4 mr-1" />
                           Editar

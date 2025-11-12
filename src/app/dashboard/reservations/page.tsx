@@ -19,18 +19,21 @@ export type ReservationData = {
     id: string; // class id
     date: string;
     start_time: string;
+    location_id: string | null;
     instructors: {
         name: string | null;
     } | null;
+    locations: {
+        name: string | null;
+    } | null;
   } | null;
-  reservation_bikes: {
-      bikes: {
-          static_bike_id: number; // ID de la tabla static_bikes
-          static_bikes: {
-              number: number; // El número físico real de la bici
-          };
+  reservation_spots: {
+      spot_id: string;
+      class_spots: {
+          spot_number: number | null; // El número del spot/bicicleta
+          label: string | null;
       } | null;
-  }[]; // Array de bicicletas reservadas
+  }[]; // Array de spots reservados
 };
 
 export default async function ReservationsPage() {
@@ -48,8 +51,8 @@ export default async function ReservationsPage() {
       created_at,
       user_id,
       users ( name, email, shoe_size ),
-      classes ( id, date, start_time, instructors ( name ) ),
-      reservation_bikes ( bikes ( static_bike_id, static_bikes!inner(number) ) )
+      classes ( id, date, start_time, location_id, instructors ( name ), locations ( name ) ),
+      reservation_spots ( spot_id, class_spots ( spot_number, label ) )
     `)
     .in('status', ['confirmed', 'waitlist']) // Incluir tanto confirmadas como waitlist
     .gte('classes.date', mondayOfThisWeek) // Solo clases desde esta semana

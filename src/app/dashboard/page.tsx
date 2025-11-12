@@ -11,7 +11,12 @@ export type ClassData = {
   end_time: string;
   name: string | null;
   instructor_id: string;
+  modality: string | null;
+  location_id: string | null;
   instructors: {
+    name: string;
+  } | null;
+  locations: {
     name: string;
   } | null;
 };
@@ -40,7 +45,10 @@ export default async function DashboardPage() {
       end_time,
       name,
       instructor_id,
-      instructors ( name )
+      modality,
+      location_id,
+      instructors ( name ),
+      locations ( name )
     `)
     .gte('date', todayInEcuador) // Cambiar a desde hoy en adelante
     .eq('is_cancelled', false)

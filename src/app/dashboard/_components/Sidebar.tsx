@@ -13,9 +13,7 @@ import {
   Settings, 
   BookOpen, 
   Bell,
-  UserCheck,
-  FileText,
-  ShoppingCart
+  UserCheck
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -30,13 +28,11 @@ export default function Sidebar() {
     { href: '/dashboard/packages-management', label: 'Gestión de Paquetes', icon: Settings },
     { href: '/dashboard/reservations', label: 'Reservaciones', icon: BookOpen },
     { href: '/dashboard/notifications', label: 'Notificaciones Push', icon: Bell },
-    { href: '/dashboard/menu-shakes', label: 'Menu Shakes', icon: FileText },
-    { href: '/dashboard/menu-orders', label: 'Órdenes del Menú', icon: ShoppingCart },
   ];
 
   return (
-    <aside className="w-64 bg-[#111619] text-white p-4 flex flex-col">
-      <Image src="/volta-logo-slogan.png" alt="Volta Logo" className='my-12 mx-auto' width={130} height={130} />
+    <aside className="w-64 bg-[#1d1d1b] text-white p-4 flex flex-col">
+      <Image src="/hundred-logo.png" alt="Hundred Logo" className='my-9 mx-auto' width={200} height={200} />
       <nav className="flex-grow">
         <ul>
           {menuItems.map((item) => {
@@ -48,7 +44,7 @@ export default function Sidebar() {
                   href={item.href} 
                   className={`flex items-center py-2 px-3 rounded transition-colors ${
                     isActive 
-                      ? 'bg-[#3D4AF5] text-white font-medium border-l-4 border-[#8B7EE6]' 
+                      ? 'bg-[#D7BAF6] text-black font-medium border-l-4 border-[#8B7EE6]' 
                       : 'hover:bg-gray-700'
                   }`}
                 >

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { getNextMonday, formatDate, toISOString } from '@/lib/utils/dateUtils';
 import { addDefaultScheduleEntry, deleteDefaultScheduleEntry, updateDefaultScheduleEntry, generateWeeklyClasses } from '../actions';
+import { getLocations } from '../../actions';
 import { type DefaultScheduleEntry, type Instructor } from '../page'; // Importar tipos desde la página
 import CustomSelect from './CustomSelect';
 import CustomTimeInput from './CustomTimeInput';
@@ -62,21 +63,39 @@ export default function ScheduleClient({
   // Estados para los selectores personalizados (formulario agregar)
   const [selectedWeekday, setSelectedWeekday] = useState('');
   const [selectedInstructor, setSelectedInstructor] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
+  const [locations, setLocations] = useState<Array<{ id: string; name: string; address: string | null }>>([]);
 
   // Estados para el formulario de edición
   const [editWeekday, setEditWeekday] = useState('');
   const [editInstructor, setEditInstructor] = useState('');
+  const [editLocation, setEditLocation] = useState('');
   const [editStartTime, setEditStartTime] = useState('');
   const [editEndTime, setEditEndTime] = useState('');
 
   // Eliminamos el uso del cliente de navegador para RPCs privilegiados
 
+  // Cargar ubicaciones al montar el componente
+  useEffect(() => {
+    getLocations().then(result => {
+      if (result.locations) {
+        setLocations(result.locations);
+      }
+    });
+  }, []);
+
   // Preparar opciones para el selector de instructores
   const instructorOptions = instructors.map(instructor => ({
     value: instructor.id,
     label: instructor.name
+  }));
+
+  // Preparar opciones para el selector de ubicaciones
+  const locationOptions = locations.map(location => ({
+    value: location.id,
+    label: location.name
   }));
 
   const handleGenerateSchedule = async () => {
@@ -113,6 +132,7 @@ export default function ScheduleClient({
       // Limpiar formulario
       setSelectedWeekday('');
       setSelectedInstructor('');
+      setSelectedLocation('');
       setStartTime('');
       setEndTime('');
     }
@@ -125,6 +145,8 @@ export default function ScheduleClient({
     setEditInstructor(entry.instructor_id);
     setEditStartTime(entry.start_time);
     setEditEndTime(entry.end_time);
+    // Obtener location_id de la entrada si existe
+    setEditLocation(entry.location_id || '');
     setShowEditModal(true);
     setEditMessage('');
     setEditError('');
@@ -262,6 +284,23 @@ export default function ScheduleClient({
                 />
               </div>
 
+              {locationOptions.length > 0 && (
+                <div>
+                  <label htmlFor="edit_location_id" className="block text-sm font-medium text-gray-700 mb-2">
+                    Ubicación (opcional)
+                  </label>
+                  <CustomSelect
+                    id="edit_location_id"
+                    name="location_id"
+                    options={[{ value: '', label: 'Sin ubicación específica' }, ...locationOptions]}
+                    value={editLocation}
+                    onChange={setEditLocation}
+                    placeholder="Selecciona Ubicación"
+                    required={false}
+                  />
+                </div>
+              )}
+
               {editMessage && (
                 <div className="p-3 bg-green-50 border border-green-200 rounded-md">
                   <p className="text-sm text-green-700">{editMessage}</p>
@@ -355,7 +394,7 @@ export default function ScheduleClient({
       {/* Sección para Generar Clases Semanales */}
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
         <h2 className="text-xl font-semibold mb-4 text-gray-800 flex items-center">
-          <div className="w-3 h-3 bg-indigo-500 rounded-full mr-3"></div>
+          <div className="w-3 h-3 bg-[#D7BAF6] rounded-full mr-3"></div>
           Generar Clases Semanales
         </h2>
         <p className="mb-6 text-gray-600 leading-relaxed">
@@ -380,7 +419,7 @@ export default function ScheduleClient({
           {/* <button
             onClick={handleGenerateSchedule}
             disabled={isGenerating}
-            className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-medium rounded-lg hover:from-indigo-700 hover:to-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+            className="px-6 py-3 bg-[#D7BAF6] text-black font-medium rounded-lg hover:bg-[#8B7EE6] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
           >
             {isGenerating ? (
               <div className="flex items-center">
@@ -403,7 +442,7 @@ export default function ScheduleClient({
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-            <div className="w-3 h-3 bg-indigo-500 rounded-full mr-3"></div>
+            <div className="w-3 h-3 bg-[#D7BAF6] rounded-full mr-3"></div>
             Horario Semanal por Defecto
           </h2>
         </div>
@@ -412,10 +451,10 @@ export default function ScheduleClient({
         <div className="p-6">
           <form action={handleAddEntry} className="mb-6 p-6 border border-gray-200 rounded-lg bg-gradient-to-r from-gray-50 to-white shadow-sm">
              <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-               <div className="w-2 h-2 bg-indigo-500 rounded-full mr-3"></div>
+               <div className="w-2 h-2 bg-[#D7BAF6] rounded-full mr-3"></div>
                Añadir Nueva Entrada
              </h3>
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                   <div className="space-y-1">
                       <label htmlFor="weekday" className="block text-sm font-medium text-gray-700">Día de la semana</label>
                       <CustomSelect
@@ -461,6 +500,20 @@ export default function ScheduleClient({
                           required={true}
                       />
                   </div>
+                  {locationOptions.length > 0 && (
+                    <div className="space-y-1">
+                      <label htmlFor="location_id" className="block text-sm font-medium text-gray-700">Ubicación (opcional)</label>
+                      <CustomSelect
+                          id="location_id"
+                          name="location_id"
+                          options={[{ value: '', label: 'Sin ubicación' }, ...locationOptions]}
+                          value={selectedLocation}
+                          onChange={setSelectedLocation}
+                          placeholder="Selecciona Ubicación"
+                          required={false}
+                      />
+                    </div>
+                  )}
              </div>
              <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
                <div className="flex items-center space-x-4">
@@ -480,11 +533,11 @@ export default function ScheduleClient({
                <button
                     type="submit"
                     disabled={isAdding}
-                    className="px-6 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white font-medium rounded-lg hover:from-green-700 hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                    className="px-6 py-2 bg-[#D7BAF6] text-black font-medium rounded-lg hover:bg-[#8B7EE6] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                 >
                     {isAdding ? (
                       <div className="flex items-center">
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                        <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2"></div>
                         Añadiendo...
                       </div>
                     ) : 'Añadir Entrada'}
@@ -502,6 +555,7 @@ export default function ScheduleClient({
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hora Inicio</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hora Fin</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Instructor</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ubicación</th>
                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                   </tr>
                 </thead>
@@ -522,6 +576,9 @@ export default function ScheduleClient({
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">{entry.instructors?.name ?? 'N/A'}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{entry.locations?.name ?? <span className="text-gray-400 italic">N/A</span>}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
                           <div className="flex items-center justify-center space-x-2">
@@ -553,7 +610,7 @@ export default function ScheduleClient({
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center">
+                      <td colSpan={6} className="px-6 py-12 text-center">
                         <div className="flex flex-col items-center">
                           <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />

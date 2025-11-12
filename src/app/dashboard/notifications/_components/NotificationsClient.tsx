@@ -146,7 +146,7 @@ function CreateNotificationForm({
             name="title"
             required
             maxLength={100}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 bg-white"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] text-gray-900 bg-white"
             placeholder="Ej: Nueva clase disponible"
           />
         </div>
@@ -162,7 +162,7 @@ function CreateNotificationForm({
             required
             maxLength={300}
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 bg-white"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] text-gray-900 bg-white"
             placeholder="Ej: Se ha abierto una nueva clase para mañana a las 7:00 PM"
           />
         </div>
@@ -237,7 +237,7 @@ function CreateNotificationForm({
                   placeholder="Buscar por nombre o email..."
                   value={searchUser}
                   onChange={(e) => setSearchUser(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 bg-white"
+                  className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] text-gray-900 bg-white"
                 />
                 {searchUser && (
                   <button
@@ -263,7 +263,7 @@ function CreateNotificationForm({
                         type="checkbox"
                         checked={selectedUsers.includes(user.user_id)}
                         onChange={(e) => handleUserSelection(user.user_id, e.target.checked)}
-                        className="mr-3 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                        className="mr-3 h-4 w-4 text-[#D7BAF6] focus:ring-[#D7BAF6] border-gray-300 rounded"
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
@@ -315,7 +315,7 @@ function CreateNotificationForm({
                       return newSelection;
                     });
                   }}
-                  className="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200 transition-colors"
+                  className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors"
                 >
                   Seleccionar visibles
                 </button>
@@ -350,11 +350,11 @@ function CreateNotificationForm({
           <button
             type="submit"
             disabled={isSubmitting || (sendTo === 'specific' && selectedUsers.length === 0)}
-            className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+            className="px-6 py-2 bg-[#D7BAF6] text-black rounded-md hover:bg-[#8B7EE6] disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
           >
             {isSubmitting ? (
               <>
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>

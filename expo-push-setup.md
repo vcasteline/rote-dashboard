@@ -11,7 +11,7 @@ npx expo install expo-notifications expo-device expo-constants
 ```json
 {
   "expo": {
-    "name": "Volta App",
+    "name": "Hundred App",
     "plugins": [
       [
         "expo-notifications",

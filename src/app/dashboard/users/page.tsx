@@ -1,4 +1,4 @@
-import { getUsersWithPurchaseCount, getTodaysBirthdays } from './actions';
+import { getUsersWithPurchaseCount } from './actions';
 import UsersClient from './_components/UsersClient';
 
 export default async function UsersPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
@@ -11,11 +11,8 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
   const pageSize = Math.max(1, Math.min(200, Number(pageSizeParam) || 50));
   const q = (qParam || '').toString();
 
-  // Obtener usuarios paginados y cumpleaños del día en paralelo
-  const [{ users, total }, birthdayUsers] = await Promise.all([
-    getUsersWithPurchaseCount({ page, pageSize, searchTerm: q }),
-    getTodaysBirthdays()
-  ]);
+  // Obtener usuarios paginados
+  const { users, total } = await getUsersWithPurchaseCount({ page, pageSize, searchTerm: q });
 
   return (
     <div className="space-y-6">
@@ -32,7 +29,6 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
         page={page} 
         pageSize={pageSize} 
         initialSearchTerm={q}
-        birthdayUsers={birthdayUsers}
       />
     </div>
   );

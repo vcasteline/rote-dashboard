@@ -13,7 +13,24 @@ const createClassSchema = z.object({
   end_time: z.string().min(1, 'La hora de fin es requerida'),
   instructor_id: z.string().min(1, 'El instructor es requerido'),
   name: z.string().nullable().optional(),
+  location_id: z.string().uuid().optional().nullable(),
+  modality: z.enum(['cycle', 'pilates', 'resilience'], {
+    required_error: 'La modalidad es requerida',
+  }),
 });
+
+// Función para obtener la capacidad según la modalidad
+function getCapacityByModality(modality: string | null | undefined): number | null {
+  if (!modality) return null;
+  
+  const capacityMap: Record<string, number> = {
+    'cycle': 16,
+    'resilience': 10,
+    'pilates': 12,
+  };
+  
+  return capacityMap[modality] || null;
+}
 
 // Acción para crear una nueva clase
 export async function createClass(formData: FormData) {
@@ -26,6 +43,8 @@ export async function createClass(formData: FormData) {
     end_time: formData.get('end_time'),
     instructor_id: formData.get('instructor_id'),
     name: formData.get('name') || null,
+    location_id: formData.get('location_id') || null,
+    modality: formData.get('modality') as 'cycle' | 'pilates' | 'resilience' | undefined,
   });
 
   if (!validatedFields.success) {
@@ -36,7 +55,7 @@ export async function createClass(formData: FormData) {
     };
   }
 
-  const { date, start_time, end_time, instructor_id, name } = validatedFields.data;
+  const { date, start_time, end_time, instructor_id, name, location_id, modality } = validatedFields.data;
 
   // Usar Luxon para verificar que la hora de fin sea después de la hora de inicio
   const startDateTime = createEcuadorDateTime(date, start_time);
@@ -46,29 +65,50 @@ export async function createClass(formData: FormData) {
     return { error: 'La hora de fin debe ser posterior a la hora de inicio' };
   }
 
-  // Verificar si ya existe una clase en esa fecha y horario con el mismo instructor
-  const { data: existingClass } = await supabase
+  // Calcular capacidad basada en la modalidad
+  const capacity = modality ? getCapacityByModality(modality) : null;
+
+  // Verificar si ya existe una clase en esa fecha y horario con el mismo instructor y ubicación
+  let existingClassQuery = supabase
     .from('classes')
     .select('id')
     .eq('date', date)
     .eq('instructor_id', instructor_id)
-    .or(`and(start_time.lte.${start_time},end_time.gt.${start_time}),and(start_time.lt.${end_time},end_time.gte.${end_time}),and(start_time.gte.${start_time},end_time.lte.${end_time})`)
-    .single();
+    .or(`and(start_time.lte.${start_time},end_time.gt.${start_time}),and(start_time.lt.${end_time},end_time.gte.${end_time}),and(start_time.gte.${start_time},end_time.lte.${end_time})`);
+  
+  if (location_id) {
+    existingClassQuery = existingClassQuery.eq('location_id', location_id);
+  } else {
+    existingClassQuery = existingClassQuery.is('location_id', null);
+  }
+  
+  const { data: existingClass } = await existingClassQuery.single();
 
   if (existingClass) {
-    return { error: 'Ya existe una clase programada para este instructor en este horario' };
+    return { error: 'Ya existe una clase programada para este instructor en este horario y ubicación' };
   }
 
   // Crear la nueva clase
+  const insertData: any = {
+    date,
+    start_time,
+    end_time,
+    instructor_id,
+    name,
+    location_id: location_id || null,
+  };
+
+  if (modality) {
+    insertData.modality = modality;
+  }
+
+  if (capacity !== null) {
+    insertData.capacity = capacity;
+  }
+
   const { error } = await supabase
     .from('classes')
-    .insert({
-      date,
-      start_time,
-      end_time,
-      instructor_id,
-      name,
-    });
+    .insert(insertData);
 
   if (error) {
     console.error('Error creating class:', error);
@@ -96,6 +136,23 @@ export async function getInstructors() {
   }
 
   return { instructors };
+}
+
+// Acción para obtener ubicaciones
+export async function getLocations() {
+  const supabase = createAdminClient();
+
+  const { data: locations, error } = await supabase
+    .from('locations')
+    .select('id, name, address')
+    .order('name');
+
+  if (error) {
+    console.error('Error fetching locations:', error);
+    return { error: 'Error al obtener ubicaciones' };
+  }
+
+  return { locations: locations || [] };
 }
 
 // Acción para actualizar el nombre de una clase
@@ -197,7 +254,7 @@ export async function deleteClass(classId: string) {
 
   try {
     // Llamar a la función de PostgreSQL
-    const { data, error } = await supabase.rpc('delete_class_with_bikes', {
+    const { data, error } = await supabase.rpc('delete_class_with_spots', {
       class_id_param: classId
     });
 
@@ -213,12 +270,12 @@ export async function deleteClass(classId: string) {
       // Mensaje más específico según la acción realizada
       let message = data.message;
       if (data.action === 'deleted') {
-        message = `Clase borrada completamente. ${data.bikes_deleted} bici(s) eliminada(s).`;
+        message = `Clase borrada completamente. ${data.spots_deleted} spot(s) eliminado(s).`;
       } else if (data.action === 'cancelled') {
-        message = `Clase marcada como cancelada (historial preservado). ${data.bikes_deleted} bici(s) eliminada(s).`;
+        message = `Clase marcada como cancelada (historial preservado). ${data.spots_deleted} spot(s) eliminado(s).`;
       }
       
-      return { message, bikesDeleted: data.bikes_deleted, action: data.action };
+      return { message, spotsDeleted: data.spots_deleted, action: data.action };
     } else {
       return { error: data.error };
     }

@@ -90,7 +90,7 @@ export default function LoginPage() {
   // Si hay un usuario no autorizado, mostrar mensaje con diseño mejorado
   if (unauthorizedUser) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-100 via-white to-indigo-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-orange-100 via-white to-orange-50 flex items-center justify-center p-4">
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 p-8 w-full max-w-md">
           <div className="text-center">
             <div className="mx-auto w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mb-6 shadow-lg">
@@ -114,12 +114,12 @@ export default function LoginPage() {
             </div>
             
             <p className="text-gray-600 mb-8 leading-relaxed">
-              Esta cuenta no tiene permisos para acceder al panel de administración de Volta.
+              Esta cuenta no tiene permisos para acceder al panel de administración de Hundred.
             </p>
 
             <button
               onClick={handleLogout}
-              className="w-full bg-gradient-to-r from-[#3D4AF5] to-[#5A4CB8] text-white py-3 px-6 rounded-xl hover:from-[#5A4CB8] hover:to-[#4A3D9A] transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center space-x-2"
+              className="w-full bg-[#D7BAF6] text-black py-3 px-6 rounded-xl hover:bg-[#8B7EE6] transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center space-x-2"
             >
               <LogIn className="w-5 h-5" />
               <span>Intentar con Otra Cuenta</span>
@@ -135,15 +135,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black to-gray-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#1D1D1C] flex items-center justify-center p-4">
       <div className="w-full max-w-6xl grid md:grid-cols-2 gap-8 items-center">
         {/* Panel izquierdo - Branding */}
         <div className="hidden md:block">
           <div className="text-center">
             <div className="mb-8">
               <img 
-                src="/volta-logo-slogan.png" 
-                alt="Volta Indoor Cycling Studio" 
+                src="/hundred-logo.png" 
+                alt="Hundred Logo" 
                 className="mx-auto h-28 w-auto mb-6"
               />
               <p className="text-xl text-white leading-relaxed">
@@ -160,10 +160,10 @@ export default function LoginPage() {
             <div className="text-center mb-8">
               <div className="md:hidden inline-flex items-center space-x-2 mb-6">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center">
-                <Image src="/isotipo-black.png" alt="Volta Logo" width={200} height={200} />
+                <Image src="/hundred-logo.png" alt="Hundred Logo" width={250} height={250} className="invert" />
                 </div>
                 <span className="text-2xl font-bold text-gray-800">
-                  Volta Admin
+                  Hundred Admin
                 </span>
               </div>
               
@@ -192,7 +192,7 @@ export default function LoginPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     disabled={loading}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent disabled:opacity-50 disabled:bg-gray-50 text-gray-900 placeholder-gray-500 transition-all duration-200"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent disabled:opacity-50 disabled:bg-gray-50 text-gray-900 placeholder-gray-500 transition-all duration-200"
                     placeholder="tuemail@ejemplo.com"
                   />
                 </div>
@@ -214,7 +214,7 @@ export default function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     disabled={loading}
-                    className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3D4AF5] focus:border-transparent disabled:opacity-50 disabled:bg-gray-50 text-gray-900 placeholder-gray-500 transition-all duration-200"
+                    className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent disabled:opacity-50 disabled:bg-gray-50 text-gray-900 placeholder-gray-500 transition-all duration-200"
                     placeholder="••••••••"
                   />
                   <button
@@ -242,11 +242,11 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-[#3D4AF5] to-[#4B56F6] text-white py-3 px-6 rounded-xl hover:from-[#2A35CC] hover:to-[#3642E6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3D4AF5] disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center space-x-2"
+                className="w-full bg-[#D7BAF6] text-black py-3 px-6 rounded-xl hover:bg-[#8B7EE6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D7BAF6] disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center space-x-2"
               >
                 {loading ? (
                   <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
                     <span>Ingresando...</span>
                   </>
                 ) : (
