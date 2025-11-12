@@ -10,16 +10,29 @@ const instructorSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   bio: z.string().optional(),
   profile_picture_url: z.string().url().optional().or(z.literal('')),
+  specialties: z.array(z.enum(['pilates', 'cycle', 'resilience'])).optional().nullable(),
 });
 
 export async function addInstructor(formData: FormData) {
   const supabase = createAdminClient();
+
+  // Obtener specialties del FormData (puede venir como array)
+  const specialtiesArray: string[] = [];
+  let index = 0;
+  while (formData.get(`specialties[${index}]`)) {
+    const specialty = formData.get(`specialties[${index}]`) as string;
+    if (specialty && ['pilates', 'cycle', 'resilience'].includes(specialty)) {
+      specialtiesArray.push(specialty);
+    }
+    index++;
+  }
 
   // Validar datos de entrada
   const validatedFields = instructorSchema.safeParse({
     name: formData.get('name'),
     bio: formData.get('bio') || undefined,
     profile_picture_url: formData.get('profile_picture_url') || undefined,
+    specialties: specialtiesArray.length > 0 ? specialtiesArray : null,
   });
 
   if (!validatedFields.success) {
@@ -36,6 +49,7 @@ export async function addInstructor(formData: FormData) {
         name: validatedFields.data.name,
         bio: validatedFields.data.bio,
         profile_picture_url: validatedFields.data.profile_picture_url || null,
+        specialties: validatedFields.data.specialties || null,
       }
     ]);
 
@@ -59,11 +73,23 @@ export async function updateInstructor(id: string, formData: FormData) {
     return { error: 'Invalid ID.' };
   }
 
+  // Obtener specialties del FormData (puede venir como array)
+  const specialtiesArray: string[] = [];
+  let index = 0;
+  while (formData.get(`specialties[${index}]`)) {
+    const specialty = formData.get(`specialties[${index}]`) as string;
+    if (specialty && ['pilates', 'cycle', 'resilience'].includes(specialty)) {
+      specialtiesArray.push(specialty);
+    }
+    index++;
+  }
+
   // Validar datos de entrada
   const validatedFields = instructorSchema.safeParse({
     name: formData.get('name'),
     bio: formData.get('bio') || undefined,
     profile_picture_url: formData.get('profile_picture_url') || undefined,
+    specialties: specialtiesArray.length > 0 ? specialtiesArray : null,
   });
 
   if (!validatedFields.success) {
@@ -80,6 +106,7 @@ export async function updateInstructor(id: string, formData: FormData) {
         name: validatedFields.data.name,
         bio: validatedFields.data.bio,
         profile_picture_url: validatedFields.data.profile_picture_url || null,
+        specialties: validatedFields.data.specialties || null,
       }
     ).match({ id });
 

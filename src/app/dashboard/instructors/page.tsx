@@ -9,6 +9,7 @@ export type Instructor = {
   bio: string | null;
   profile_picture_url: string | null;
   deleted_at: string | null;
+  specialties: string[] | null;
 };
 
 export default async function InstructorsPage() {
@@ -17,7 +18,7 @@ export default async function InstructorsPage() {
   // Obtener instructors disponibles (solo los no eliminados)
   const { data: instructors, error } = await supabase
     .from('instructors')
-    .select('id, name, bio, profile_picture_url, deleted_at')
+    .select('id, name, bio, profile_picture_url, deleted_at, specialties')
     .is('deleted_at', null) // Solo obtener instructors no eliminados
     .order('name', { ascending: true })
     .returns<Instructor[]>();

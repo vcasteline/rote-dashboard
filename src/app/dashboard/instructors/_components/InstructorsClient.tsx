@@ -27,6 +27,7 @@ function InstructorForm({
   const formRef = useRef<HTMLFormElement>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(instructor?.profile_picture_url || null);
   const [instructorName, setInstructorName] = useState(instructor?.name || '');
+  const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>(instructor?.specialties || []);
 
   // Efecto para resetear el form cuando cambia el instructor (ej: de add a edit, o edit a add)
   useEffect(() => {
@@ -37,11 +38,13 @@ function InstructorForm({
             (formRef.current.elements.namedItem('bio') as HTMLTextAreaElement).value = instructor.bio || '';
             setImageUrl(instructor.profile_picture_url);
             setInstructorName(instructor.name);
+            setSelectedSpecialties(instructor.specialties || []);
         } else {
             // Limpiar el form para añadir
             formRef.current.reset();
             setImageUrl(null);
             setInstructorName('');
+            setSelectedSpecialties([]);
         }
     }
   }, [instructor]);
@@ -49,6 +52,22 @@ function InstructorForm({
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInstructorName(e.target.value);
   };
+
+  const handleSpecialtyChange = (specialty: string) => {
+    setSelectedSpecialties(prev => {
+      if (prev.includes(specialty)) {
+        return prev.filter(s => s !== specialty);
+      } else {
+        return [...prev, specialty];
+      }
+    });
+  };
+
+  const specialtiesOptions = [
+    { value: 'pilates', label: 'Pilates' },
+    { value: 'cycle', label: 'Cycle' },
+    { value: 'resilience', label: 'Resilience' },
+  ];
 
   return (
     <form
@@ -99,6 +118,33 @@ function InstructorForm({
             placeholder="Describe la experiencia y especialidades del instructor..."
           />
           {fieldErrors?.bio && <p className="mt-1 text-xs text-red-500">{fieldErrors.bio.join(', ')}</p>}
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">Especialidades</label>
+          <div className="flex flex-wrap gap-4">
+            {specialtiesOptions.map((option) => (
+              <label key={option.value} className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  value={option.value}
+                  checked={selectedSpecialties.includes(option.value)}
+                  onChange={() => handleSpecialtyChange(option.value)}
+                  className="w-4 h-4 text-[#D7BAF6] border-gray-300 rounded focus:ring-[#D7BAF6] focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">{option.label}</span>
+              </label>
+            ))}
+          </div>
+          {/* Hidden inputs para enviar las specialties seleccionadas */}
+          {selectedSpecialties.map((specialty, index) => (
+            <input
+              key={index}
+              type="hidden"
+              name={`specialties[${index}]`}
+              value={specialty}
+            />
+          ))}
         </div>
       </div>
       
@@ -255,6 +301,7 @@ export default function InstructorsClient({ initialInstructors }: { initialInstr
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Instructor</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Especialidades</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Biografía</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Foto de Perfil</th>
                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
@@ -267,6 +314,22 @@ export default function InstructorsClient({ initialInstructors }: { initialInstr
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="text-sm font-medium text-gray-900">{instructor.name}</div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-wrap gap-2">
+                            {instructor.specialties && instructor.specialties.length > 0 ? (
+                              instructor.specialties.map((specialty) => (
+                                <span
+                                  key={specialty}
+                                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#D7BAF6] text-gray-900"
+                                >
+                                  {specialty === 'pilates' ? 'Pilates' : specialty === 'cycle' ? 'Cycle' : 'Resilience'}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-sm text-gray-400 italic">Sin especialidades</span>
+                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4">
@@ -331,7 +394,7 @@ export default function InstructorsClient({ initialInstructors }: { initialInstr
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={4} className="px-6 py-12 text-center">
+                      <td colSpan={5} className="px-6 py-12 text-center">
                         <div className="flex flex-col items-center">
                           <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
