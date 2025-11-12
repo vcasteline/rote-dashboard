@@ -66,6 +66,7 @@ export default function ScheduleClient({
   const [selectedLocation, setSelectedLocation] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
+  const [className, setClassName] = useState('');
   const [locations, setLocations] = useState<Array<{ id: string; name: string; address: string | null }>>([]);
 
   // Estados para el formulario de edición
@@ -74,6 +75,7 @@ export default function ScheduleClient({
   const [editLocation, setEditLocation] = useState('');
   const [editStartTime, setEditStartTime] = useState('');
   const [editEndTime, setEditEndTime] = useState('');
+  const [editClassName, setEditClassName] = useState('');
 
   // Eliminamos el uso del cliente de navegador para RPCs privilegiados
 
@@ -135,6 +137,7 @@ export default function ScheduleClient({
       setSelectedLocation('');
       setStartTime('');
       setEndTime('');
+      setClassName('');
     }
     setIsAdding(false);
   };
@@ -147,6 +150,7 @@ export default function ScheduleClient({
     setEditEndTime(entry.end_time);
     // Obtener location_id de la entrada si existe
     setEditLocation(entry.location_id || '');
+    setEditClassName(entry.class_name || '');
     setShowEditModal(true);
     setEditMessage('');
     setEditError('');
@@ -226,6 +230,21 @@ export default function ScheduleClient({
             </h3>
             
             <form action={handleUpdateEntry} className="space-y-4">
+              <div>
+                <label htmlFor="edit_class_name" className="block text-sm font-medium text-gray-700 mb-2">
+                  Nombre de la Clase
+                </label>
+                <input
+                  type="text"
+                  id="edit_class_name"
+                  name="class_name"
+                  value={editClassName}
+                  onChange={(e) => setEditClassName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+                  placeholder="Ej: Ciclismo Matutino"
+                />
+              </div>
+
               <div>
                 <label htmlFor="edit_weekday" className="block text-sm font-medium text-gray-700 mb-2">
                   Día de la semana
@@ -454,7 +473,19 @@ export default function ScheduleClient({
                <div className="w-2 h-2 bg-[#D7BAF6] rounded-full mr-3"></div>
                Añadir Nueva Entrada
              </h3>
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
+                  <div className="space-y-1">
+                      <label htmlFor="class_name" className="block text-sm font-medium text-gray-700">Nombre de la Clase</label>
+                      <input
+                          type="text"
+                          id="class_name"
+                          name="class_name"
+                          value={className}
+                          onChange={(e) => setClassName(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+                          placeholder="Ej: Ciclismo Matutino"
+                      />
+                  </div>
                   <div className="space-y-1">
                       <label htmlFor="weekday" className="block text-sm font-medium text-gray-700">Día de la semana</label>
                       <CustomSelect
@@ -551,6 +582,7 @@ export default function ScheduleClient({
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Día</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hora Inicio</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hora Fin</th>
@@ -563,6 +595,11 @@ export default function ScheduleClient({
                   {initialDefaultSchedule.length > 0 ? (
                     initialDefaultSchedule.map((entry, index) => (
                       <tr key={entry.id} className={`hover:bg-gray-50 transition-colors duration-150 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}`}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">
+                            {entry.class_name ? entry.class_name : <span className="text-gray-400 italic">Sin nombre</span>}
+                          </div>
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="text-sm font-medium text-gray-900">{translateDay(entry.weekday)}</div>
@@ -610,7 +647,7 @@ export default function ScheduleClient({
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center">
+                      <td colSpan={7} className="px-6 py-12 text-center">
                         <div className="flex flex-col items-center">
                           <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />

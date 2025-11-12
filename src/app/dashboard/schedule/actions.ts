@@ -36,6 +36,7 @@ export async function addDefaultScheduleEntry(formData: FormData) {
     end_time: formData.get('end_time') as string,
     instructor_id: formData.get('instructor_id') as string,
     location_id: formData.get('location_id') as string | null,
+    class_name: formData.get('class_name') as string | null,
   };
 
   // Validación básica actualizada
@@ -52,6 +53,10 @@ export async function addDefaultScheduleEntry(formData: FormData) {
 
   if (rawFormData.location_id) {
     insertData.location_id = rawFormData.location_id;
+  }
+
+  if (rawFormData.class_name) {
+    insertData.class_name = rawFormData.class_name;
   }
 
   const { error } = await supabase.from('class_schedules').insert(insertData);
@@ -101,6 +106,7 @@ export async function updateDefaultScheduleEntry(id: string, formData: FormData)
     end_time: formData.get('end_time') as string,
     instructor_id: formData.get('instructor_id') as string,
     location_id: formData.get('location_id') as string | null,
+    class_name: formData.get('class_name') as string | null,
   };
 
   // Validación básica
@@ -119,6 +125,12 @@ export async function updateDefaultScheduleEntry(id: string, formData: FormData)
     updateData.location_id = rawFormData.location_id;
   } else {
     updateData.location_id = null;
+  }
+
+  if (rawFormData.class_name) {
+    updateData.class_name = rawFormData.class_name;
+  } else {
+    updateData.class_name = null;
   }
 
   const { error } = await supabase
