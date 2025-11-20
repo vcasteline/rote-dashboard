@@ -265,7 +265,7 @@ function AddClassModal({
           {locations.length > 0 && (
             <div>
               <label htmlFor="location_id" className="block text-sm font-medium text-gray-700 mb-1">
-                Ubicación (opcional)
+                Ubicación
               </label>
               <select
                 id="location_id"

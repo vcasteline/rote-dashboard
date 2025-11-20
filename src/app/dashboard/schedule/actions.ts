@@ -37,10 +37,11 @@ export async function addDefaultScheduleEntry(formData: FormData) {
     instructor_id: formData.get('instructor_id') as string,
     location_id: formData.get('location_id') as string | null,
     class_name: formData.get('class_name') as string | null,
+    modality: formData.get('modality') as string,
   };
 
   // Validación básica actualizada
-  if (!rawFormData.weekday || !rawFormData.start_time || !rawFormData.end_time || !rawFormData.instructor_id) {
+  if (!rawFormData.weekday || !rawFormData.start_time || !rawFormData.end_time || !rawFormData.instructor_id || !rawFormData.modality) {
     return { error: 'Missing required fields.' };
   }
 
@@ -49,6 +50,7 @@ export async function addDefaultScheduleEntry(formData: FormData) {
     start_time: rawFormData.start_time,
     end_time: rawFormData.end_time,
     instructor_id: rawFormData.instructor_id,
+    modality: rawFormData.modality,
   };
 
   if (rawFormData.location_id) {
@@ -107,10 +109,11 @@ export async function updateDefaultScheduleEntry(id: string, formData: FormData)
     instructor_id: formData.get('instructor_id') as string,
     location_id: formData.get('location_id') as string | null,
     class_name: formData.get('class_name') as string | null,
+    modality: formData.get('modality') as string,
   };
 
   // Validación básica
-  if (!rawFormData.weekday || !rawFormData.start_time || !rawFormData.end_time || !rawFormData.instructor_id) {
+  if (!rawFormData.weekday || !rawFormData.start_time || !rawFormData.end_time || !rawFormData.instructor_id || !rawFormData.modality) {
     return { error: 'Todos los campos son obligatorios.' };
   }
 
@@ -119,6 +122,7 @@ export async function updateDefaultScheduleEntry(id: string, formData: FormData)
     start_time: rawFormData.start_time,
     end_time: rawFormData.end_time,
     instructor_id: rawFormData.instructor_id,
+    modality: rawFormData.modality,
   };
 
   if (rawFormData.location_id) {

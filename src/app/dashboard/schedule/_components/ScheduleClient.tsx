@@ -26,6 +26,12 @@ const daysOfWeekSpanish = [
     { value: 'Sunday', label: 'Domingo' },
 ];
 
+const modalityOptions = [
+  { value: 'cycle', label: 'Cycle' },
+  { value: 'pilates', label: 'Pilates' },
+  { value: 'resilience', label: 'Resilience' },
+];
+
 // Helper para traducir el nombre del día (si se recibe en inglés desde la BD)
 const translateDay = (day: string): string => {
     const found = daysOfWeekSpanish.find(d => d.value === day);
@@ -63,6 +69,7 @@ export default function ScheduleClient({
   // Estados para los selectores personalizados (formulario agregar)
   const [selectedWeekday, setSelectedWeekday] = useState('');
   const [selectedInstructor, setSelectedInstructor] = useState('');
+  const [selectedModality, setSelectedModality] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
@@ -72,6 +79,7 @@ export default function ScheduleClient({
   // Estados para el formulario de edición
   const [editWeekday, setEditWeekday] = useState('');
   const [editInstructor, setEditInstructor] = useState('');
+  const [editModality, setEditModality] = useState('');
   const [editLocation, setEditLocation] = useState('');
   const [editStartTime, setEditStartTime] = useState('');
   const [editEndTime, setEditEndTime] = useState('');
@@ -134,6 +142,7 @@ export default function ScheduleClient({
       // Limpiar formulario
       setSelectedWeekday('');
       setSelectedInstructor('');
+      setSelectedModality('');
       setSelectedLocation('');
       setStartTime('');
       setEndTime('');
@@ -146,6 +155,7 @@ export default function ScheduleClient({
     setEntryToEdit(entry);
     setEditWeekday(entry.weekday);
     setEditInstructor(entry.instructor_id);
+    setEditModality(entry.modality || '');
     setEditStartTime(entry.start_time);
     setEditEndTime(entry.end_time);
     // Obtener location_id de la entrada si existe
@@ -299,6 +309,21 @@ export default function ScheduleClient({
                   onChange={setEditInstructor}
                   placeholder={instructors.length === 0 ? 'No hay instructores' : 'Selecciona Instructor'}
                   disabled={instructors.length === 0}
+                  required={true}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="edit_modality" className="block text-sm font-medium text-gray-700 mb-2">
+                  Modalidad
+                </label>
+                <CustomSelect
+                  id="edit_modality"
+                  name="modality"
+                  options={modalityOptions}
+                  value={editModality}
+                  onChange={setEditModality}
+                  placeholder="Selecciona Modalidad"
                   required={true}
                 />
               </div>
@@ -531,6 +556,18 @@ export default function ScheduleClient({
                           required={true}
                       />
                   </div>
+                  <div className="space-y-1">
+                      <label htmlFor="modality" className="block text-sm font-medium text-gray-700">Modalidad</label>
+                      <CustomSelect
+                          id="modality"
+                          name="modality"
+                          options={modalityOptions}
+                          value={selectedModality}
+                          onChange={setSelectedModality}
+                          placeholder="Selecciona Modalidad"
+                          required={true}
+                      />
+                  </div>
                   {locationOptions.length > 0 && (
                     <div className="space-y-1">
                       <label htmlFor="location_id" className="block text-sm font-medium text-gray-700">Ubicación (opcional)</label>
@@ -587,6 +624,7 @@ export default function ScheduleClient({
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hora Inicio</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hora Fin</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Instructor</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Modalidad</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ubicación</th>
                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                   </tr>
@@ -613,6 +651,9 @@ export default function ScheduleClient({
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">{entry.instructors?.name ?? 'N/A'}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900 capitalize">{entry.modality ?? 'N/A'}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">{entry.locations?.name ?? <span className="text-gray-400 italic">N/A</span>}</div>

@@ -16,6 +16,7 @@ export type DefaultScheduleEntry = {
   instructor_id: string;
   location_id: string | null;
   class_name: string | null;
+  modality: 'cycle' | 'pilates' | 'resilience' | null;
   instructors: {
     name: string;
   } | null;
@@ -45,6 +46,7 @@ export default async function SchedulePage() {
       instructor_id,
       location_id,
       class_name,
+      modality,
       instructors ( name ),
       locations ( name )
     `)
