@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { type PurchaseData } from '../page';
-import { updatePurchaseCredits } from '../actions';
-import { Edit, X, CheckCircle } from 'lucide-react';
+import { updatePurchaseCredits, updatePurchaseExpirationDate } from '../actions';
+import { Edit, X, CheckCircle, Calendar } from 'lucide-react';
 
 // Helper para formatear fechas
 const formatDate = (dateString: string | null) => {
@@ -223,6 +223,12 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
   const [editingPurchaseId, setEditingPurchaseId] = useState<string | null>(null);
   const [editCreditsValue, setEditCreditsValue] = useState<string>('');
   const [isUpdatingCredits, setIsUpdatingCredits] = useState(false);
+  
+  // Estados para editar fecha de expiración
+  const [editingExpirationId, setEditingExpirationId] = useState<string | null>(null);
+  const [editExpirationValue, setEditExpirationValue] = useState<string>('');
+  const [isUpdatingExpiration, setIsUpdatingExpiration] = useState(false);
+  
   const [successModal, setSuccessModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -297,6 +303,55 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
       alert('Error al actualizar los créditos');
     } finally {
       setIsUpdatingCredits(false);
+    }
+  };
+
+  // Función para iniciar edición de fecha de expiración
+  const startEditingExpiration = (purchaseId: string, currentExpiration: string | null) => {
+    setEditingExpirationId(purchaseId);
+    // Convertir la fecha a formato YYYY-MM-DD para el input date
+    if (currentExpiration) {
+      const date = new Date(currentExpiration);
+      const formatted = date.toISOString().split('T')[0];
+      setEditExpirationValue(formatted);
+    } else {
+      setEditExpirationValue('');
+    }
+  };
+
+  // Función para cancelar edición de fecha de expiración
+  const cancelEditingExpiration = () => {
+    setEditingExpirationId(null);
+    setEditExpirationValue('');
+  };
+
+  // Función para guardar fecha de expiración editada
+  const saveEditedExpiration = async (purchaseId: string) => {
+    if (!editExpirationValue) {
+      alert('Por favor selecciona una fecha válida');
+      return;
+    }
+
+    setIsUpdatingExpiration(true);
+
+    try {
+      const result = await updatePurchaseExpirationDate(purchaseId, editExpirationValue);
+
+      if (result.success) {
+        showSuccessModal('Fecha Actualizada', 'La fecha de expiración ha sido actualizada correctamente.');
+        setEditingExpirationId(null);
+        setEditExpirationValue('');
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        alert(result.error || 'Error al actualizar la fecha de expiración');
+      }
+    } catch (error) {
+      console.error('Error updating expiration date:', error);
+      alert('Error al actualizar la fecha de expiración');
+    } finally {
+      setIsUpdatingExpiration(false);
     }
   };
 
@@ -695,7 +750,44 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
                         {formatDate(purchase.purchase_date)}
                       </td>
                       <td className="py-3 px-5 text-center">
-                        {formatDate(purchase.expiration_date)}
+                        {editingExpirationId === purchase.id ? (
+                          <div className="flex items-center justify-center space-x-2">
+                            <input
+                              type="date"
+                              value={editExpirationValue}
+                              onChange={(e) => setEditExpirationValue(e.target.value)}
+                              className="px-2 py-1 border border-gray-300 rounded text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              autoFocus
+                            />
+                            <button
+                              onClick={() => saveEditedExpiration(purchase.id)}
+                              disabled={isUpdatingExpiration}
+                              className="text-green-600 hover:text-green-800 disabled:opacity-50"
+                              title="Guardar"
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={cancelEditingExpiration}
+                              disabled={isUpdatingExpiration}
+                              className="text-red-600 hover:text-red-800 disabled:opacity-50"
+                              title="Cancelar"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center space-x-2">
+                            <span>{formatDate(purchase.expiration_date)}</span>
+                            <button
+                              onClick={() => startEditingExpiration(purchase.id, purchase.expiration_date)}
+                              className="text-blue-600 hover:text-blue-800"
+                              title="Editar fecha de expiración"
+                            >
+                              <Calendar className="h-3 w-3" />
+                            </button>
+                          </div>
+                        )}
                       </td>
                       <td className="py-3 px-5 text-center">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${status.color}`}>
