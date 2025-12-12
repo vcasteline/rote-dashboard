@@ -2,6 +2,7 @@
 
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { calculateExpirationDate } from '@/lib/utils/dateUtils';
 
 export interface User {
   id: string;
@@ -205,13 +206,8 @@ export async function assignPackageToUser(userData: {
       return { success: false, error: 'Paquete no encontrado' };
     }
     
-    // Calcular fecha de expiración
-    let expirationDate = null;
-    if (packageData.expiration_days) {
-      const expiration = new Date();
-      expiration.setDate(expiration.getDate() + packageData.expiration_days);
-      expirationDate = expiration.toISOString();
-    }
+    // Calcular fecha de expiración en zona horaria de Guayaquil
+    const expirationDate = calculateExpirationDate(packageData.expiration_days);
     
     // Crear la compra
     const { data: purchase, error: purchaseError } = await supabase

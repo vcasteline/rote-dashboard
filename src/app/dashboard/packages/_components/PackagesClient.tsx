@@ -5,8 +5,9 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { type PurchaseData } from '../page';
 import { updatePurchaseCredits, updatePurchaseExpirationDate } from '../actions';
 import { Edit, X, CheckCircle, Calendar } from 'lucide-react';
+import { formatExpirationDate, isExpirationDateExpired, daysUntilExpiration } from '@/lib/utils/dateUtils';
 
-// Helper para formatear fechas
+// Helper para formatear fechas (mantener para purchase_date que no necesita zona horaria específica)
 const formatDate = (dateString: string | null) => {
   if (!dateString) return 'N/A';
   try {
@@ -35,22 +36,21 @@ const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
-// Helper para determinar el estado del paquete
+// Helper para determinar el estado del paquete (usando zona horaria de Guayaquil)
 const getPackageStatus = (purchase: PurchaseData) => {
   if (purchase.credits_remaining <= 0) {
     return { status: 'agotado', color: 'bg-red-100 text-red-800', text: 'Agotado' };
   }
   
   if (purchase.expiration_date) {
-    const now = new Date();
-    const expiration = new Date(purchase.expiration_date);
-    if (expiration < now) {
+    // Verificar si está expirado usando zona horaria de Guayaquil
+    if (isExpirationDateExpired(purchase.expiration_date)) {
       return { status: 'vencido', color: 'bg-red-100 text-red-800', text: 'Vencido' };
     }
     
-    // Si vence en menos de 7 días
-    const daysToExpire = Math.ceil((expiration.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    if (daysToExpire <= 7) {
+    // Calcular días hasta expiración usando zona horaria de Guayaquil
+    const daysToExpire = daysUntilExpiration(purchase.expiration_date);
+    if (daysToExpire !== null && daysToExpire <= 7) {
       return { status: 'por-vencer', color: 'bg-yellow-100 text-yellow-800', text: `Vence en ${daysToExpire} días` };
     }
   }
@@ -95,7 +95,7 @@ const exportToExcel = (purchases: PurchaseData[], filters?: {
     purchase.packages?.price || 0,
     purchase.packages?.class_credits || 0,
     purchase.credits_remaining,
-    formatDate(purchase.expiration_date),
+    formatExpirationDate(purchase.expiration_date),
     getPackageStatus(purchase).text,
     purchase.authorization_code || 'N/A',
     purchase.transaction_id || 'N/A'

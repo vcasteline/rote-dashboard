@@ -98,4 +98,87 @@ export function createEcuadorDateTime(date: string, time: string): DateTime {
  */
 export function getTodayStartInEcuador(): DateTime {
   return getNowInEcuador().startOf('day');
+}
+
+/**
+ * Calcula la fecha de expiración de un paquete en zona horaria de Guayaquil
+ * @param expirationDays Número de días desde hoy hasta la expiración
+ * @returns Fecha de expiración en formato ISO string (UTC) que representa el final del día en Guayaquil
+ */
+export function calculateExpirationDate(expirationDays: number | null | undefined): string | null {
+  if (!expirationDays || typeof expirationDays !== 'number') {
+    return null;
+  }
+
+  // Obtener la fecha actual en zona horaria de Guayaquil
+  const now = getNowInEcuador();
+  
+  // Calcular la fecha de expiración sumando los días
+  // Usamos endOf('day') para que expire al final del día (23:59:59)
+  const expirationDate = now.plus({ days: expirationDays }).endOf('day');
+  
+  // Convertir a ISO string (UTC) para almacenar en la base de datos
+  return expirationDate.toISO();
+}
+
+/**
+ * Formatea una fecha de expiración para mostrar en la UI (en zona horaria de Guayaquil)
+ * @param expirationDateString Fecha ISO string desde la base de datos
+ * @returns Fecha formateada como dd/MM/yyyy
+ */
+export function formatExpirationDate(expirationDateString: string | null | undefined): string {
+  if (!expirationDateString) return 'N/A';
+  
+  try {
+    // Interpretar la fecha como UTC y convertir a Guayaquil
+    const expirationDate = DateTime.fromISO(expirationDateString, { zone: 'utc' })
+      .setZone(ECUADOR_TIMEZONE);
+    
+    return expirationDate.toFormat('dd/MM/yyyy');
+  } catch (error) {
+    return 'N/A';
+  }
+}
+
+/**
+ * Verifica si una fecha de expiración ha vencido (comparando por día en zona horaria de Guayaquil)
+ * @param expirationDateString Fecha ISO string desde la base de datos
+ * @returns true si la fecha ya pasó (comparando por día, no por hora exacta)
+ */
+export function isExpirationDateExpired(expirationDateString: string | null | undefined): boolean {
+  if (!expirationDateString) return false;
+  
+  try {
+    const now = getNowInEcuador();
+    const expirationDate = DateTime.fromISO(expirationDateString, { zone: 'utc' })
+      .setZone(ECUADOR_TIMEZONE);
+    
+    // Comparar por día (no por hora exacta)
+    return expirationDate.toISODate() < now.toISODate();
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
+ * Calcula los días hasta que expire una fecha (en zona horaria de Guayaquil)
+ * @param expirationDateString Fecha ISO string desde la base de datos
+ * @returns Número de días hasta la expiración (0 si expira hoy, negativo si ya expiró)
+ */
+export function daysUntilExpiration(expirationDateString: string | null | undefined): number | null {
+  if (!expirationDateString) return null;
+  
+  try {
+    const now = getNowInEcuador();
+    const expirationDate = DateTime.fromISO(expirationDateString, { zone: 'utc' })
+      .setZone(ECUADOR_TIMEZONE);
+    
+    // Calcular diferencia en días (comparando fechas, no timestamps exactos)
+    const nowDate = now.startOf('day');
+    const expirationDateOnly = expirationDate.startOf('day');
+    
+    return Math.ceil(expirationDateOnly.diff(nowDate, 'days').days);
+  } catch (error) {
+    return null;
+  }
 } 
