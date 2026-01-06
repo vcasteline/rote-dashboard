@@ -92,9 +92,12 @@ export default async function PackagesPage({ searchParams }: PackagesPageProps) 
 
     // Filtros por estado (server-side) para paginación consistente
     // Usar zona horaria de Guayaquil para consistencia con make_reservation
+    // IMPORTANTE: Comparar por FECHA (día), no por timestamp exacto
+    // Para que un paquete que vence "hoy" sea válido durante todo el día
     const now = getNowInEcuador();
-    const nowIso = toISOString(now);
-    const in7DaysIso = toISOString(now.plus({ days: 7 }));
+    const todayStartIso = toISOString(now.startOf('day')); // Inicio del día actual en Guayaquil
+    const tomorrowStartIso = toISOString(now.plus({ days: 1 }).startOf('day')); // Inicio de mañana
+    const in7DaysStartIso = toISOString(now.plus({ days: 7 }).startOf('day')); // Inicio del día en 7 días
 
     if (status && status !== 'todos') {
       switch (status) {
@@ -102,13 +105,16 @@ export default async function PackagesPage({ searchParams }: PackagesPageProps) 
           base = base.lte('credits_remaining', 0);
           break;
         case 'vencido':
-          base = base.lt('expiration_date', nowIso).gt('credits_remaining', 0);
+          // Vencido = fecha de expiración es ANTERIOR al inicio del día actual
+          base = base.lt('expiration_date', todayStartIso).gt('credits_remaining', 0);
           break;
         case 'por-vencer':
-          base = base.gte('expiration_date', nowIso).lte('expiration_date', in7DaysIso).gt('credits_remaining', 0);
+          // Por vencer = expira entre hoy y los próximos 7 días
+          base = base.gte('expiration_date', todayStartIso).lt('expiration_date', in7DaysStartIso).gt('credits_remaining', 0);
           break;
         case 'activo':
-          base = base.gt('credits_remaining', 0).or(`expiration_date.is.null,expiration_date.gte.${in7DaysIso}`);
+          // Activo = expira en más de 7 días o no tiene fecha de expiración
+          base = base.gt('credits_remaining', 0).or(`expiration_date.is.null,expiration_date.gte.${in7DaysStartIso}`);
           break;
       }
     }

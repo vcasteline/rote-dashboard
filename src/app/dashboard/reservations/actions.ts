@@ -396,7 +396,8 @@ export async function getUsersWithCredits(): Promise<{ success: boolean; users?:
   try {
     // Obtener todas las compras activas (con créditos > 0 y no vencidas)
     // Usar zona horaria de Guayaquil para consistencia con make_reservation
-    const today = toISOString(getNowInEcuador());
+    // IMPORTANTE: Comparar por inicio del día para que paquetes que vencen "hoy" sean válidos todo el día
+    const todayStart = toISOString(getNowInEcuador().startOf('day'));
     const { data: activePurchases, error: purchasesError } = await supabase
       .from('purchases')
       .select(`
@@ -407,7 +408,7 @@ export async function getUsersWithCredits(): Promise<{ success: boolean; users?:
         packages ( name )
       `)
       .gt('credits_remaining', 0)
-      .or(`expiration_date.is.null,expiration_date.gte.${today}`)
+      .or(`expiration_date.is.null,expiration_date.gte.${todayStart}`)
       .order('expiration_date', { ascending: true });
 
     if (purchasesError) {
