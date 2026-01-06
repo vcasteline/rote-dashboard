@@ -153,8 +153,14 @@ export function isExpirationDateExpired(expirationDateString: string | null | un
     const expirationDate = DateTime.fromISO(expirationDateString, { zone: 'utc' })
       .setZone(ECUADOR_TIMEZONE);
     
+    const expirationDateOnly = expirationDate.toISODate();
+    const todayOnly = now.toISODate();
+    
+    // Si alguna fecha es null, no está expirado
+    if (!expirationDateOnly || !todayOnly) return false;
+    
     // Comparar por día (no por hora exacta)
-    return expirationDate.toISODate() < now.toISODate();
+    return expirationDateOnly < todayOnly;
   } catch (error) {
     return false;
   }
