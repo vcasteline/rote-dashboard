@@ -1,5 +1,7 @@
 import { NextRequest } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
+import { getNowInEcuador, toISOString, ECUADOR_TIMEZONE } from '@/lib/utils/dateUtils';
+import { DateTime } from 'luxon';
 
 type PurchaseRow = {
   id: string;
@@ -26,12 +28,14 @@ type PurchaseRow = {
 
 function formatDate(dateString: string | null): string {
   if (!dateString) return 'N/A';
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return 'N/A';
-  const day = String(date.getUTCDate()).padStart(2, '0');
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const year = date.getUTCFullYear();
-  return `${day}/${month}/${year}`;
+  try {
+    // Interpretar la fecha como UTC y convertir a Guayaquil para consistencia
+    const date = DateTime.fromISO(dateString, { zone: 'utc' }).setZone(ECUADOR_TIMEZONE);
+    if (!date.isValid) return 'N/A';
+    return date.toFormat('dd/MM/yyyy');
+  } catch {
+    return 'N/A';
+  }
 }
 
 export async function GET(req: NextRequest) {
@@ -84,9 +88,10 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Filtros por estado
-    const nowIso = new Date().toISOString();
-    const in7DaysIso = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    // Filtros por estado - usar zona horaria de Guayaquil para consistencia
+    const now = getNowInEcuador();
+    const nowIso = toISOString(now);
+    const in7DaysIso = toISOString(now.plus({ days: 7 }));
     if (status && status !== 'todos') {
       switch (status) {
         case 'agotado':

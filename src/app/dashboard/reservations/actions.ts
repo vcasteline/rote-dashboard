@@ -395,7 +395,8 @@ export async function getUsersWithCredits(): Promise<{ success: boolean; users?:
 
   try {
     // Obtener todas las compras activas (con créditos > 0 y no vencidas)
-    const today = new Date().toISOString();
+    // Usar zona horaria de Guayaquil para consistencia con make_reservation
+    const today = toISOString(getNowInEcuador());
     const { data: activePurchases, error: purchasesError } = await supabase
       .from('purchases')
       .select(`

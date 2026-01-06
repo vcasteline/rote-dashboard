@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import PackagesClient from './_components/PackagesClient';
+import { getNowInEcuador, toISOString } from '@/lib/utils/dateUtils';
 
 export type PurchaseData = {
   id: string;
@@ -90,8 +91,10 @@ export default async function PackagesPage({ searchParams }: PackagesPageProps) 
     }
 
     // Filtros por estado (server-side) para paginación consistente
-    const nowIso = new Date().toISOString();
-    const in7DaysIso = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    // Usar zona horaria de Guayaquil para consistencia con make_reservation
+    const now = getNowInEcuador();
+    const nowIso = toISOString(now);
+    const in7DaysIso = toISOString(now.plus({ days: 7 }));
 
     if (status && status !== 'todos') {
       switch (status) {
