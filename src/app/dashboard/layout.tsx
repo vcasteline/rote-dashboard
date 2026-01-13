@@ -13,7 +13,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-[#f5ebe3]">
       <Sidebar />
       
       {/* Main Content */}

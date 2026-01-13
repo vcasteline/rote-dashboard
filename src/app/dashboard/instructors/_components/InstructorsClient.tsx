@@ -27,7 +27,8 @@ function InstructorForm({
   const formRef = useRef<HTMLFormElement>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(instructor?.profile_picture_url || null);
   const [instructorName, setInstructorName] = useState(instructor?.name || '');
-  const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>(instructor?.specialties || []);
+  // Siempre usar 'cycle' como especialidad por defecto
+  const selectedSpecialties = ['cycle'];
 
   // Efecto para resetear el form cuando cambia el instructor (ej: de add a edit, o edit a add)
   useEffect(() => {
@@ -38,13 +39,13 @@ function InstructorForm({
             (formRef.current.elements.namedItem('bio') as HTMLTextAreaElement).value = instructor.bio || '';
             setImageUrl(instructor.profile_picture_url);
             setInstructorName(instructor.name);
-            setSelectedSpecialties(instructor.specialties || []);
+            // Siempre usar 'cycle' como especialidad por defecto
         } else {
             // Limpiar el form para añadir
             formRef.current.reset();
             setImageUrl(null);
             setInstructorName('');
-            setSelectedSpecialties([]);
+            // Siempre usar 'cycle' como especialidad por defecto
         }
     }
   }, [instructor]);
@@ -53,36 +54,22 @@ function InstructorForm({
     setInstructorName(e.target.value);
   };
 
-  const handleSpecialtyChange = (specialty: string) => {
-    setSelectedSpecialties(prev => {
-      if (prev.includes(specialty)) {
-        return prev.filter(s => s !== specialty);
-      } else {
-        return [...prev, specialty];
-      }
-    });
-  };
-
-  const specialtiesOptions = [
-    { value: 'pilates', label: 'Pilates' },
-    { value: 'cycle', label: 'Cycle' },
-    { value: 'resilience', label: 'Resilience' },
-  ];
+  // Siempre usar 'cycle' como especialidad por defecto - no se necesita función de cambio
 
   return (
     <form
       ref={formRef}
       action={onSubmit} // Usamos action directamente con la Server Action
-      className="p-6 border border-gray-200 rounded-lg bg-gradient-to-r from-gray-50 to-white shadow-sm mb-6"
+      className="p-6 border border-[#d4bfad] rounded-lg bg-white shadow-sm mb-6"
     >
-      <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-        <div className="w-2 h-2 bg-[#D7BAF6] rounded-full mr-3"></div>
+      <h3 className="text-lg font-semibold mb-4 text-[#330601] flex items-center">
+        <div className="w-2 h-2 bg-[#e7ceb9] rounded-full mr-3"></div>
         {instructor ? 'Editar Instructor' : 'Añadir Nuevo Instructor'}
       </h3>
       <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-1">
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">Nombre del Instructor</label>
+          <label htmlFor="name" className="block text-sm font-medium text-[#5d241d]">Nombre del Instructor</label>
           <input
             type="text"
             id="name"
@@ -90,7 +77,7 @@ function InstructorForm({
             required
             defaultValue={instructor?.name ?? ''}
             onChange={handleNameChange}
-            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-[#D7BAF6] text-gray-900 ${fieldErrors?.name ? 'border-red-500' : 'border-gray-300'}`}
+            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-gray-900 bg-white ${fieldErrors?.name ? 'border-red-500' : 'border-gray-300'}`}
             placeholder="Nombre completo del instructor"
           />
            {fieldErrors?.name && <p className="mt-1 text-xs text-red-500">{fieldErrors.name.join(', ')}</p>}
@@ -108,51 +95,31 @@ function InstructorForm({
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="bio" className="block text-sm font-medium text-gray-700">Biografía (opcional)</label>
+          <label htmlFor="bio" className="block text-sm font-medium text-[#5d241d]">Biografía (opcional)</label>
           <textarea
             id="bio"
             name="bio"
             rows={3}
             defaultValue={instructor?.bio ?? ''}
-            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-[#D7BAF6] text-gray-900 ${fieldErrors?.bio ? 'border-red-500' : 'border-gray-300'}`}
+            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-gray-900 bg-white ${fieldErrors?.bio ? 'border-red-500' : 'border-gray-300'}`}
             placeholder="Describe la experiencia y especialidades del instructor..."
           />
           {fieldErrors?.bio && <p className="mt-1 text-xs text-red-500">{fieldErrors.bio.join(', ')}</p>}
         </div>
 
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Especialidades</label>
-          <div className="flex flex-wrap gap-4">
-            {specialtiesOptions.map((option) => (
-              <label key={option.value} className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  value={option.value}
-                  checked={selectedSpecialties.includes(option.value)}
-                  onChange={() => handleSpecialtyChange(option.value)}
-                  className="w-4 h-4 text-[#D7BAF6] border-gray-300 rounded focus:ring-[#D7BAF6] focus:ring-2"
-                />
-                <span className="text-sm text-gray-700">{option.label}</span>
-              </label>
-            ))}
-          </div>
-          {/* Hidden inputs para enviar las specialties seleccionadas */}
-          {selectedSpecialties.map((specialty, index) => (
-            <input
-              key={index}
-              type="hidden"
-              name={`specialties[${index}]`}
-              value={specialty}
-            />
-          ))}
-        </div>
+        {/* Especialidad siempre es 'cycle' por defecto */}
+        <input
+          type="hidden"
+          name="specialties[0]"
+          value="cycle"
+        />
       </div>
       
-      <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
+      <div className="flex items-center justify-between mt-6 pt-4 border-t border-[#d4bfad]">
         <div className="flex-1">
           {formError && (
-            <div className="flex items-center text-sm text-red-600">
-              <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
+            <div className="flex items-center text-sm text-[#8b372d]">
+              <div className="w-2 h-2 bg-[#8b372d] rounded-full mr-2"></div>
               {formError}
             </div>
           )}
@@ -162,7 +129,7 @@ function InstructorForm({
             <button 
               type="button" 
               onClick={onCancel} 
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 text-[#5d241d] hover:text-[#330601] border border-[#d4bfad] rounded-lg hover:bg-[#e7ceb9] transition-colors"
             >
               Cancelar
             </button>
@@ -170,7 +137,7 @@ function InstructorForm({
           <button
              type="submit"
              disabled={isSubmitting}
-             className="px-6 py-2 bg-[#D7BAF6] text-black font-medium rounded-lg hover:bg-[#8B7EE6] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+             className="px-6 py-2 bg-[#e7ceb9] text-[#330601] font-medium rounded-lg hover:bg-[#a75a4a] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
            >
              {isSubmitting ? (
                <div className="flex items-center">
@@ -282,7 +249,7 @@ export default function InstructorsClient({ initialInstructors }: { initialInstr
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-            <div className="w-3 h-3 bg-[#D7BAF6] rounded-full mr-3"></div>
+            <div className="w-3 h-3 bg-[#e7ceb9] rounded-full mr-3"></div>
             Instructores Registrados
           </h2>
         </div>
@@ -322,7 +289,7 @@ export default function InstructorsClient({ initialInstructors }: { initialInstr
                               instructor.specialties.map((specialty) => (
                                 <span
                                   key={specialty}
-                                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#D7BAF6] text-gray-900"
+                                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#e7ceb9] text-gray-900"
                                 >
                                   {specialty === 'pilates' ? 'Pilates' : specialty === 'cycle' ? 'Cycle' : 'Resilience'}
                                 </span>
@@ -375,7 +342,7 @@ export default function InstructorsClient({ initialInstructors }: { initialInstr
                             <button
                               onClick={() => handleEditClick(instructor)}
                               disabled={isPendingUpdate || isPendingDelete || isPendingAdd}
-                              className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-purple-700 bg-purple-100 hover:bg-purple-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D7BAF6] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                              className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-[#330601] bg-[#e7ceb9] hover:bg-[#a75a4a] hover:text-[#e7ceb9] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#a75a4a] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
                             >
                               <Edit className="w-4 h-4 mr-1" />
                               Editar
@@ -383,7 +350,7 @@ export default function InstructorsClient({ initialInstructors }: { initialInstr
                             <button
                               onClick={() => handleDelete(instructor.id)}
                               disabled={isPendingDelete || isPendingUpdate || isPendingAdd}
-                              className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-orange-700 bg-orange-100 hover:bg-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                              className="inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
                             >
                               <EyeOff className="w-4 h-4 mr-1" />
                               {isPendingDelete ? 'Procesando...' : 'Ocultar'}

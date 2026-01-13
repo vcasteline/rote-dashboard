@@ -425,7 +425,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
             </div>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 bg-[#D7BAF6] text-black font-medium rounded-lg hover:bg-[#8B7EE6] transition-colors shadow-sm"
+              className="inline-flex items-center px-4 py-2 bg-[#e7ceb9] text-[#330601] font-medium rounded-lg hover:bg-[#a75a4a] transition-colors shadow-sm"
             >
               <UserPlus className="h-4 w-4 mr-2" />
               Agregar Usuario
@@ -441,7 +441,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Buscar por nombre, email, teléfono, cédula o dirección..."
-            className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 placeholder-gray-500"
+            className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:border-transparent text-gray-900 placeholder-gray-500"
           />
           {searchTerm && (
             <button
@@ -487,8 +487,8 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10">
-                      <div className="h-10 w-10 rounded-full bg-[#D7BAF6] flex items-center justify-center">
-                        <span className="text-black font-medium">
+                      <div className="h-10 w-10 rounded-full bg-[#e7ceb9] flex items-center justify-center">
+                        <span className="text-[#330601] font-medium">
                           {user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
                         </span>
                       </div>
@@ -529,7 +529,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                   <div className="space-y-1">
                     {user.birthday && (
                       <div className="text-sm text-gray-900 flex items-center">
-                        <Cake className="h-4 w-4 mr-1 text-pink-400" />
+                        <Cake className="h-4 w-4 mr-1 text-gray-400" />
                         {formatBirthday(user.birthday)}
                       </div>
                     )}
@@ -547,7 +547,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                 <td className="px-6 py-4 whitespace-nowrap">
                   <Link 
                     href={`/dashboard/packages?user=${encodeURIComponent(user.email)}`}
-                    className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#D7BAF6] text-black hover:bg-[#8B7EE6] transition-colors"
+                    className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#e7ceb9] text-[#330601] hover:bg-[#a75a4a] transition-colors"
                   >
                     <ShoppingBag className="h-4 w-4 mr-1" />
                     {user.purchase_count} paquete{user.purchase_count !== 1 ? 's' : ''}
@@ -560,7 +560,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                   <div className="flex items-center justify-center space-x-2">
                     <button
                       onClick={() => handleEditUser(user)}
-                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-150"
+                      className="inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-150"
                       title="Editar usuario"
                     >
                       <Edit className="h-4 w-4 mr-1" />
@@ -568,7 +568,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                     </button>
                     <button
                       onClick={() => handleAssignPackage(user)}
-                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-150"
+                      className="inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-150"
                       title="Asignar paquete"
                     >
                       <Gift className="h-4 w-4 mr-1" />
@@ -630,7 +630,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       required
                       value={editFormData.email}
                       onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:border-transparent text-gray-900 bg-white"
                       placeholder="usuario@ejemplo.com"
                     />
                     <p className="text-sm text-gray-500 mt-1">
@@ -646,7 +646,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       required
                       value={editFormData.name}
                       onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:border-transparent text-gray-900 bg-white"
                       placeholder="Nombre completo"
                     />
                   </div>
@@ -661,7 +661,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       type="tel"
                       value={editFormData.phone}
                       onChange={(e) => setEditFormData({...editFormData, phone: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:border-transparent text-gray-900 bg-white"
                       placeholder="0999999999"
                     />
                   </div>
@@ -673,7 +673,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       type="text"
                       value={editFormData.cedula}
                       onChange={(e) => setEditFormData({...editFormData, cedula: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:border-transparent text-gray-900 bg-white"
                       placeholder="1234567890"
                       maxLength={10}
                     />
@@ -688,7 +688,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                     type="text"
                     value={editFormData.address}
                     onChange={(e) => setEditFormData({...editFormData, address: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:border-transparent text-gray-900 bg-white"
                     placeholder="Dirección completa"
                   />
                 </div>
@@ -701,7 +701,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                     type="text"
                     value={editFormData.birthday}
                     onChange={(e) => setEditFormData({...editFormData, birthday: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:border-transparent text-gray-900 bg-white"
                     placeholder="DD/MM/YYYY o DDMMYYYY"
                   />
                 </div>
@@ -716,7 +716,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       type={showPassword ? "text" : "password"}
                       value={editFormData.password}
                       onChange={(e) => setEditFormData({...editFormData, password: e.target.value})}
-                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:border-transparent text-gray-900 bg-white"
                       placeholder="Dejar en blanco para no cambiar"
                     />
                     <button
@@ -753,7 +753,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="px-4 py-2 bg-[#D7BAF6] text-black rounded-md hover:bg-[#8B7EE6] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-[#e7ceb9] text-[#330601] rounded-md hover:bg-[#a75a4a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? 'Actualizando...' : 'Actualizar Usuario'}
                   </button>
@@ -797,7 +797,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                     required
                     value={packageFormData.package_id}
                     onChange={(e) => setPackageFormData({...packageFormData, package_id: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:border-transparent text-gray-900 bg-white"
                   >
                     <option value="">Seleccionar paquete...</option>
                     {packages.map(pkg => (
@@ -817,7 +817,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       type="text"
                       value={packageFormData.transaction_id}
                       onChange={(e) => setPackageFormData({...packageFormData, transaction_id: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:border-transparent text-gray-900 bg-white"
                       placeholder="ID de transacción (opcional)"
                     />
                   </div>
@@ -829,7 +829,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       type="text"
                       value={packageFormData.authorization_code}
                       onChange={(e) => setPackageFormData({...packageFormData, authorization_code: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:border-transparent text-gray-900 bg-white"
                       placeholder="Código de autorización (opcional)"
                     />
                   </div>
@@ -842,7 +842,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                     id="contabilidad"
                     checked={packageFormData.contabilidad}
                     onChange={(e) => setPackageFormData({...packageFormData, contabilidad: e.target.checked})}
-                    className="h-4 w-4 text-[#D7BAF6] focus:ring-[#D7BAF6] border-gray-300 rounded"
+                    className="h-4 w-4 text-[#a75a4a] focus:ring-[#a75a4a] border-gray-300 rounded"
                   />
                   <label htmlFor="contabilidad" className="ml-2 block text-sm text-gray-700">
                     Incluir en contabilidad
@@ -865,7 +865,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                   <button
                     type="submit"
                     disabled={isSubmitting || !packageFormData.package_id}
-                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? 'Asignando...' : 'Asignar Paquete'}
                   </button>
@@ -896,20 +896,20 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
 
               {/* Mostrar contraseña generada si existe */}
               {generatedPassword && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-6 space-y-4">
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 space-y-4">
                   <div className="flex items-center mb-4">
                     <div className="flex-shrink-0">
-                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                        <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                        <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                       </div>
                     </div>
                     <div className="ml-3">
-                      <h3 className="text-lg font-medium text-green-800">
+                      <h3 className="text-lg font-medium text-gray-800">
                         ¡Usuario creado exitosamente!
                       </h3>
-                      <p className="text-sm text-green-600 mt-1">
+                      <p className="text-sm text-gray-600 mt-1">
                         Se ha generado una contraseña temporal para el usuario.
                       </p>
                     </div>
@@ -935,8 +935,8 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                     </div>
                   </div>
 
-                  <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
-                    <p className="text-sm text-yellow-800">
+                  <div className="bg-gray-50 border border-gray-200 rounded p-3">
+                    <p className="text-sm text-gray-800">
                       <strong>Importante:</strong> Comparte esta contraseña con el usuario. Podrá cambiarla en la app después del primer login.
                     </p>
                   </div>
@@ -949,7 +949,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                         setIsModalOpen(false);
                         window.location.reload();
                       }}
-                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                      className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors"
                     >
                       Continuar
                     </button>
@@ -971,7 +971,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       required
                       value={formData.email}
                       onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:border-transparent text-gray-900 bg-white"
                       placeholder="usuario@ejemplo.com"
                     />
                   </div>
@@ -984,7 +984,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       required
                       value={formData.name}
                       onChange={(e) => setFormData({...formData, name: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:border-transparent text-gray-900 bg-white"
                       placeholder="Nombre completo"
                     />
                   </div>
@@ -999,7 +999,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:border-transparent text-gray-900 bg-white"
                       placeholder="0999999999"
                     />
                   </div>
@@ -1011,7 +1011,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       type="text"
                       value={formData.cedula}
                       onChange={(e) => setFormData({...formData, cedula: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:border-transparent text-gray-900 bg-white"
                       placeholder="1234567890"
                       maxLength={10}
                     />
@@ -1026,7 +1026,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                     type="text"
                     value={formData.address}
                     onChange={(e) => setFormData({...formData, address: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:border-transparent text-gray-900 bg-white"
                     placeholder="Dirección completa"
                   />
                 </div>
@@ -1040,7 +1040,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       type="text"
                       value={formData.birthday}
                       onChange={(e) => setFormData({...formData, birthday: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:border-transparent text-gray-900 bg-white"
                       placeholder="DD/MM/YYYY o DDMMYYYY"
                     />
                   </div>
@@ -1050,7 +1050,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                 {/* Sección de paquetes */}
                 <div className="border-t pt-6">
                   <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <PackageIcon className="h-5 w-5 mr-2 text-[#D7BAF6]" />
+                    <PackageIcon className="h-5 w-5 mr-2 text-[#a75a4a]" />
                     Asignar Paquete (Opcional)
                   </h3>
                   
@@ -1062,7 +1062,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                       <select
                         value={formData.package_id}
                         onChange={(e) => setFormData({...formData, package_id: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:border-transparent text-gray-900 bg-white"
                       >
                         <option value="">Sin paquete</option>
                         {packages.map(pkg => (
@@ -1083,7 +1083,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                             type="text"
                             value={formData.transaction_id}
                             onChange={(e) => setFormData({...formData, transaction_id: e.target.value})}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:border-transparent text-gray-900 bg-white"
                             placeholder="ID de transacción"
                           />
                         </div>
@@ -1095,7 +1095,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                             type="text"
                             value={formData.authorization_code}
                             onChange={(e) => setFormData({...formData, authorization_code: e.target.value})}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent text-gray-900 bg-white"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:border-transparent text-gray-900 bg-white"
                             placeholder="Código de autorización"
                           />
                         </div>
@@ -1119,7 +1119,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="px-4 py-2 bg-[#D7BAF6] text-black rounded-md hover:bg-[#8B7EE6] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-[#e7ceb9] text-[#330601] rounded-md hover:bg-[#a75a4a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? 'Creando...' : 'Crear Usuario'}
                   </button>
@@ -1134,11 +1134,11 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
       {/* Modal de Éxito */}
       {successModal.isOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50 animate-in fade-in duration-200" style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
-          <div className="bg-white rounded-lg shadow-2xl border-2 border-green-200 w-full max-w-md mx-4 transform transition-all duration-300 scale-100 animate-in zoom-in">
+          <div className="bg-white rounded-lg shadow-2xl border-2 border-gray-200 w-full max-w-md mx-4 transform transition-all duration-300 scale-100 animate-in zoom-in">
             <div className="p-6 text-center">
               <div className="flex items-center justify-center mb-4">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center animate-pulse">
-                  <CheckCircle className="h-8 w-8 text-green-600" />
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center animate-pulse">
+                  <CheckCircle className="h-8 w-8 text-gray-600" />
                 </div>
               </div>
               
@@ -1152,7 +1152,7 @@ export default function UsersClient({ users, onUserAdded, total, page, pageSize,
               
               <button
                 onClick={closeSuccessModal}
-                className="w-full px-4 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                className="w-full px-4 py-2 bg-gray-800 text-white font-medium rounded-md hover:bg-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
               >
                 Continuar
               </button>

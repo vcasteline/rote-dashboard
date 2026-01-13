@@ -1,26 +1,50 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Colores Principales RÔTÈ */
+  --rote-burnt-umber: #863010;
+  --rote-warm-beige: #e7ceb9;
+  
+  /* Colores Secundarios RÔTÈ */
+  --rote-terracotta-brown: #a75a4a;
+  --rote-rust-red: #8b372d;
+  --rote-deep-mahogany: #5d241d;
+  --rote-ox-blood: #330601;
+  
+  /* Paleta Extendida RÔTÈ */
+  --rote-cream-light: #f5ebe3;
+  --rote-sand: #d4bfad;
+  --rote-espresso: #1a0400;
+  --rote-terracotta-light: #c97d6f;
+  --rote-mauve: #8a6b63;
+  
+  /* Variables de tema */
+  --background: var(--rote-cream-light);
+  --foreground: var(--rote-ox-blood);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-gotham);
+  --font-display: var(--font-avigea);
+  
+  /* Colores RÔTÈ para Tailwind */
+  --color-rote-burnt-umber: var(--rote-burnt-umber);
+  --color-rote-warm-beige: var(--rote-warm-beige);
+  --color-rote-terracotta-brown: var(--rote-terracotta-brown);
+  --color-rote-rust-red: var(--rote-rust-red);
+  --color-rote-deep-mahogany: var(--rote-deep-mahogany);
+  --color-rote-ox-blood: var(--rote-ox-blood);
+  --color-rote-cream-light: var(--rote-cream-light);
+  --color-rote-sand: var(--rote-sand);
+  --color-rote-espresso: var(--rote-espresso);
+  --color-rote-terracotta-light: var(--rote-terracotta-light);
+  --color-rote-mauve: var(--rote-mauve);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }

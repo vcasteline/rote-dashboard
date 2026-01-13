@@ -42,15 +42,15 @@ function EditableClassName({ cls, isPending }: { cls: ClassData; isPending: bool
                 onBlur={handleSave} // Guardar al perder foco
                 onKeyDown={handleKeyDown}
                 disabled={localIsPending || isPending}
-                className="px-1 py-0.5 border rounded bg-white w-full text-sm"
+                className="px-1 py-0.5 border border-[#d4bfad] rounded bg-[#f5ebe3] w-full text-sm text-[#330601]"
                 autoFocus
             />
         );
     }
 
     return (
-        <span onClick={() => setIsEditing(true)} className="cursor-pointer hover:bg-gray-200 px-1 rounded">
-            {cls.name || <span className="text-gray-400 italic">Clic para añadir nombre</span>}
+        <span             onClick={() => setIsEditing(true)} className="cursor-pointer hover:bg-[#e7ceb9] px-1 rounded">
+            {cls.name || <span className="text-[#8a6b63] italic">Clic para añadir nombre</span>}
         </span>
     );
 }
@@ -99,7 +99,7 @@ function EditableInstructor({
                     onChange={(e) => handleSave(e.target.value)}
                     onBlur={() => handleCancel()}
                     disabled={localIsPending || isPending}
-                    className="px-1 py-0.5 border rounded bg-white w-full text-sm"
+                    className="px-1 py-0.5 border border-[#d4bfad] rounded bg-[#f5ebe3] w-full text-sm text-[#330601]"
                     autoFocus
                 >
                     <option value="">Seleccionar instructor</option>
@@ -116,9 +116,9 @@ function EditableInstructor({
     return (
         <span 
             onClick={() => setIsEditing(true)} 
-            className="cursor-pointer hover:bg-gray-200 px-1 rounded"
+            className="cursor-pointer hover:bg-[#e7ceb9] px-1 rounded"
         >
-            {cls.instructors?.name || <span className="text-gray-400 italic">Clic para asignar</span>}
+            {cls.instructors?.name || <span className="text-[#8a6b63] italic">Clic para asignar</span>}
         </span>
     );
 }
@@ -137,7 +137,6 @@ function AddClassModal({
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [locations, setLocations] = useState<Array<{ id: string; name: string; address: string | null }>>([]);
-  const [selectedModality, setSelectedModality] = useState<string>('');
 
   useEffect(() => {
     if (isOpen) {
@@ -146,9 +145,6 @@ function AddClassModal({
           setLocations(result.locations);
         }
       });
-    } else {
-      // Limpiar estado cuando se cierra el modal
-      setSelectedModality('');
     }
   }, [isOpen]);
 
@@ -185,12 +181,12 @@ function AddClassModal({
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
-      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 shadow-2xl border-2 border-gray-400">
+      <div className="bg-[#f5ebe3] rounded-lg p-6 w-full max-w-md mx-4 shadow-2xl border-2 border-[#d4bfad]">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-800">Agregar Nueva Clase</h2>
+          <h2 className="text-xl font-semibold text-[#330601]">Agregar Nueva Clase</h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-[#8a6b63] hover:text-[#5d241d]"
             disabled={isSubmitting}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -201,7 +197,7 @@ function AddClassModal({
 
         <form action={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="date" className="block text-sm font-medium text-[#5d241d] mb-1">
               Fecha
             </label>
             <input
@@ -211,14 +207,14 @@ function AddClassModal({
               min={todayString}
               max={maxDateString}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] text-gray-900 bg-white"
+              className="w-full px-3 py-2 border border-[#d4bfad] rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] text-[#330601] bg-[#f5ebe3]"
             />
-            <p className="text-xs text-gray-500 mt-1">Puedes agregar clases desde hoy hasta 7 días adelante</p>
+            <p className="text-xs text-[#8a6b63] mt-1">Puedes agregar clases desde hoy hasta 7 días adelante</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="start_time" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="start_time" className="block text-sm font-medium text-[#5d241d] mb-1">
                 Hora Inicio
               </label>
               <input
@@ -226,11 +222,11 @@ function AddClassModal({
                 id="start_time"
                 name="start_time"
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] text-gray-900 bg-white"
+                className="w-full px-3 py-2 border border-[#d4bfad] rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] text-[#330601] bg-[#f5ebe3]"
               />
             </div>
             <div>
-              <label htmlFor="end_time" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="end_time" className="block text-sm font-medium text-[#5d241d] mb-1">
                 Hora Fin
               </label>
               <input
@@ -238,20 +234,20 @@ function AddClassModal({
                 id="end_time"
                 name="end_time"
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] text-gray-900 bg-white"
+                className="w-full px-3 py-2 border border-[#d4bfad] rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] text-[#330601] bg-[#f5ebe3]"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="instructor_id" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="instructor_id" className="block text-sm font-medium text-[#5d241d] mb-1">
               Instructor
             </label>
             <select
               id="instructor_id"
               name="instructor_id"
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] text-gray-900 bg-white"
+              className="w-full px-3 py-2 border border-[#d4bfad] rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] text-[#330601] bg-[#f5ebe3]"
             >
               <option value="">Selecciona un instructor</option>
               {instructors.map((instructor) => (
@@ -264,13 +260,13 @@ function AddClassModal({
 
           {locations.length > 0 && (
             <div>
-              <label htmlFor="location_id" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="location_id" className="block text-sm font-medium text-[#5d241d] mb-1">
                 Ubicación
               </label>
               <select
                 id="location_id"
                 name="location_id"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] text-gray-900 bg-white"
+                className="w-full px-3 py-2 border border-[#d4bfad] rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] text-[#330601] bg-[#f5ebe3]"
               >
                 <option value="">Sin ubicación específica</option>
                 {locations.map((location) => (
@@ -282,36 +278,22 @@ function AddClassModal({
             </div>
           )}
 
+          {/* Modalidad siempre es 'cycle' con capacidad 25 */}
+          <input type="hidden" name="modality" value="cycle" />
           <div>
-            <label htmlFor="modality" className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-[#5d241d] mb-1">
               Modalidad
             </label>
-            <select
-              id="modality"
-              name="modality"
-              value={selectedModality}
-              onChange={(e) => setSelectedModality(e.target.value)}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] text-gray-900 bg-white"
-            >
-              <option value="">Selecciona una modalidad</option>
-              <option value="cycle">Cycle (Capacidad: 16)</option>
-              <option value="resilience">Resilience (Capacidad: 10)</option>
-              <option value="pilates">Pilates (Capacidad: 12)</option>
-            </select>
-            {selectedModality && (
-              <p className="text-xs text-gray-500 mt-1">
-                Capacidad automática: {
-                  selectedModality === 'cycle' ? '16' :
-                  selectedModality === 'resilience' ? '10' :
-                  selectedModality === 'pilates' ? '12' : ''
-                } espacios
-              </p>
-            )}
+            <div className="w-full px-3 py-2 border border-[#d4bfad] rounded-md bg-[#f5ebe3] text-[#330601]">
+              Cycle (Capacidad: 25)
+            </div>
+            <p className="text-xs text-[#8a6b63] mt-1">
+              Capacidad automática: 25 espacios
+            </p>
           </div>
 
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="name" className="block text-sm font-medium text-[#5d241d] mb-1">
               Nombre de la Clase
             </label>
             <input
@@ -319,18 +301,18 @@ function AddClassModal({
               id="name"
               name="name"
               placeholder="Ej: Cycling Intenso"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] text-gray-900 bg-white"
+              className="w-full px-3 py-2 border border-[#d4bfad] rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] text-[#330601] bg-[#f5ebe3]"
             />
           </div>
 
           {message && (
-            <div className="p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+            <div className="p-3 bg-[#e7ceb9] border border-[#a75a4a] text-[#330601] rounded">
               {message}
             </div>
           )}
 
           {error && (
-            <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            <div className="p-3 bg-[#f5ebe3] border border-[#8b372d] text-[#5d241d] rounded">
               {error}
             </div>
           )}
@@ -340,18 +322,18 @@ function AddClassModal({
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+              className="px-4 py-2 text-[#5d241d] border border-[#d4bfad] rounded-md hover:bg-[#e7ceb9] disabled:opacity-50"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-[#D7BAF6] text-black rounded-md hover:bg-[#8B7EE6] disabled:opacity-50 flex items-center"
+              className="px-4 py-2 bg-[#e7ceb9] text-[#330601] rounded-md hover:bg-[#a75a4a] disabled:opacity-50 flex items-center"
             >
               {isSubmitting ? (
                 <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-[#330601]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
@@ -390,12 +372,12 @@ function DeleteClassModal({
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
-      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 shadow-2xl border-2 border-gray-400">
+      <div className="bg-[#f5ebe3] rounded-lg p-6 w-full max-w-md mx-4 shadow-2xl border-2 border-[#d4bfad]">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-800">Confirmar Eliminación</h2>
+          <h2 className="text-xl font-semibold text-[#330601]">Confirmar Eliminación</h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-[#8a6b63] hover:text-[#5d241d]"
           >
             <X className="w-6 h-6" />
           </button>
@@ -404,37 +386,37 @@ function DeleteClassModal({
         <div className="mb-6">
           <div className="flex items-center mb-4">
             <div className="flex-shrink-0">
-              <AlertTriangle className="w-12 h-12 text-red-500" />
+              <AlertTriangle className="w-12 h-12 text-[#8b372d]" />
             </div>
             <div className="ml-4">
-              <h3 className="text-lg font-medium text-gray-900">
+              <h3 className="text-lg font-medium text-[#330601]">
                 ¿Estás seguro de borrar esta clase?
               </h3>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-[#8a6b63] mt-1">
                 Esta acción no se puede deshacer.
               </p>
             </div>
           </div>
 
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <p className="text-sm text-gray-700">
+          <div className="bg-[#e7ceb9] p-4 rounded-lg">
+            <p className="text-sm text-[#330601]">
               <strong>Fecha:</strong> {formatDateFromString(classToDelete.date)}
             </p>
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-[#330601]">
               <strong>Hora:</strong> {classToDelete.start_time} - {classToDelete.end_time}
             </p>
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-[#330601]">
               <strong>Instructor:</strong> {classToDelete.instructors?.name ?? 'N/A'}
             </p>
             {classToDelete.name && (
-              <p className="text-sm text-gray-700">
+              <p className="text-sm text-[#330601]">
                 <strong>Nombre:</strong> {classToDelete.name}
               </p>
             )}
           </div>
 
-          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
-            <div className="text-sm text-yellow-800">
+          <div className="mt-4 p-3 bg-[#e7ceb9] border border-[#a75a4a] rounded">
+            <div className="text-sm text-[#330601]">
               <p className="mb-2"><strong>¿Qué va a pasar?</strong></p>
               <ul className="list-disc list-inside space-y-1 text-xs">
                 <li><strong>Sin reservas:</strong> Se borra completamente de la base de datos (cualquier clase)</li>
@@ -447,13 +429,13 @@ function DeleteClassModal({
 
           {/* Mensajes de resultado */}
           {message && (
-            <div className="mt-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+            <div className="mt-4 p-3 bg-[#e7ceb9] border border-[#a75a4a] text-[#330601] rounded">
               {message}
             </div>
           )}
 
           {error && (
-            <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            <div className="mt-4 p-3 bg-[#f5ebe3] border border-[#8b372d] text-[#5d241d] rounded">
               {error}
             </div>
           )}
@@ -463,14 +445,14 @@ function DeleteClassModal({
           <button
             onClick={onClose}
             disabled={isDeleting}
-            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+            className="px-4 py-2 text-[#5d241d] border border-[#d4bfad] rounded-md hover:bg-[#e7ceb9] disabled:opacity-50"
           >
             Cancelar
           </button>
           <button
             onClick={() => onConfirm(classToDelete.id)}
             disabled={isDeleting}
-            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 flex items-center"
+            className="px-4 py-2 bg-[#8b372d] text-[#e7ceb9] rounded-md hover:bg-[#5d241d] disabled:opacity-50 flex items-center"
           >
             {isDeleting ? (
               <>
@@ -570,14 +552,14 @@ export default function ClassesClient({
     <div>
       {/* Botón para agregar nueva clase y filtro */}
       <div className="mb-6 flex justify-between items-center">
-        <p className="text-gray-600">
+        <p className="text-[#5d241d]">
           Aquí puedes ver y gestionar las próximas clases programadas
         </p>
         <div className="flex items-center gap-4">
           {/* Filtro por ubicación */}
           {locations.length > 0 && (
             <div className="flex items-center gap-2">
-              <label htmlFor="location_filter" className="text-sm font-medium text-gray-700 whitespace-nowrap">
+              <label htmlFor="location_filter" className="text-sm font-medium text-[#5d241d] whitespace-nowrap">
                 Filtrar por ubicación:
               </label>
               <div className="w-48">
@@ -599,7 +581,7 @@ export default function ClassesClient({
           )}
           <button
             onClick={() => setIsModalOpen(true)}
-            className="px-4 py-2 bg-[#D7BAF6] text-black rounded-md hover:bg-[#8B7EE6] flex items-center"
+            className="px-4 py-2 bg-[#e7ceb9] text-[#330601] rounded-md hover:bg-[#a75a4a] flex items-center"
           >
             <Plus className="w-4 h-4 mr-2" />
             Agregar Clase para Esta Semana
@@ -611,7 +593,7 @@ export default function ClassesClient({
     <div className="bg-white shadow-md rounded overflow-hidden">
       <table className="min-w-full leading-normal">
         <thead>
-          <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+          <tr className="bg-[#d4bfad] text-[#5d241d] uppercase text-sm leading-normal">
             <th className="py-3 px-5 text-left">Fecha</th>
             <th className="py-3 px-5 text-left">Hora</th>
             <th className="py-3 px-5 text-left">Instructor</th>
@@ -621,10 +603,10 @@ export default function ClassesClient({
             <th className="py-3 px-5 text-center">Acciones</th>
           </tr>
         </thead>
-        <tbody className="text-gray-700 text-sm font-light">
+        <tbody className="text-[#330601] text-sm font-light">
           {filteredClasses.length > 0 ? (
             filteredClasses.map((cls) => (
-              <tr key={cls.id} className="border-b border-gray-200 hover:bg-gray-100">
+              <tr key={cls.id} className="border-b border-[#d4bfad] hover:bg-gray-50">
                 <td className="py-3 px-5 text-left whitespace-nowrap">
                     {formatDateFromString(cls.date)}
                 </td>
@@ -640,15 +622,15 @@ export default function ClassesClient({
                 </td>
                 <td className="py-3 px-5 text-left">
                   {cls.modality ? (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 capitalize">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#e7ceb9] text-[#330601] capitalize">
                       {cls.modality}
                     </span>
                   ) : (
-                    <span className="text-gray-400 italic">N/A</span>
+                    <span className="text-[#8a6b63] italic">N/A</span>
                   )}
                 </td>
                 <td className="py-3 px-5 text-left">
-                  {cls.locations?.name || <span className="text-gray-400 italic">N/A</span>}
+                  {cls.locations?.name || <span className="text-[#8a6b63] italic">N/A</span>}
                 </td>
                 <td className="py-3 px-5 text-left">
                     <EditableClassName cls={cls} isPending={isPendingName} />
@@ -657,7 +639,7 @@ export default function ClassesClient({
                   <button
                     onClick={() => handleDeleteClick(cls)}
                     disabled={isDeleting}
-                    className="text-red-600 hover:text-red-800 disabled:opacity-50 p-2 rounded hover:bg-red-50"
+                    className="text-[#8b372d] hover:text-[#5d241d] disabled:opacity-50 p-2 rounded hover:bg-[#f5ebe3]"
                     title="Borrar clase"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -699,13 +681,13 @@ export default function ClassesClient({
 
       {/* Mensajes de resultado del borrado */}
       {deleteMessage && (
-        <div className="fixed bottom-4 right-4 z-50 p-4 bg-green-100 border border-green-400 text-green-700 rounded shadow-lg">
+        <div className="fixed bottom-4 right-4 z-50 p-4 bg-[#e7ceb9] border border-[#a75a4a] text-[#330601] rounded shadow-lg">
           {deleteMessage}
         </div>
       )}
 
       {deleteError && (
-        <div className="fixed bottom-4 right-4 z-50 p-4 bg-red-100 border border-red-400 text-red-700 rounded shadow-lg">
+        <div className="fixed bottom-4 right-4 z-50 p-4 bg-[#f5ebe3] border border-[#8b372d] text-[#5d241d] rounded shadow-lg">
           {deleteError}
         </div>
       )}

@@ -150,7 +150,7 @@ export default function ImageUploader({
 
   return (
     <div className="space-y-3">
-      <label className="block text-sm font-medium text-gray-700">
+      <label className="block text-sm font-medium text-[#5d241d]">
         Foto de Perfil
       </label>
       
@@ -160,13 +160,13 @@ export default function ImageUploader({
           <img
             src={currentImageUrl}
             alt="Vista previa"
-            className="h-24 w-24 object-cover rounded-lg border border-gray-300"
+            className="h-24 w-24 object-cover rounded-lg border border-[#d4bfad]"
           />
           <button
             type="button"
             onClick={handleRemoveImage}
             disabled={disabled || isUploading}
-            className="absolute -top-2 -right-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-full p-1 disabled:opacity-50"
+            className="absolute -top-2 -right-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full p-1 disabled:opacity-50"
             title="Eliminar imagen"
           >
             <XCircleIcon className="h-4 w-4" />
@@ -182,9 +182,9 @@ export default function ImageUploader({
         onClick={handleClick}
         className={`
           relative border-2 border-dashed rounded-lg p-6 transition-colors cursor-pointer
-          ${dragActive ? 'border-[#D7BAF6] bg-purple-50' : 'border-gray-300'}
-          ${disabled || isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:border-[#8B7EE6] hover:bg-gray-50'}
-          ${uploadError ? 'border-red-300 bg-red-50' : ''}
+          ${dragActive ? 'border-[#a75a4a] bg-[#e7ceb9]' : 'border-[#d4bfad]'}
+          ${disabled || isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:border-[#a75a4a] hover:bg-[#f5ebe3]'}
+          ${uploadError ? 'border-[#8b372d] bg-[#f5ebe3]' : ''}
         `}
       >
         <input
@@ -199,22 +199,22 @@ export default function ImageUploader({
         <div className="text-center">
           {isUploading ? (
             <div className="flex flex-col items-center">
-              <div className="w-8 h-8 border-2 border-[#D7BAF6] border-t-transparent rounded-full animate-spin mb-2"></div>
-              <p className="text-sm text-gray-600">Subiendo imagen...</p>
+              <div className="w-8 h-8 border-2 border-[#a75a4a] border-t-transparent rounded-full animate-spin mb-2"></div>
+              <p className="text-sm text-[#5d241d]">Subiendo imagen...</p>
             </div>
           ) : uploadError ? (
             <div className="flex flex-col items-center">
-              <XCircleIcon className="h-8 w-8 text-red-500 mb-2" />
-              <p className="text-sm text-red-600">{uploadError}</p>
-              <p className="text-xs text-gray-500 mt-1">Haz clic para intentar de nuevo</p>
+              <XCircleIcon className="h-8 w-8 text-[#8b372d] mb-2" />
+              <p className="text-sm text-[#5d241d]">{uploadError}</p>
+              <p className="text-xs text-[#8a6b63] mt-1">Haz clic para intentar de nuevo</p>
             </div>
           ) : (
             <div className="flex flex-col items-center">
-              <CloudUploadIcon className="h-8 w-8 text-gray-400 mb-2" />
-              <p className="text-sm text-gray-600">
+              <CloudUploadIcon className="h-8 w-8 text-[#8a6b63] mb-2" />
+              <p className="text-sm text-[#5d241d]">
                 <span className="font-medium">Haz clic para subir</span> o arrastra una imagen aquí
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-[#8a6b63] mt-1">
                 PNG, JPG, WebP hasta 5MB
               </p>
             </div>

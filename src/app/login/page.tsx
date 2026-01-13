@@ -90,42 +90,42 @@ export default function LoginPage() {
   // Si hay un usuario no autorizado, mostrar mensaje con diseño mejorado
   if (unauthorizedUser) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-100 via-white to-orange-50 flex items-center justify-center p-4">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 p-8 w-full max-w-md">
+      <div className="min-h-screen bg-[#863010] flex items-center justify-center p-4">
+        <div className="bg-[#f5ebe3]/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-[#d4bfad] p-8 w-full max-w-md">
           <div className="text-center">
-            <div className="mx-auto w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mb-6 shadow-lg">
-              <AlertTriangle className="w-10 h-10 text-white" />
+            <div className="mx-auto w-20 h-20 bg-gradient-to-br from-[#a75a4a] to-[#8b372d] rounded-full flex items-center justify-center mb-6 shadow-lg">
+              <AlertTriangle className="w-10 h-10 text-[#e7ceb9]" />
             </div>
             
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-3">
+            <h2 className="text-3xl font-bold text-[#330601] mb-3">
               Acceso Restringido
             </h2>
             
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <p className="text-gray-600 mb-2 text-sm">
+            <div className="bg-[#e7ceb9] rounded-lg p-4 mb-6">
+              <p className="text-[#5d241d] mb-2 text-sm">
                 Sesión iniciada como:
               </p>
-              <div className="flex items-center justify-center space-x-2 bg-white rounded-lg p-3">
-                <User className="w-4 h-4 text-gray-500" />
-                <span className="font-medium text-gray-800 text-sm">
+              <div className="flex items-center justify-center space-x-2 bg-[#f5ebe3] rounded-lg p-3">
+                <User className="w-4 h-4 text-[#8a6b63]" />
+                <span className="font-medium text-[#330601] text-sm">
                   {unauthorizedUser}
                 </span>
               </div>
             </div>
             
-            <p className="text-gray-600 mb-8 leading-relaxed">
-              Esta cuenta no tiene permisos para acceder al panel de administración de Hundred.
+            <p className="text-[#5d241d] mb-8 leading-relaxed">
+              Esta cuenta no tiene permisos para acceder al panel de administración de RÔTÈ.
             </p>
 
             <button
               onClick={handleLogout}
-              className="w-full bg-[#D7BAF6] text-black py-3 px-6 rounded-xl hover:bg-[#8B7EE6] transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center space-x-2"
+              className="w-full bg-[#e7ceb9] text-[#330601] py-3 px-6 rounded-xl hover:bg-[#a75a4a] hover:text-[#e7ceb9] transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center space-x-2"
             >
               <LogIn className="w-5 h-5" />
               <span>Intentar con Otra Cuenta</span>
             </button>
             
-            <p className="text-xs text-gray-500 mt-6 leading-relaxed">
+            <p className="text-xs text-[#8a6b63] mt-6 leading-relaxed">
               Si necesitas acceso, contacta al administrador del sistema
             </p>
           </div>
@@ -135,18 +135,18 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#1D1D1C] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#863010] flex items-center justify-center p-4">
       <div className="w-full max-w-6xl grid md:grid-cols-2 gap-8 items-center">
         {/* Panel izquierdo - Branding */}
         <div className="hidden md:block">
           <div className="text-center">
             <div className="mb-8">
               <img 
-                src="/hundred-logo.png" 
-                alt="Hundred Logo" 
+                src="/rote-logo.png" 
+                alt="RÔTÈ Logo" 
                 className="mx-auto h-28 w-auto mb-6"
               />
-              <p className="text-xl text-white leading-relaxed">
+              <p className="text-xl text-[#e7ceb9] leading-relaxed">
                 Panel de administración para gestionar tu estudio.
               </p>
             </div>
@@ -155,15 +155,15 @@ export default function LoginPage() {
 
         {/* Panel derecho - Formulario de login */}
         <div className="flex justify-center">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 p-8 w-full max-w-md">
+          <div className="bg-[#f5ebe3]/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-[#d4bfad] p-8 w-full max-w-md">
             {/* Header del formulario */}
             <div className="text-center mb-8">
               <div className="md:hidden inline-flex items-center space-x-2 mb-6">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center">
-                <Image src="/hundred-logo.png" alt="Hundred Logo" width={250} height={250} className="invert" />
+                <Image src="/rote-logo.png" alt="Rote Logo" width={250} height={250} className="invert" />
                 </div>
-                <span className="text-2xl font-bold text-gray-800">
-                  Hundred Admin
+                <span className="text-2xl font-bold text-[#330601]">
+                  RÔTÈ Admin
                 </span>
               </div>
               
@@ -178,12 +178,12 @@ export default function LoginPage() {
             <form onSubmit={handleLogin} className="space-y-6">
               {/* Campo de email */}
               <div className="space-y-2">
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="email" className="block text-sm font-medium text-[#5d241d]">
                   Correo Electrónico
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-gray-400" />
+                    <Mail className="h-5 w-5 text-[#8a6b63]" />
                   </div>
                   <input
                     type="email"
@@ -192,7 +192,7 @@ export default function LoginPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     disabled={loading}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent disabled:opacity-50 disabled:bg-gray-50 text-gray-900 placeholder-gray-500 transition-all duration-200"
+                    className="w-full pl-10 pr-4 py-3 border border-[#d4bfad] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:border-transparent disabled:opacity-50 disabled:bg-[#f5ebe3] text-[#330601] placeholder-[#8a6b63] transition-all duration-200"
                     placeholder="tuemail@ejemplo.com"
                   />
                 </div>
@@ -200,12 +200,12 @@ export default function LoginPage() {
 
               {/* Campo de contraseña */}
               <div className="space-y-2">
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="password" className="block text-sm font-medium text-[#5d241d]">
                   Contraseña
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" />
+                    <Lock className="h-5 w-5 text-[#8a6b63]" />
                   </div>
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -214,14 +214,14 @@ export default function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     disabled={loading}
-                    className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-transparent disabled:opacity-50 disabled:bg-gray-50 text-gray-900 placeholder-gray-500 transition-all duration-200"
+                    className="w-full pl-10 pr-12 py-3 border border-[#d4bfad] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:border-transparent disabled:opacity-50 disabled:bg-[#f5ebe3] text-[#330601] placeholder-[#8a6b63] transition-all duration-200"
                     placeholder="••••••••"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     disabled={loading}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#8a6b63] hover:text-[#5d241d] transition-colors duration-200"
                   >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
@@ -230,10 +230,10 @@ export default function LoginPage() {
 
               {/* Mensaje de error */}
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <div className="bg-[#f5ebe3] border border-[#a75a4a] rounded-lg p-3">
                   <div className="flex items-center space-x-2">
-                    <AlertTriangle className="h-4 w-4 text-red-500 flex-shrink-0" />
-                    <p className="text-sm text-red-700">{error}</p>
+                    <AlertTriangle className="h-4 w-4 text-[#8b372d] flex-shrink-0" />
+                    <p className="text-sm text-[#5d241d]">{error}</p>
                   </div>
                 </div>
               )}
@@ -242,7 +242,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[#D7BAF6] text-black py-3 px-6 rounded-xl hover:bg-[#8B7EE6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D7BAF6] disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center space-x-2"
+                className="w-full bg-[#e7ceb9] text-[#330601] py-3 px-6 rounded-xl hover:bg-[#a75a4a] hover:text-[#e7ceb9] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#a75a4a] disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center space-x-2"
               >
                 {loading ? (
                   <>
@@ -260,7 +260,7 @@ export default function LoginPage() {
 
             {/* Footer */}
             <div className="mt-8 text-center">
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-[#8a6b63]">
                 Panel exclusivo para administradores autorizados
               </p>
             </div>

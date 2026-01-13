@@ -1,6 +1,6 @@
-# ⏰ Configuración de Cron Jobs para Hundred Dashboard
+# ⏰ Configuración de Cron Jobs para Rote Dashboard
 
-Este documento explica cómo configurar y desplegar los cron jobs automatizados para el sistema de Hundred.
+Este documento explica cómo configurar y desplegar los cron jobs automatizados para el sistema de Rote.
 
 ## 📋 **Cron Jobs Implementados**
 
@@ -49,7 +49,7 @@ supabase login
 
 ### 2. Inicializar proyecto (si no está hecho)
 ```bash
-cd hundred-admin-dashboard
+cd rote-admin-dashboard
 supabase init
 ```
 

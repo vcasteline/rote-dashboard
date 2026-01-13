@@ -108,9 +108,9 @@ export default function CustomSelect({
         disabled={disabled}
         className={`
           w-full px-3 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm
-          focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-[#D7BAF6]
+          focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500
           disabled:opacity-50 disabled:cursor-not-allowed
-          ${isOpen ? 'ring-2 ring-[#D7BAF6] border-[#D7BAF6]' : ''}
+          ${isOpen ? 'ring-2 ring-gray-500 border-gray-500' : ''}
           ${disabled ? 'bg-gray-50' : 'hover:border-gray-400'}
         `}
         aria-haspopup="listbox"
@@ -122,7 +122,7 @@ export default function CustomSelect({
             {selectedOption ? selectedOption.label : placeholder}
           </span>
           <ChevronDownIcon
-            className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${
+            className={`h-5 w-5 text-gray-500 transition-transform duration-200 ${
               isOpen ? 'transform rotate-180' : ''
             }`}
           />
@@ -138,8 +138,8 @@ export default function CustomSelect({
                 key={option.value}
                 onClick={() => handleSelect(option.value)}
                 className={`
-                  relative cursor-pointer select-none py-2 pl-3 pr-9 hover:bg-purple-50
-                  ${value === option.value ? 'bg-purple-50 text-purple-900' : 'text-gray-900'}
+                  relative cursor-pointer select-none py-2 pl-3 pr-9 hover:bg-gray-50
+                  ${value === option.value ? 'bg-gray-50 text-gray-900' : 'text-gray-900'}
                 `}
                 role="option"
                 aria-selected={value === option.value}
@@ -149,7 +149,7 @@ export default function CustomSelect({
                 </span>
                 
                 {value === option.value && (
-                  <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-[#D7BAF6]">
+                  <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-600">
                     <CheckIcon className="h-5 w-5" />
                   </span>
                 )}

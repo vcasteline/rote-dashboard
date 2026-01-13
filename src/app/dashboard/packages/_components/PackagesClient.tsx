@@ -39,23 +39,23 @@ const formatCurrency = (amount: number) => {
 // Helper para determinar el estado del paquete (usando zona horaria de Guayaquil)
 const getPackageStatus = (purchase: PurchaseData) => {
   if (purchase.credits_remaining <= 0) {
-    return { status: 'agotado', color: 'bg-red-100 text-red-800', text: 'Agotado' };
+    return { status: 'agotado', color: 'bg-[#f5ebe3] text-[#8b372d]', text: 'Agotado' };
   }
   
   if (purchase.expiration_date) {
     // Verificar si está expirado usando zona horaria de Guayaquil
     if (isExpirationDateExpired(purchase.expiration_date)) {
-      return { status: 'vencido', color: 'bg-red-100 text-red-800', text: 'Vencido' };
+      return { status: 'vencido', color: 'bg-[#f5ebe3] text-[#8b372d]', text: 'Vencido' };
     }
     
     // Calcular días hasta expiración usando zona horaria de Guayaquil
     const daysToExpire = daysUntilExpiration(purchase.expiration_date);
     if (daysToExpire !== null && daysToExpire <= 7) {
-      return { status: 'por-vencer', color: 'bg-yellow-100 text-yellow-800', text: `Vence en ${daysToExpire} días` };
+      return { status: 'por-vencer', color: 'bg-[#e7ceb9] text-[#5d241d]', text: `Vence en ${daysToExpire} días` };
     }
   }
   
-  return { status: 'activo', color: 'bg-green-100 text-green-800', text: 'Activo' };
+  return { status: 'activo', color: 'bg-[#e7ceb9] text-[#330601]', text: 'Activo' };
 };
 
 // Función para exportar a Excel (CSV)
@@ -171,7 +171,7 @@ function CustomSelect({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-left focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-[#D7BAF6] text-gray-900 flex items-center justify-between"
+        className="w-full px-3 py-2 border border-[#d4bfad] rounded-md shadow-sm bg-[#f5ebe3] text-left focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:border-[#a75a4a] text-[#330601] flex items-center justify-between"
       >
         <span>{selectedOption?.label || 'Seleccionar...'}</span>
         <svg 
@@ -185,7 +185,7 @@ function CustomSelect({
       </button>
 
       {isOpen && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
+        <div className="absolute z-10 w-full mt-1 bg-[#f5ebe3] border border-[#d4bfad] rounded-md shadow-lg">
           <div className="py-1">
             {options.map((option) => (
               <button
@@ -195,8 +195,8 @@ function CustomSelect({
                   onChange(option.value);
                   setIsOpen(false);
                 }}
-                className={`w-full px-3 py-2 text-left hover:bg-gray-100 transition-colors ${
-                  value === option.value ? 'bg-purple-50 text-[#D7BAF6]' : 'text-gray-900'
+                className={`w-full px-3 py-2 text-left hover:bg-[#e7ceb9] transition-colors ${
+                  value === option.value ? 'bg-[#e7ceb9] text-[#330601]' : 'text-[#330601]'
                 }`}
               >
                 {option.label}
@@ -446,14 +446,14 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
   return (
     <div className="space-y-6">
       {/* Controles superiores */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+      <div className="bg-[#f5ebe3] p-6 rounded-lg shadow-sm border border-[#d4bfad]">
         <div className="space-y-6">
           {/* Primera fila: Búsqueda y Estado */}
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
             <div className="flex flex-col md:flex-row gap-4 flex-1 w-full lg:w-auto">
               {/* Búsqueda */}
               <div className="flex-1 min-w-80">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-[#5d241d] mb-2">
                   Buscar paquetes
                 </label>
                 <input
@@ -461,13 +461,13 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
                   placeholder="Cliente, email o paquete..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-[#D7BAF6] text-gray-900"
+                  className="w-full px-4 py-3 border border-[#d4bfad] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:border-[#a75a4a] text-[#330601] bg-[#f5ebe3]"
                 />
               </div>
 
               {/* Filtro por estado */}
               <div className="min-w-56">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-[#5d241d] mb-2">
                   Estado del paquete
                 </label>
                 <CustomSelect
@@ -484,7 +484,7 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
               </div>
               {/* Orden */}
               <div className="min-w-44">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-[#5d241d] mb-2">
                   Ordenar por compra
                 </label>
                 <CustomSelect
@@ -501,7 +501,7 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
             {/* Indicador de filtros activos */}
             {(searchTerm || statusFilter !== 'todos' || dateFrom || dateTo || filteredUser) && (
               <div className="flex items-center flex-wrap gap-2">
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#e7ceb9] text-[#330601]">
                   <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                   </svg>
@@ -509,7 +509,7 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
                 </span>
                 {filteredUser && (
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#c97d6f] text-[#330601]">
                       <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
@@ -517,7 +517,7 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
                     </span>
                     <button
                       onClick={() => window.location.href = '/dashboard/packages'}
-                      className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                      className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#d4bfad] text-[#5d241d] hover:bg-[#c97d6f] transition-colors"
                       title="Limpiar filtro de usuario"
                     >
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -531,10 +531,10 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
           </div>
 
           {/* Segunda fila: Filtros por fecha */}
-          <div className="border-t border-gray-100 pt-6">
+          <div className="border-t border-[#d4bfad] pt-6">
             <div className="flex flex-col space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-gray-700">
+                <h3 className="text-sm font-medium text-[#5d241d]">
                   Filtrar por fecha de compra
                 </h3>
                 
@@ -542,19 +542,19 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setDateShortcut('today')}
-                    className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-md text-sm hover:bg-blue-200 transition-colors"
+                    className="px-3 py-1.5 bg-[#e7ceb9] text-[#330601] rounded-md text-sm hover:bg-[#a75a4a] hover:text-[#e7ceb9] transition-colors"
                   >
                     Hoy
                   </button>
                   <button
                     onClick={() => setDateShortcut('week')}
-                    className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-md text-sm hover:bg-blue-200 transition-colors"
+                    className="px-3 py-1.5 bg-[#e7ceb9] text-[#330601] rounded-md text-sm hover:bg-[#a75a4a] hover:text-[#e7ceb9] transition-colors"
                   >
                     Esta semana
                   </button>
                   <button
                     onClick={() => setDateShortcut('month')}
-                    className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-md text-sm hover:bg-blue-200 transition-colors"
+                    className="px-3 py-1.5 bg-[#e7ceb9] text-[#330601] rounded-md text-sm hover:bg-[#a75a4a] hover:text-[#e7ceb9] transition-colors"
                   >
                     Este mes
                   </button>
@@ -564,7 +564,7 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
                         setDateFrom('');
                         setDateTo('');
                       }}
-                      className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition-colors text-sm"
+                      className="px-3 py-1.5 bg-[#d4bfad] text-[#330601] rounded-md hover:bg-[#c97d6f] transition-colors text-sm"
                     >
                       Limpiar fechas
                     </button>
@@ -575,26 +575,26 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
               {/* Inputs de fecha */}
               <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-end">
                 <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-600 mb-2">
+                  <label className="block text-sm font-medium text-[#5d241d] mb-2">
                     Fecha desde
                   </label>
                   <input
                     type="date"
                     value={dateFrom}
                     onChange={(e) => setDateFrom(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-[#D7BAF6] text-gray-900"
+                    className="w-full px-4 py-3 border border-[#d4bfad] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:border-[#a75a4a] text-[#330601] bg-[#f5ebe3]"
                   />
                 </div>
                 
                 <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-600 mb-2">
+                  <label className="block text-sm font-medium text-[#5d241d] mb-2">
                     Fecha hasta
                   </label>
                   <input
                     type="date"
                     value={dateTo}
                     onChange={(e) => setDateTo(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] focus:border-[#D7BAF6] text-gray-900"
+                    className="w-full px-4 py-3 border border-[#d4bfad] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:border-[#a75a4a] text-[#330601] bg-[#f5ebe3]"
                   />
                 </div>
 
@@ -602,7 +602,7 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
                 <div className="flex-shrink-0">
                   <a
                     href={`/api/purchases/export?order=${order}&status=${encodeURIComponent(statusFilter)}&dateFrom=${encodeURIComponent(dateFrom)}&dateTo=${encodeURIComponent(dateTo)}&q=${encodeURIComponent(searchTerm)}${filteredUser ? `&user=${encodeURIComponent(filteredUser)}` : ''}`}
-                    className="px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2 shadow-sm"
+                    className="px-6 py-3 bg-[#863010] text-[#e7ceb9] font-medium rounded-lg hover:bg-[#8b372d] transition-colors flex items-center space-x-2 shadow-sm"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -616,39 +616,39 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
         </div>
 
         {/* Estadísticas rápidas */}
-        <div className="mt-6 pt-6 border-t border-gray-100">
+        <div className="mt-6 pt-6 border-t border-[#d4bfad]">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="text-center bg-gray-50 rounded-lg p-4">
-              <div className="text-2xl font-bold text-gray-900">{total}</div>
-              <div className="text-sm text-gray-600">Total</div>
+            <div className="text-center bg-[#f5ebe3] rounded-lg p-4">
+              <div className="text-2xl font-bold text-[#330601]">{total}</div>
+              <div className="text-sm text-[#5d241d]">Total</div>
             </div>
-            <div className="text-center bg-green-50 rounded-lg p-4">
-              <div className="text-2xl font-bold text-green-600">
+            <div className="text-center bg-[#e7ceb9] rounded-lg p-4">
+              <div className="text-2xl font-bold text-[#330601]">
                 {filteredPurchases.filter(p => getPackageStatus(p).status === 'activo').length}
               </div>
-              <div className="text-sm text-gray-600">Activos</div>
+              <div className="text-sm text-[#5d241d]">Activos</div>
             </div>
-            <div className="text-center bg-yellow-50 rounded-lg p-4">
-              <div className="text-2xl font-bold text-yellow-600">
+            <div className="text-center bg-[#c97d6f] rounded-lg p-4">
+              <div className="text-2xl font-bold text-[#330601]">
                 {filteredPurchases.filter(p => getPackageStatus(p).status === 'por-vencer').length}
               </div>
-              <div className="text-sm text-gray-600">Por vencer</div>
+              <div className="text-sm text-[#5d241d]">Por vencer</div>
             </div>
-            <div className="text-center bg-red-50 rounded-lg p-4">
-              <div className="text-2xl font-bold text-red-600">
+            <div className="text-center bg-[#f5ebe3] rounded-lg p-4 border border-[#8b372d]">
+              <div className="text-2xl font-bold text-[#8b372d]">
                 {filteredPurchases.filter(p => ['vencido', 'agotado'].includes(getPackageStatus(p).status)).length}
               </div>
-              <div className="text-sm text-gray-600">Vencidos/Agotados</div>
+              <div className="text-sm text-[#5d241d]">Vencidos/Agotados</div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Tabla de paquetes */}
-      <div className="bg-white shadow-md rounded-lg overflow-hidden">
+      <div className="bg-[#f5ebe3] shadow-md rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           {/* Barra de resumen y paginación */}
-          <div className="flex items-center justify-between p-4 text-sm text-gray-600">
+          <div className="flex items-center justify-between p-4 text-sm text-[#5d241d]">
             <div>
               {total > 0 ? `Mostrando ${startIndex}-${endIndex} de ${total}` : '0 resultados'}
             </div>
@@ -661,7 +661,7 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
               >
                 «
               </button>
-              <span className="text-sm text-gray-600">{page} / {Math.max(1, Math.ceil(total / pageSize))}</span>
+              <span className="text-sm text-[#5d241d]">{page} / {Math.max(1, Math.ceil(total / pageSize))}</span>
               <button
                 onClick={() => goToPage(page + 1)}
                 disabled={page >= Math.max(1, Math.ceil(total / pageSize))}
@@ -674,7 +674,7 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
           </div>
           <table className="min-w-full leading-normal">
             <thead>
-              <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+              <tr className="bg-[#d4bfad] text-[#5d241d] uppercase text-sm leading-normal">
                 <th className="py-3 px-5 text-left">Cliente</th>
                 <th className="py-3 px-5 text-left">Paquete</th>
                 <th className="py-3 px-5 text-center">Créditos</th>
@@ -687,18 +687,18 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
                 <th className="py-3 px-5 text-center">Acciones</th>
               </tr>
             </thead>
-            <tbody className="text-gray-700 text-sm font-light">
+            <tbody className="text-[#330601] text-sm font-light">
               {filteredPurchases.length > 0 ? (
                 filteredPurchases.map((purchase) => {
                   const status = getPackageStatus(purchase);
                   return (
-                    <tr key={purchase.id} className="border-b border-gray-200 hover:bg-gray-100">
+                    <tr key={purchase.id} className="border-b border-[#d4bfad] hover:bg-[#f5ebe3]">
                       <td className="py-3 px-5 text-left">
                         <div>
                           <div className="font-medium">{purchase.users?.name || 'N/A'}</div>
-                          <div className="text-xs text-gray-500">{purchase.users?.email}</div>
+                          <div className="text-xs text-[#8a6b63]">{purchase.users?.email}</div>
                           {purchase.users?.phone && (
-                            <div className="text-xs text-gray-500">{purchase.users.phone}</div>
+                            <div className="text-xs text-[#8a6b63]">{purchase.users.phone}</div>
                           )}
                         </div>
                       </td>
@@ -716,13 +716,13 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
                               min="0"
                               value={editCreditsValue}
                               onChange={(e) => setEditCreditsValue(e.target.value)}
-                              className="w-16 px-2 py-1 border border-gray-300 rounded text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className="w-16 px-2 py-1 border border-[#d4bfad] rounded text-center focus:outline-none focus:ring-2 focus:ring-[#a75a4a] bg-[#f5ebe3] text-[#330601]"
                               autoFocus
                             />
                             <button
                               onClick={() => saveEditedCredits(purchase.id)}
                               disabled={isUpdatingCredits}
-                              className="text-green-600 hover:text-green-800 disabled:opacity-50"
+                              className="text-[#330601] hover:text-[#5d241d] disabled:opacity-50"
                               title="Guardar"
                             >
                               <CheckCircle className="h-4 w-4" />
@@ -730,7 +730,7 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
                             <button
                               onClick={cancelEditingCredits}
                               disabled={isUpdatingCredits}
-                              className="text-red-600 hover:text-red-800 disabled:opacity-50"
+                              className="text-[#8b372d] hover:text-[#5d241d] disabled:opacity-50"
                               title="Cancelar"
                             >
                               <X className="h-4 w-4" />
@@ -739,7 +739,7 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
                         ) : (
                           <div>
                             <div className="font-medium">{purchase.credits_remaining}</div>
-                            <div className="text-xs text-gray-500">restantes</div>
+                            <div className="text-xs text-[#8a6b63]">restantes</div>
                           </div>
                         )}
                       </td>
@@ -756,13 +756,13 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
                               type="date"
                               value={editExpirationValue}
                               onChange={(e) => setEditExpirationValue(e.target.value)}
-                              className="px-2 py-1 border border-gray-300 rounded text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className="px-2 py-1 border border-[#d4bfad] rounded text-center focus:outline-none focus:ring-2 focus:ring-[#a75a4a] bg-[#f5ebe3] text-[#330601]"
                               autoFocus
                             />
                             <button
                               onClick={() => saveEditedExpiration(purchase.id)}
                               disabled={isUpdatingExpiration}
-                              className="text-green-600 hover:text-green-800 disabled:opacity-50"
+                              className="text-[#330601] hover:text-[#5d241d] disabled:opacity-50"
                               title="Guardar"
                             >
                               <CheckCircle className="h-4 w-4" />
@@ -770,7 +770,7 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
                             <button
                               onClick={cancelEditingExpiration}
                               disabled={isUpdatingExpiration}
-                              className="text-red-600 hover:text-red-800 disabled:opacity-50"
+                              className="text-[#8b372d] hover:text-[#5d241d] disabled:opacity-50"
                               title="Cancelar"
                             >
                               <X className="h-4 w-4" />
@@ -781,7 +781,7 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
                             <span>{formatDate(purchase.expiration_date)}</span>
                             <button
                               onClick={() => startEditingExpiration(purchase.id, purchase.expiration_date)}
-                              className="text-blue-600 hover:text-blue-800"
+                              className="text-gray-700 hover:text-gray-900"
                               title="Editar fecha de expiración"
                             >
                               <Calendar className="h-3 w-3" />
@@ -797,14 +797,14 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
                       <td className="py-3 px-5 text-center">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                           purchase.contabilidad 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-gray-100 text-gray-800'
+                            ? 'bg-[#e7ceb9] text-[#330601]' 
+                            : 'bg-[#d4bfad] text-[#5d241d]'
                         }`}>
                           {purchase.contabilidad ? 'Sí' : 'No'}
                         </span>
                       </td>
                       <td className="py-3 px-5 text-center">
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-[#8a6b63]">
                           {purchase.authorization_code && (
                             <div>Autorización: {purchase.authorization_code}</div>
                           )}
@@ -818,11 +818,11 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
                       </td>
                       <td className="py-3 px-5 text-center">
                         {editingPurchaseId === purchase.id ? (
-                          <div className="text-xs text-gray-500">Editando...</div>
+                          <div className="text-xs text-[#8a6b63]">Editando...</div>
                         ) : (
                           <button
                             onClick={() => startEditingCredits(purchase.id, purchase.credits_remaining)}
-                            className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-150"
+                            className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-[#330601] bg-[#e7ceb9] hover:bg-[#a75a4a] hover:text-[#e7ceb9] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#a75a4a] transition-colors duration-150"
                             title="Editar créditos"
                           >
                             <Edit className="h-3 w-3 mr-1" />
@@ -835,7 +835,7 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
                 })
               ) : (
                 <tr>
-                  <td colSpan={10} className="py-6 px-5 text-center text-gray-500">
+                  <td colSpan={10} className="py-6 px-5 text-center text-[#8a6b63]">
                     No se encontraron paquetes con los filtros aplicados.
                   </td>
                 </tr>
@@ -848,25 +848,25 @@ export default function PackagesClient({ purchases, total, page, pageSize, order
       {/* Modal de Éxito */}
       {successModal.isOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50 animate-in fade-in duration-200" style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
-          <div className="bg-white rounded-lg shadow-2xl border-2 border-green-200 w-full max-w-md mx-4 transform transition-all duration-300 scale-100 animate-in zoom-in">
+          <div className="bg-[#f5ebe3] rounded-lg shadow-2xl border-2 border-[#a75a4a] w-full max-w-md mx-4 transform transition-all duration-300 scale-100 animate-in zoom-in">
             <div className="p-6 text-center">
               <div className="flex items-center justify-center mb-4">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center animate-pulse">
-                  <CheckCircle className="h-8 w-8 text-green-600" />
+                <div className="w-16 h-16 bg-[#e7ceb9] rounded-full flex items-center justify-center animate-pulse">
+                  <CheckCircle className="h-8 w-8 text-[#330601]" />
                 </div>
               </div>
               
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
+              <h3 className="text-xl font-bold text-[#330601] mb-2">
                 {successModal.title}
               </h3>
               
-              <p className="text-gray-600 mb-6">
+              <p className="text-[#5d241d] mb-6">
                 {successModal.message}
               </p>
               
               <button
                 onClick={closeSuccessModal}
-                className="w-full px-4 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                className="w-full px-4 py-2 bg-[#863010] text-[#e7ceb9] font-medium rounded-md hover:bg-[#8b372d] transition-colors focus:outline-none focus:ring-2 focus:ring-[#a75a4a] focus:ring-offset-2"
               >
                 Continuar
               </button>

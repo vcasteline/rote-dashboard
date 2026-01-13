@@ -18,8 +18,8 @@ function StatsCards({ stats }: { stats: NotificationStats }) {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
         <div className="flex items-center">
-          <div className="p-3 bg-green-100 rounded-full">
-            <Users className="w-6 h-6 text-green-600" />
+          <div className="p-3 bg-gray-100 rounded-full">
+            <Users className="w-6 h-6 text-gray-600" />
           </div>
           <div className="ml-4">
             <p className="text-sm font-medium text-gray-600">Usuarios Activos</p>
@@ -30,8 +30,8 @@ function StatsCards({ stats }: { stats: NotificationStats }) {
 
       <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
         <div className="flex items-center">
-          <div className="p-3 bg-blue-100 rounded-full">
-            <Clock className="w-6 h-6 text-blue-600" />
+          <div className="p-3 bg-gray-100 rounded-full">
+            <Clock className="w-6 h-6 text-gray-600" />
           </div>
           <div className="ml-4">
             <p className="text-sm font-medium text-gray-600">Enviadas Hoy</p>
@@ -42,8 +42,8 @@ function StatsCards({ stats }: { stats: NotificationStats }) {
 
       <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
         <div className="flex items-center">
-          <div className="p-3 bg-orange-100 rounded-full">
-            <Bell className="w-6 h-6 text-orange-600" />
+          <div className="p-3 bg-gray-100 rounded-full">
+            <Bell className="w-6 h-6 text-gray-600" />
           </div>
           <div className="ml-4">
             <p className="text-sm font-medium text-gray-600">Pendientes</p>
@@ -146,7 +146,7 @@ function CreateNotificationForm({
             name="title"
             required
             maxLength={100}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] text-gray-900 bg-white"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] text-gray-900 bg-white"
             placeholder="Ej: Nueva clase disponible"
           />
         </div>
@@ -162,7 +162,7 @@ function CreateNotificationForm({
             required
             maxLength={300}
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] text-gray-900 bg-white"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] text-gray-900 bg-white"
             placeholder="Ej: Se ha abierto una nueva clase para mañana a las 7:00 PM"
           />
         </div>
@@ -194,15 +194,15 @@ function CreateNotificationForm({
           </div>
           
           {/* Nota informativa */}
-          <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
             <div className="flex items-start">
               <div className="flex-shrink-0">
-                <svg className="h-4 w-4 text-blue-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="h-4 w-4 text-gray-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <div className="ml-2">
-                <p className="text-xs text-blue-700">
+                <p className="text-xs text-gray-700">
                   <strong>Nota:</strong> Los envíos masivos (todos los usuarios) no se guardan en el historial para mantener la base de datos optimizada. Solo las notificaciones específicas aparecen en el historial.
                 </p>
               </div>
@@ -237,7 +237,7 @@ function CreateNotificationForm({
                   placeholder="Buscar por nombre o email..."
                   value={searchUser}
                   onChange={(e) => setSearchUser(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D7BAF6] text-gray-900 bg-white"
+                  className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#a75a4a] text-gray-900 bg-white"
                 />
                 {searchUser && (
                   <button
@@ -263,7 +263,7 @@ function CreateNotificationForm({
                         type="checkbox"
                         checked={selectedUsers.includes(user.user_id)}
                         onChange={(e) => handleUserSelection(user.user_id, e.target.checked)}
-                        className="mr-3 h-4 w-4 text-[#D7BAF6] focus:ring-[#D7BAF6] border-gray-300 rounded"
+                        className="mr-3 h-4 w-4 text-[#a75a4a] focus:ring-[#a75a4a] border-gray-300 rounded"
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
@@ -315,7 +315,7 @@ function CreateNotificationForm({
                       return newSelection;
                     });
                   }}
-                  className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors"
+                  className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
                 >
                   Seleccionar visibles
                 </button>
@@ -350,11 +350,11 @@ function CreateNotificationForm({
           <button
             type="submit"
             disabled={isSubmitting || (sendTo === 'specific' && selectedUsers.length === 0)}
-            className="px-6 py-2 bg-[#D7BAF6] text-black rounded-md hover:bg-[#8B7EE6] disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+            className="px-6 py-2 bg-[#e7ceb9] text-[#330601] rounded-md hover:bg-[#a75a4a] disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
           >
             {isSubmitting ? (
               <>
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-[#330601]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
@@ -421,8 +421,8 @@ function NotificationHistory({ notifications }: { notifications: NotificationDat
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       notification.sent 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-yellow-100 text-yellow-800'
+                        ? 'bg-gray-100 text-gray-800' 
+                        : 'bg-gray-100 text-gray-600'
                     }`}>
                       {notification.sent ? 'Enviada' : 'Pendiente'}
                     </span>

@@ -99,13 +99,13 @@ function BikeSelector({
       <div className="text-xs text-gray-600 mb-2">
         Selecciona los spots (disponibles: {availableBikes.length})
       </div>
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 mb-2">
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-2 mb-2">
         <div className="flex items-start">
           <div className="flex-shrink-0">
-            <Bike className="h-3 w-3 text-blue-400 mt-0.5" />
+            <Bike className="h-3 w-3 text-gray-400 mt-0.5" />
           </div>
           <div className="ml-2">
-            <p className="text-xs text-blue-700">
+            <p className="text-xs text-gray-700">
               <strong>Nota:</strong> El layout físico de los spots puedes verlo en la app móvil.
             </p>
           </div>
@@ -124,10 +124,10 @@ function BikeSelector({
               return (
                 <label 
                   key={bike.static_bike_id}
-                  className={`
+                    className={`
                     flex items-center justify-center p-1 text-xs border rounded cursor-pointer transition-colors
                     ${isSelected 
-                      ? 'bg-blue-500 text-white border-blue-500' 
+                      ? 'bg-gray-800 text-white border-gray-800' 
                       : isAvailable || isCurrentlyReserved
                         ? 'bg-gray-50 border-gray-300 hover:bg-gray-100 text-gray-800' 
                         : 'bg-red-50 border-red-300 text-red-500 cursor-not-allowed'
@@ -340,7 +340,7 @@ function CreateReservationModal({
                  <div
                    className={`rounded-full h-8 w-8 flex items-center justify-center text-sm font-semibold relative z-10 ${
                      i <= step
-                       ? 'bg-[#D7BAF6] text-black'
+                       ? 'bg-[#e7ceb9] text-[#330601]'
                        : 'bg-gray-200 text-gray-600'
                    }`}
                  >
@@ -357,13 +357,13 @@ function CreateReservationModal({
              <div className="absolute top-4 left-1/6 right-1/6 flex items-center">
                <div
                  className={`flex-1 h-1 ${
-                   1 < step ? 'bg-[#D7BAF6]' : 'bg-gray-200'
+                   1 < step ? 'bg-[#e7ceb9]' : 'bg-gray-200'
                  }`}
                />
                <div className="w-8"></div>
                <div
                  className={`flex-1 h-1 ${
-                   2 < step ? 'bg-[#D7BAF6]' : 'bg-gray-200'
+                   2 < step ? 'bg-[#e7ceb9]' : 'bg-gray-200'
                  }`}
                />
              </div>
@@ -395,7 +395,7 @@ function CreateReservationModal({
               <input
                 type="text"
                 placeholder="Buscar por nombre, email o teléfono..."
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-[#D7BAF6] focus:border-[#8B7EE6]"
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-[#D7BAF6] focus:border-[#a75a4a]"
                 value={userSearchQuery}
                 onChange={(e) => setUserSearchQuery(e.target.value)}
               />
@@ -430,7 +430,7 @@ function CreateReservationModal({
                 {userSearchQuery && (
                   <button
                     onClick={() => setUserSearchQuery('')}
-                    className="mt-2 text-sm text-[#D7BAF6] hover:underline"
+                    className="mt-2 text-sm text-[#a75a4a] hover:underline"
                   >
                     Limpiar búsqueda
                   </button>
@@ -447,7 +447,7 @@ function CreateReservationModal({
                     onClick={() => setSelectedUser(user)}
                     className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                       selectedUser?.id === user.id
-                        ? 'border-[#8B7EE6] bg-purple-50'
+                        ? 'border-gray-800 bg-gray-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
@@ -460,7 +460,7 @@ function CreateReservationModal({
                         )}
                       </div>
                       <div className="text-right">
-                        <div className="text-lg font-bold text-[#D7BAF6]">
+                        <div className="text-lg font-bold text-[#a75a4a]">
                           {user.activeCredits} créditos
                         </div>
                         <div className="text-xs text-gray-500">
@@ -537,7 +537,7 @@ function CreateReservationModal({
                     onClick={() => setSelectedClass(cls)}
                     className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                       selectedClass?.id === cls.id
-                        ? 'border-[#8B7EE6] bg-purple-50'
+                        ? 'border-gray-800 bg-gray-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
@@ -612,13 +612,13 @@ function CreateReservationModal({
                  <div className="text-sm text-gray-600">
                    Selecciona los spots (disponibles: {availableBikes.length})
                  </div>
-                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-3">
                    <div className="flex items-start">
                      <div className="flex-shrink-0">
-                       <Bike className="h-4 w-4 text-blue-400 mt-0.5" />
+                       <Bike className="h-4 w-4 text-gray-400 mt-0.5" />
                      </div>
                      <div className="ml-2">
-                       <p className="text-xs text-blue-700">
+                       <p className="text-xs text-gray-700">
                          <strong>Nota:</strong> El layout físico de los spots en el estudio puedes verlo en la app móvil.
                        </p>
                      </div>
@@ -637,7 +637,7 @@ function CreateReservationModal({
                             className={`
                               flex items-center justify-center p-2 text-sm border rounded cursor-pointer transition-colors
                               ${isSelected
-                                ? 'bg-[#D7BAF6] text-black border-[#8B7EE6]'
+                                ? 'bg-[#e7ceb9] text-[#330601] border-[#a75a4a]'
                                 : 'bg-gray-50 border-gray-300 hover:bg-gray-100 text-gray-800'
                               }
                             `}
@@ -689,7 +689,7 @@ function CreateReservationModal({
             <button
               onClick={handleClose}
               disabled={loading || isSubmitting}
-              className="px-4 py-2 text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50"
+              className="px-4 py-2 bg-[#8b372d] text-[#e7ceb9] rounded-md hover:bg-[#a75a4a] disabled:opacity-50 transition-colors"
             >
               Cancelar
             </button>
@@ -702,7 +702,7 @@ function CreateReservationModal({
                   (step === 1 && !selectedUser) ||
                   (step === 2 && !selectedClass)
                 }
-                className="px-4 py-2 bg-[#D7BAF6] text-black rounded-md hover:bg-[#8B7EE6] disabled:opacity-50"
+                className="px-4 py-2 bg-[#e7ceb9] text-[#330601] rounded-md hover:bg-[#a75a4a] disabled:opacity-50"
               >
                 Siguiente
               </button>
@@ -710,7 +710,7 @@ function CreateReservationModal({
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting || selectedBikes.length === 0}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+                className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 disabled:opacity-50"
               >
                 {isSubmitting ? 'Creando...' : 'Crear Reservación'}
               </button>
@@ -779,14 +779,14 @@ function EditReservationModal({
           <button
             onClick={() => onSave(reservation.id)}
             disabled={isPending}
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 text-sm"
+            className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 disabled:opacity-50 text-sm"
           >
             {isPending ? 'Guardando...' : 'Guardar'}
           </button>
           <button
             onClick={onCancel}
             disabled={isPending}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 text-sm"
+            className="px-4 py-2 bg-[#8b372d] text-[#e7ceb9] rounded-md hover:bg-[#a75a4a] disabled:opacity-50 text-sm transition-colors"
           >
             Cancelar
           </button>
@@ -1010,7 +1010,7 @@ export default function ReservationsClient({ initialReservations }: { initialRes
           )}
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="px-4 py-2 bg-[#D7BAF6] text-black rounded-md hover:bg-[#8B7EE6] flex items-center"
+            className="px-4 py-2 bg-[#e7ceb9] text-[#330601] rounded-md hover:bg-[#a75a4a] flex items-center"
           >
             <Plus className="w-4 h-4 mr-2" />
             Crear Reservación
@@ -1019,18 +1019,18 @@ export default function ReservationsClient({ initialReservations }: { initialRes
       </div>
 
       {/* Warning sobre modificaciones de reservaciones */}
-      <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+      <div className="mb-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
         <div className="flex items-start">
           <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+            <svg className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
             </svg>
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-yellow-800">
+            <h3 className="text-sm font-medium text-gray-800">
               Importante: Modificaciones de Reservaciones
             </h3>
-            <div className="mt-2 text-sm text-yellow-700">
+            <div className="mt-2 text-sm text-gray-700">
               <p>
                 Al modificar o cancelar reservaciones, el sistema automáticamente:
               </p>
@@ -1081,11 +1081,11 @@ export default function ReservationsClient({ initialReservations }: { initialRes
                 </div>
                 <div className="text-right">
                   <div className="text-sm text-gray-600">
-                    <span className="font-medium text-green-600">{group.confirmedReservations.length}</span> confirmadas
+                    <span className="font-medium text-[#330601]">{group.confirmedReservations.length}</span> confirmadas
                     {hasWaitlist && (
                       <>
                         {' • '}
-                        <span className="font-medium text-orange-600">{group.waitlistReservations.length}</span> en espera
+                        <span className="font-medium text-gray-700">{group.waitlistReservations.length}</span> en espera
                       </>
                     )}
                   </div>
@@ -1096,9 +1096,9 @@ export default function ReservationsClient({ initialReservations }: { initialRes
             {/* Reservaciones Confirmadas */}
             {hasConfirmed && (
               <div>
-                <div className="bg-green-50 px-4 py-2 border-b">
-                  <h3 className="text-sm font-semibold text-green-800 flex items-center">
-                    <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                <div className="bg-[#e7ceb9] px-4 py-2 border-b border-[#d4bfad]">
+                  <h3 className="text-sm font-semibold text-[#330601] flex items-center">
+                    <div className="w-3 h-3 bg-[#a75a4a] rounded-full mr-2"></div>
                     Reservaciones Confirmadas ({group.confirmedReservations.length})
                   </h3>
                 </div>
@@ -1123,14 +1123,14 @@ export default function ReservationsClient({ initialReservations }: { initialRes
                               <button
                                 onClick={() => handleEdit(res)}
                                 disabled={isPending && editingReservationId !== res.id}
-                                className="text-blue-500 hover:text-blue-700 disabled:opacity-50 mr-2 text-xs font-semibold"
+                                className="px-3 py-1 bg-[#e7ceb9] text-[#330601] rounded-md hover:bg-[#a75a4a] hover:text-[#e7ceb9] disabled:opacity-50 disabled:cursor-not-allowed mr-2 text-xs font-semibold transition-colors"
                               >
                                 Editar
                               </button>
                               <button
                                 onClick={() => handleCancel(res.id)}
                                 disabled={isPending && editingReservationId !== res.id}
-                                className="text-red-500 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold"
+                                className="px-3 py-1 bg-[#8b372d] text-[#e7ceb9] rounded-md hover:bg-[#a75a4a] disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold transition-colors"
                               >
                                 {isPending && !editingReservationId ? 'Cancelando...' : 'Cancelar'}
                               </button>
@@ -1147,9 +1147,9 @@ export default function ReservationsClient({ initialReservations }: { initialRes
             {/* Lista de Espera (Waitlist) */}
             {hasWaitlist && (
               <div>
-                <div className="bg-purple-50 px-4 py-2 border-b">
-                  <h3 className="text-sm font-semibold text-orange-800 flex items-center">
-                    <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
+                <div className="bg-gray-50 px-4 py-2 border-b">
+                  <h3 className="text-sm font-semibold text-gray-800 flex items-center">
+                    <div className="w-3 h-3 bg-gray-500 rounded-full mr-2"></div>
                     Lista de Espera ({group.waitlistReservations.length})
                     {/* <span className="ml-2 text-xs text-orange-600 font-normal">
                       (en orden de llegada)
@@ -1159,7 +1159,7 @@ export default function ReservationsClient({ initialReservations }: { initialRes
                 <div className="overflow-x-auto">
                   <table className="min-w-full leading-normal">
                                          <thead>
-                       <tr className="bg-purple-50 text-orange-700 uppercase text-sm leading-tight">
+                       <tr className="bg-gray-50 text-gray-700 uppercase text-sm leading-tight">
                          <th className="py-2 px-4 text-center w-16">#</th>
                          <th className="py-2 px-4 text-left">Nombre Usuario</th>
                          <th className="py-2 px-4 text-left">Email Usuario</th>
@@ -1169,14 +1169,14 @@ export default function ReservationsClient({ initialReservations }: { initialRes
                      </thead>
                      <tbody className="text-gray-700 text-sm">
                        {group.waitlistReservations.map((res, index) => (
-                         <tr key={res.id} className="border-b border-orange-100 hover:bg-purple-50/50">
-                           <td className="py-2 px-4 text-center font-bold text-orange-600">
+                         <tr key={res.id} className="border-b border-gray-200 hover:bg-gray-50/50">
+                           <td className="py-2 px-4 text-center font-bold text-gray-700">
                              {index + 1}
                            </td>
                            <td className="py-2 px-4 text-left">{res.users?.name ?? 'N/D'}</td>
                            <td className="py-2 px-4 text-left">{res.users?.email ?? 'N/D'}</td>
                            <td className="py-2 px-4 text-center">
-                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                                En espera
                              </span>
                            </td>
@@ -1184,7 +1184,7 @@ export default function ReservationsClient({ initialReservations }: { initialRes
                              <button
                                onClick={() => handleLeaveWaitlist(res)}
                                disabled={leavingWaitlistId === res.id}
-                               className="text-red-500 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold"
+                               className="px-3 py-1 bg-[#8b372d] text-[#e7ceb9] rounded-md hover:bg-[#a75a4a] disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold transition-colors"
                              >
                                {leavingWaitlistId === res.id ? 'Cancelando...' : 'Cancelar'}
                              </button>
@@ -1196,15 +1196,15 @@ export default function ReservationsClient({ initialReservations }: { initialRes
                 </div>
                 
                 {/* Información adicional sobre el waitlist */}
-                <div className="bg-purple-50 px-4 py-3 border-t border-orange-100">
+                <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
                   <div className="flex items-start">
                     <div className="flex-shrink-0">
-                      <svg className="h-4 w-4 text-orange-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="h-4 w-4 text-gray-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
                     <div className="ml-2">
-                      <p className="text-xs text-orange-700">
+                      <p className="text-xs text-gray-700">
                         <strong>Info:</strong> Si alguien cancela su reserva confirmada, la primera persona en lista de espera será automáticamente promovida y notificada.
                       </p>
                     </div>

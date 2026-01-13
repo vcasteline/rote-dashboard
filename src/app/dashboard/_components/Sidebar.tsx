@@ -31,8 +31,8 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-[#1d1d1b] text-white p-4 flex flex-col">
-      <Image src="/hundred-logo.png" alt="Hundred Logo" className='my-9 mx-auto' width={200} height={200} />
+    <aside className="w-64 bg-[#863010] text-[#e7ceb9] p-4 flex flex-col">
+      <Image src="/rote-logo.png" alt="RÔTÈ Logo" className='my-9 mx-auto' width={150} height={150} />
       <nav className="flex-grow">
         <ul>
           {menuItems.map((item) => {
@@ -44,8 +44,8 @@ export default function Sidebar() {
                   href={item.href} 
                   className={`flex items-center py-2 px-3 rounded transition-colors ${
                     isActive 
-                      ? 'bg-[#D7BAF6] text-black font-medium border-l-4 border-[#8B7EE6]' 
-                      : 'hover:bg-gray-700'
+                      ? 'bg-[#e7ceb9] text-[#330601] font-medium border-l-4 border-[#a75a4a]' 
+                      : 'hover:bg-[#8b372d] text-[#e7ceb9]'
                   }`}
                 >
                   <IconComponent size={20} className="mr-3" />

@@ -250,7 +250,7 @@ export default function ScheduleClient({
                   name="class_name"
                   value={editClassName}
                   onChange={(e) => setEditClassName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500 bg-white text-gray-900"
                   placeholder="Ej: Ciclismo Matutino"
                 />
               </div>
@@ -361,7 +361,7 @@ export default function ScheduleClient({
                 <button
                   type="submit"
                   disabled={isEditing}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isEditing ? 'Actualizando...' : 'Actualizar'}
                 </button>
@@ -406,7 +406,7 @@ export default function ScheduleClient({
               <button
                 onClick={handleConfirmDelete}
                 disabled={isPending}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isPending ? 'Eliminando...' : 'Eliminar'}
               </button>
@@ -438,7 +438,7 @@ export default function ScheduleClient({
       {/* Sección para Generar Clases Semanales */}
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
         <h2 className="text-xl font-semibold mb-4 text-gray-800 flex items-center">
-          <div className="w-3 h-3 bg-[#D7BAF6] rounded-full mr-3"></div>
+          <div className="w-3 h-3 bg-[#e7ceb9] rounded-full mr-3"></div>
           Generar Clases Semanales
         </h2>
         <p className="mb-6 text-gray-600 leading-relaxed">
@@ -463,7 +463,7 @@ export default function ScheduleClient({
           {/* <button
             onClick={handleGenerateSchedule}
             disabled={isGenerating}
-            className="px-6 py-3 bg-[#D7BAF6] text-black font-medium rounded-lg hover:bg-[#8B7EE6] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+            className="px-6 py-3 bg-[#e7ceb9] text-[#330601] font-medium rounded-lg hover:bg-[#a75a4a] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
           >
             {isGenerating ? (
               <div className="flex items-center">
@@ -486,16 +486,16 @@ export default function ScheduleClient({
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-            <div className="w-3 h-3 bg-[#D7BAF6] rounded-full mr-3"></div>
+            <div className="w-3 h-3 bg-[#e7ceb9] rounded-full mr-3"></div>
             Horario Semanal por Defecto
           </h2>
         </div>
 
         {/* Formulario para Añadir Entrada */}
         <div className="p-6">
-          <form action={handleAddEntry} className="mb-6 p-6 border border-gray-200 rounded-lg bg-gradient-to-r from-gray-50 to-white shadow-sm">
+          <form action={handleAddEntry} className="mb-6 p-6 border border-gray-200 rounded-lg bg-white shadow-sm">
              <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-               <div className="w-2 h-2 bg-[#D7BAF6] rounded-full mr-3"></div>
+               <div className="w-2 h-2 bg-[#e7ceb9] rounded-full mr-3"></div>
                Añadir Nueva Entrada
              </h3>
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
@@ -507,7 +507,7 @@ export default function ScheduleClient({
                           name="class_name"
                           value={className}
                           onChange={(e) => setClassName(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500 bg-white text-gray-900"
                           placeholder="Ej: Ciclismo Matutino"
                       />
                   </div>
@@ -601,7 +601,7 @@ export default function ScheduleClient({
                <button
                     type="submit"
                     disabled={isAdding}
-                    className="px-6 py-2 bg-[#D7BAF6] text-black font-medium rounded-lg hover:bg-[#8B7EE6] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                    className="px-6 py-2 bg-[#e7ceb9] text-[#330601] font-medium rounded-lg hover:bg-[#a75a4a] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                 >
                     {isAdding ? (
                       <div className="flex items-center">
@@ -663,7 +663,7 @@ export default function ScheduleClient({
                             <button
                               onClick={() => handleEditEntry(entry)}
                               disabled={isPending}
-                              className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                              className="inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
                               aria-label="Editar entrada"
                             >
                               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -674,7 +674,7 @@ export default function ScheduleClient({
                             <button
                               onClick={() => handleDeleteEntry(entry.id)}
                               disabled={isPending}
-                              className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                              className="inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
                               aria-label="Eliminar entrada"
                             >
                               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
