@@ -24,7 +24,7 @@ function getCapacityByModality(modality: string | null | undefined): number | nu
   if (!modality) return null;
   
   const capacityMap: Record<string, number> = {
-    'cycle': 25,
+    'cycle': 20,
     'resilience': 10,
     'pilates': 12,
   };

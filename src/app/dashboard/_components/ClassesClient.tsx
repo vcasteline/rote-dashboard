@@ -278,17 +278,17 @@ function AddClassModal({
             </div>
           )}
 
-          {/* Modalidad siempre es 'cycle' con capacidad 25 */}
+          {/* Modalidad siempre es 'cycle' con capacidad 20 */}
           <input type="hidden" name="modality" value="cycle" />
           <div>
             <label className="block text-sm font-medium text-[#5d241d] mb-1">
               Modalidad
             </label>
             <div className="w-full px-3 py-2 border border-[#d4bfad] rounded-md bg-[#f5ebe3] text-[#330601]">
-              Cycle (Capacidad: 25)
+              Cycle (Capacidad: 20)
             </div>
             <p className="text-xs text-[#8a6b63] mt-1">
-              Capacidad automática: 25 espacios
+              Capacidad automática: 20 espacios
             </p>
           </div>
 

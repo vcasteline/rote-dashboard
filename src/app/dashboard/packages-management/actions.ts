@@ -32,7 +32,10 @@ export async function addPackage(formData: FormData) {
   }
 
   try {
-    const { error } = await supabase.from('packages').insert([validatedFields.data]);
+    const { error } = await supabase.from('packages').insert([{
+      ...validatedFields.data,
+      credit_type: 'universal'
+    }]);
 
     if (error) {
       console.error('Error inserting package:', error);
